@@ -1,0 +1,65 @@
+/* ============================================================
+   DistilleryEntry.css — Light Data Entry Styling
+   ============================================================ */
+
+@import './premium_reports.css';
+
+.report-container-premium {
+    min-height: 100vh;
+    padding-bottom: 4rem;
+}
+
+/* Custom layout for the multi-section form */
+.form-grid-premium {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Specific focus states for this form */
+.filter-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.btn-search-premium.commit-btn {
+    background: var(--primary);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    min-height: 50px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: var(--font);
+    font-weight: 600;
+}
+
+.btn-search-premium.commit-btn:hover {
+    background: var(--primary-dark);
+}
+
+.aggregate-banner {
+    background: var(--primary-light);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    display: flex;
+    justify-content: space-around;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+}
+
+.aggregate-item {
+    text-align: center;
+}
+
+.aggregate-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.aggregate-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+}

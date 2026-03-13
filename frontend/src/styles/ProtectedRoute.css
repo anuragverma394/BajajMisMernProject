@@ -1,0 +1,13 @@
+/* ProtectedRoute styles */
+@import './base.css';;
+
+.protected-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: var(--bg-page);
+    font-family: var(--font);
+    font-size: 14px;
+    color: var(--text-mid);
+}

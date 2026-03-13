@@ -1,0 +1,212 @@
+/* Lab Module CSS */
+@import './base.css';
+;
+
+.lab-container {
+    width: 100%;
+    padding: 16px;
+    background: var(--bg-page);
+    min-height: calc(100vh - 130px);
+}
+
+/* Card */
+.lab-card {
+    background: #fff;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 14px;
+}
+
+.lab-card-header {
+    background: var(--primary);
+    color: #fff;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.lab-card-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    margin: 0;
+}
+
+.lab-card-content {
+    padding: 16px;
+}
+
+/* Form grid */
+.lab-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.lab-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.lab-form-group label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-mid);
+}
+
+.lab-form-control {
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-family: var(--font);
+    color: var(--text-dark);
+    width: 100%;
+    outline: none;
+}
+
+.lab-form-control:focus {
+    border-color: var(--primary);
+}
+
+/* Buttons */
+.lab-btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.lab-btn {
+    padding: 7px 18px;
+    border-radius: var(--radius);
+    font-weight: 500;
+    font-size: 13px;
+    cursor: pointer;
+    border: none;
+    font-family: var(--font);
+}
+
+.lab-btn-primary {
+    background: var(--primary);
+    color: #18de50;
+}
+
+.lab-btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+.lab-btn-secondary {
+    background: #fff;
+    color: var(--text-dark);
+    border: 1px solid var(--border);
+}
+
+.lab-btn-secondary:hover {
+    background: #f5f5f5;
+}
+
+.lab-btn-danger {
+    background: var(--danger);
+    color: #fff;
+}
+
+.lab-btn-danger:hover {
+    background: #a01830;
+}
+
+/* Table */
+.lab-table-container {
+    overflow-x: auto;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    background: #fff;
+}
+
+.lab-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.lab-table th {
+    background: var(--primary);
+    color: #fff;
+    padding: 10px 12px;
+    font-weight: 500;
+    font-size: 12px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.lab-table td {
+    padding: 9px 12px;
+    color: var(--text-dark);
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+}
+
+.lab-table tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+.lab-table tr:hover {
+    background: var(--primary-light);
+}
+
+/* Badge */
+.lab-badge {
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.lab-badge-info {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+/* Hub grid (Dashboard) */
+.lab-hub-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+}
+
+.lab-hub-card {
+    background: #fff;
+    padding: 16px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-light);
+    cursor: pointer;
+}
+
+.lab-hub-card:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+
+.lab-hub-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--primary-light);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.lab-hub-card:hover .lab-hub-icon {
+    background: var(--primary);
+    color: #fff;
+}

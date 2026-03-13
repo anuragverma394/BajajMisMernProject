@@ -1,0 +1,223 @@
+@import './base.css';
+;
+
+/* Premium Styles for AddStopage.jsx */
+
+.stoppage-entry-wrapper {
+    padding: 2.5rem 1.5rem;
+    max-width: 900px;
+    margin: 0 auto;
+    min-height: 100vh;
+}
+
+.stoppage-premium-card {
+    background: white;
+    border-radius: 1.5rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.stoppage-header {
+    background: linear-gradient(135deg, #38dea7 0%, #37f3ae 100%);
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stoppage-header h2 {
+    color: #333;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.stoppage-form-body {
+    padding: 2.5rem;
+}
+
+.stoppage-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.premium-label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #475569;
+    margin-bottom: 0.75rem;
+}
+
+.premium-label .required {
+    color: #1de199;
+}
+
+.premium-select,
+.premium-textarea {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.875rem;
+    font-size: 0.9375rem;
+    background: #f8fafc;
+    color: #0f172a;
+    transition: all 0.3s ease;
+}
+
+.premium-select:focus,
+.premium-textarea:focus {
+    outline: none;
+    background: white;
+    border-color: #1de1c4;
+    box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.1);
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.premium-radio-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #f8fafc;
+}
+
+.premium-radio-card:hover {
+    border-color: #fda4af;
+    background: #fff1f2;
+}
+
+.premium-radio-card.active {
+    border-color: #1de185;
+    background: #fff1f2;
+    box-shadow: 0 4px 6px -1px rgba(225, 29, 72, 0.05);
+}
+
+.premium-radio-card input {
+    width: 1.25rem;
+    height: 1.25rem;
+    accent-color: #1de185;
+}
+
+.premium-radio-card span {
+    font-weight: 600;
+    color: #334155;
+}
+
+.stoppage-actions {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.btn-premium-red {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 2rem;
+    background: #1de185;
+    color: #333;
+    border-radius: 1rem;
+    font-weight: 700;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(225, 29, 72, 0.2);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.875rem;
+}
+
+.btn-premium-red:hover {
+    background: #1de185;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(225, 29, 72, 0.3);
+}
+
+.btn-premium-rose {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 2rem;
+    background: #1de199;
+    color: #333;
+    border-radius: 1rem;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-premium-rose:hover {
+    background: #1de199;
+    transform: translateY(-2px);
+}
+
+.btn-premium-slate {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 2rem;
+    background: #64748b;
+    color: #333;
+    border-radius: 1rem;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+.btn-premium-slate:hover {
+    background: #e6e8eb;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-slide-up {
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (max-width: 640px) {
+    .stoppage-form-body {
+        padding: 1.5rem;
+    }
+
+    .stoppage-actions {
+        flex-direction: column;
+    }
+
+    .btn-premium-slate {
+        margin-left: 0;
+    }
+}

@@ -1,0 +1,60 @@
+.masv-page {
+  width: 100%;
+}
+
+.masv-main-header {
+  text-transform: uppercase;
+}
+
+.masv-panel {
+  width: 100%;
+}
+
+.masv-panel__title {
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.masv-panel__body {
+  width: 100%;
+}
+
+.masv-table-wrap {
+  overflow-x: auto;
+}
+
+.masv-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.masv-table th,
+.masv-table td {
+  padding: 8px;
+  border: 1px solid #d0d0d0;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.masv-empty {
+  text-align: center;
+}
+
+.masv-link-btn {
+  border: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  color: #0b63ce;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  box-shadow: none !important;
+}
+
+.masv-link-btn:hover,
+.masv-link-btn:focus,
+.masv-link-btn:active {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: #0b63ce !important;
+}

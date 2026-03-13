@@ -1,0 +1,217 @@
+/* Report Module CSS */
+
+/* Report-specific overrides */
+.report-container {
+    width: 100%;
+    padding: 20px;
+    background: var(--bg-page);
+    min-height: calc(100vh - 130px);
+}
+
+/* Legacy class aliases — maps old class names to new design system */
+.report-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 16px;
+    width: 100%;
+}
+
+.report-card-header {
+    background: var(--primary);
+    color: #fff;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.report-card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+}
+
+.report-card-content {
+    padding: 16px;
+}
+
+.report-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.report-form-group label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-mid);
+}
+
+.report-form-control {
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-family: var(--font);
+    outline: none;
+    width: 100%;
+}
+
+.report-form-control:focus {
+    border-color: var(--primary);
+}
+
+.report-btn {
+    padding: 7px 18px;
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    border: none;
+    font-family: var(--font);
+}
+
+.report-btn-primary {
+    background: var(--primary);
+    color: #fff;
+}
+
+.report-btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+.report-btn-secondary {
+    background: #f5f5f5;
+    color: var(--text-dark);
+    border: 1px solid var(--border);
+}
+
+.report-btn-success {
+    background: var(--success);
+    color: #fff;
+}
+
+.report-btn-success:hover {
+    background: #388e3c;
+}
+
+.report-table-container {
+    overflow-x: auto;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.report-table th {
+    background: var(--primary);
+    color: #fff;
+    padding: 10px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.report-table td {
+    padding: 9px 12px;
+    color: var(--text-dark);
+    border-bottom: 1px solid #eee;
+}
+
+.report-table tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+.report-table tr:hover {
+    background: var(--primary-light);
+}
+
+/* Status indicators */
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-radius: var(--radius);
+    background: #f5f5f5;
+}
+
+.bulb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+}
+
+.bulb-green {
+    background: var(--success);
+}
+
+.bulb-red {
+    background: var(--danger);
+}
+
+/* Extras needed for CrushingReport.jsx */
+.dn-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--bg-card);
+    padding: 15px 20px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-light);
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.dn-page-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 0;
+}
+
+.dn-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.dn-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 1024px) {
+
+    .dn-grid-4,
+    .dn-grid-3 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+
+    .dn-grid-4,
+    .dn-grid-3 {
+        grid-template-columns: 1fr;
+    }
+}
+
+.dn-card.blue .dn-card-header {
+    background-color: #3490dc;
+}
+
+.dn-card.red .dn-card-header {
+    background-color: #e3342f;
+}

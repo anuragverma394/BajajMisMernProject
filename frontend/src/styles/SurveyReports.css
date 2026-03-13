@@ -1,0 +1,175 @@
+/* ============================================================
+   SurveyReports.css — Light Professional Analytics
+   ============================================================ */
+
+@import './base.css';
+
+.survey-report-root {
+    padding: 1.5rem;
+    background: var(--bg-page, #f0f0e8);
+    min-height: 100vh;
+}
+
+.survey-report-container {
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.survey-report-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow, 0 1px 4px rgba(0, 0, 0, 0.08));
+    border: 1px solid var(--border-light, #e0e0e0);
+    overflow: hidden;
+}
+
+.survey-report-header {
+    background: #ffffff;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-dark, #333);
+    border-bottom: 2px solid var(--primary, #43ab98);
+}
+
+.survey-report-header h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--primary, #43ab98);
+}
+
+.survey-report-body {
+    padding: 1.5rem;
+}
+
+.survey-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.survey-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-mid, #2f2f2f);
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.survey-input {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border, #ccc);
+    border-radius: 6px;
+    background: #fff;
+    font-size: 13px;
+    color: var(--text-dark, #333);
+    transition: all 0.2s;
+    font-family: var(--font);
+}
+
+.survey-input:focus {
+    border-color: var(--primary, #43ab98);
+    background: white;
+    box-shadow: 0 0 0 3px var(--primary-light, #e0f0ec);
+    outline: none;
+}
+
+.survey-actions {
+    display: flex;
+    gap: 0.75rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border-light, #e0e0e0);
+}
+
+.btn-survey {
+    padding: 0.6rem 1.25rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    border: 1px solid var(--border, #ccc);
+    background: #fff;
+    color: var(--text-mid, #2f2f2f);
+    font-family: var(--font);
+}
+
+.btn-survey-primary {
+    background: var(--primary, #43ab98);
+    color: white;
+    border: none;
+}
+
+.btn-survey-primary:hover {
+    background: var(--primary-dark, #14806c);
+    transform: translateY(-1px);
+}
+
+.btn-survey-secondary:hover {
+    background: var(--primary-light, #e0f0ec);
+    border-color: var(--primary, #43ab98);
+    color: var(--primary, #43ab98);
+}
+
+.survey-table-wrapper {
+    margin-top: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-light, #e0e0e0);
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.survey-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    font-family: var(--font);
+}
+
+.survey-table th {
+    background: var(--primary, #43ab98);
+    padding: 0.75rem;
+    text-align: center;
+    font-weight: 600;
+    color: #ffffff;
+    border-bottom: 2px solid var(--primary-dark, #14806c);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    position: sticky;
+    top: 0;
+    text-transform: uppercase;
+    font-size: 11px;
+}
+
+.survey-table td {
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid #f0f0f0;
+    border-right: 1px solid #f0f0f0;
+    color: var(--text-dark, #333);
+    text-align: center;
+}
+
+.survey-table tr:hover {
+    background: var(--primary-light, #e0f0ec);
+}
+
+.total-row {
+    background: #fafafa;
+    font-weight: 700;
+}
+
+.total-row td {
+    color: var(--primary, #43ab98);
+    border-top: 2px solid var(--border-light, #e0e0e0);
+}

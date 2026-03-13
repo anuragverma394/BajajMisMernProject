@@ -1,0 +1,91 @@
+@import './base.css';
+
+.bcm-page {
+  width: 100%;
+}
+
+.bcm-header {
+  text-transform: uppercase;
+}
+
+.bcm-panel {
+  border: 1px solid #cddbbf;
+  border-radius: 4px;
+  background: #f5f5f5;
+  overflow: hidden;
+}
+
+.bcm-panel-title {
+  background: #c9d9c4;
+  color: #2f6f5d;
+  font-size: 20px;
+  font-weight: 500;
+  padding: 12px 16px;
+}
+
+.bcm-panel-body {
+  padding: 14px 16px;
+}
+
+.bcm-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 420px));
+  gap: 16px 24px;
+}
+
+.bcm-cards-grid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(260px, 1fr));
+  gap: 16px 20px;
+}
+
+.bcm-card {
+  border: 1px solid #cddbbf;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bcm-card-title {
+  background: #c9d9c4;
+  color: #2f6f5d;
+  font-size: 20px;
+  font-weight: 500;
+  padding: 10px 16px;
+}
+
+.bcm-card-body {
+  padding: 12px 16px 14px;
+}
+
+.bcm-three {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+.bcm-actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 6px;
+}
+
+@media (max-width: 1400px) {
+  .bcm-meta-grid {
+    grid-template-columns: repeat(3, minmax(200px, 1fr));
+  }
+
+  .bcm-cards-grid {
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .bcm-meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bcm-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,286 @@
+/* ============================================================
+   premium_reports.css — High-end styles for Bajaj MERN Reports
+   Designed for: Effected Cane Area, Lab Reports, WhatsApp Reports
+   ============================================================ */
+
+/* ── Header ────────────────────────────────────────────── */
+.report-header-premium {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 2rem;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--primary);
+}
+
+.icon-box-premium {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+.report-title-premium {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0;
+    font-family: var(--font);
+}
+
+.report-subtitle-premium {
+    font-size: 0.75rem;
+    color: var(--text-mid);
+    margin: 0.1rem 0 0;
+    font-weight: 400;
+}
+
+/* ── Filter Card ───────────────────────────────────────── */
+.filter-card-premium {
+    background: #ffffff;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow);
+}
+
+.filter-grid-premium {
+    display: grid;
+    gap: 1.5rem;
+    align-items: flex-end;
+}
+
+.filter-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-mid);
+    margin-bottom: 0.35rem;
+}
+
+.filter-input {
+    width: 100%;
+    padding: 0.6rem 0.875rem;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--text-dark);
+    font-weight: 400;
+    transition: all 0.2s;
+}
+
+.filter-input:focus {
+    background: #ffffff;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+    outline: none;
+}
+
+/* ── Buttons ───────────────────────────────────────────── */
+.btn-action-premium {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    border: 1px solid var(--border);
+    background: #ffffff;
+    color: var(--text-mid);
+}
+
+.btn-action-premium:hover:not(:disabled) {
+    background: var(--primary-light);
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: translateY(-1px);
+}
+
+.btn-search-premium {
+    padding: 0.6rem 1.25rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.btn-search-premium.btn-success {
+    background: var(--primary);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-search-premium:hover:not(:disabled) {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+/* ── Table ─────────────────────────────────────────────── */
+.table-wrapper-premium {
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow);
+}
+
+.table-premium {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-premium th {
+    background: #f9fafb;
+    padding: 0.75rem 1rem;
+    font-size: 12px;
+    font-weight: 500;
+    color: #6b7280;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: center;
+}
+
+.table-premium td {
+    padding: 0.75rem 1rem;
+    font-size: 13px;
+    color: var(--text-dark);
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+
+.table-premium tbody tr:hover {
+    background-color: var(--primary-light);
+}
+
+.aggregate-box {
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.aggregate-value {
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.aggregate-label {
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+/* ── Empty State ───────────────────────────────────────── */
+.empty-state-premium {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-icon-box {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.5;
+}
+
+.empty-title {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #475569;
+    margin-bottom: 0.5rem;
+}
+
+.empty-subtitle {
+    font-size: 0.875rem;
+    color: #94a3b8;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* ── Legacy HTML Support ───────────────────────────────── */
+/* Targets tables returned as raw HTML from the backend */
+[dangerouslySetInnerHTML] table,
+#distillery-report-printable table {
+    width: 100% !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    margin-top: 1rem;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+[dangerouslySetInnerHTML] th,
+#distillery-report-printable th {
+    background: var(--primary) !important;
+    color: #ffffff !important;
+    padding: 0.75rem !important;
+    font-size: 12px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.025em !important;
+    border: none !important;
+}
+
+[dangerouslySetInnerHTML] td,
+#distillery-report-printable td {
+    padding: 0.75rem !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+    color: var(--text-mid) !important;
+    font-size: 13px !important;
+    background: #ffffff !important;
+}
+
+[dangerouslySetInnerHTML] tr:nth-child(even) td,
+#distillery-report-printable tr:nth-child(even) td {
+    background: #fafafa !important;
+}
+
+[dangerouslySetInnerHTML] tr:hover td,
+#distillery-report-printable tr:hover td {
+    background: var(--primary-light) !important;
+}
+
+/* ── Specific Overrides for RoEXId ── */
+#RoEXId {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* ── Animations ────────────────────────────────────────── */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-in {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+}

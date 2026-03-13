@@ -1,0 +1,295 @@
+﻿@import './base.css';
+
+/* Premium Styles for SugarBagProducedView.jsx */
+
+.bag-view-root {
+    padding: 2.5rem;
+    min-height: 100vh;
+    background: #f8fafc;
+}
+
+.bag-view-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.bag-header-card {
+    background: white;
+    border-radius: 1.5rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.bag-card-header-flex {
+    background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+}
+
+.bag-view-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.btn-add-new {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-add-new:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.bag-filter-section {
+    padding: 2rem;
+}
+
+.bag-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+    align-items: flex-end;
+}
+
+.bag-field-group label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.bag-select-control,
+.bag-input-control {
+    width: 100%;
+    height: 42px;
+    padding: 0 1rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    background: white;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.bag-select-control:focus,
+.bag-input-control:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.bag-actions-group {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-search-bag {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 0 1.5rem;
+    height: 42px;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-search-bag:hover {
+    background: #1d4ed8;
+}
+
+.btn-exit-bag {
+    background: white;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    padding: 0 1.5rem;
+    height: 42px;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-exit-bag:hover {
+    background: #f1f5f9;
+}
+
+.bag-loading-state {
+    padding: 4rem;
+    text-align: center;
+}
+
+.bag-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f1f5f9;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: rotate 1s linear infinite;
+    display: inline-block;
+}
+
+@keyframes rotate {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.bag-loading-msg {
+    margin-top: 1rem;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.bag-table-wrapper {
+    overflow-x: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+}
+
+.bag-premium-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+}
+
+.bag-premium-table th {
+    background: #f8fafc;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.bag-premium-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    white-space: nowrap;
+}
+
+.th-blue {
+    color: #0ea5e9;
+}
+
+.th-indigo {
+    color: #6366f1;
+}
+
+.th-amber {
+    color: #f59e0b;
+}
+
+.th-rose {
+    color: #f43f5e;
+}
+
+.th-total {
+    background: #f1f5f9 !important;
+    font-weight: 800;
+}
+
+.td-blue {
+    background: rgba(14, 165, 233, 0.03);
+}
+
+.td-indigo {
+    background: rgba(99, 102, 241, 0.03);
+}
+
+.td-amber {
+    background: rgba(245, 158, 11, 0.03);
+}
+
+.td-rose {
+    background: rgba(244, 63, 94, 0.03);
+}
+
+.td-total {
+    background: #f8fafc;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.bag-time-cell {
+    font-weight: 800;
+    color: #0369a1;
+}
+
+.user-token {
+    background: #f1f5f9;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.btn-edit-row {
+    background: none;
+    border: none;
+    color: #2563eb;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: color 0.2s;
+}
+
+.btn-edit-row:hover {
+    color: #1d4ed8;
+}
+
+.bag-empty-state {
+    padding: 5rem;
+    text-align: center;
+    background: #f8fafc;
+    border: 2px dashed #e2e8f0;
+    border-radius: 1.5rem;
+}
+
+.bag-empty-icon {
+    font-size: 3rem;
+    color: #cbd5e1;
+    margin-bottom: 1.5rem;
+}
+
+.bag-empty-title {
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+.th-center,
+.td-center {
+    text-align: center !important;
+}
+
+@media (max-width: 768px) {
+    .bag-actions-group {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}

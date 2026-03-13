@@ -1,0 +1,130 @@
+/* Tracking Module CSS */
+@import './base.css';;
+
+.tracking-container {
+    width: 100%;
+    padding: 16px;
+    background: var(--bg-page);
+    min-height: calc(100vh - 130px);
+}
+
+.tracking-card {
+    background: #fff;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 14px;
+}
+
+.tracking-card-header {
+    background: var(--primary);
+    color: #fff;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.tracking-card-content {
+    padding: 16px;
+}
+
+.tracking-map-container {
+    width: 100%;
+    height: 500px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.tracking-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.tracking-form-group label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-mid);
+}
+
+.tracking-form-control {
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 13px;
+    width: 100%;
+    outline: none;
+}
+
+.tracking-form-control:focus {
+    border-color: var(--primary);
+}
+
+.tracking-btn-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.tracking-btn {
+    padding: 7px 18px;
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    border: none;
+    font-family: var(--font);
+}
+
+.tracking-btn-primary {
+    background: var(--primary);
+    color: #fff;
+}
+
+.tracking-btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+.tracking-btn-secondary {
+    background: #fff;
+    color: var(--text-dark);
+    border: 1px solid var(--border);
+}
+
+.tracking-table-container {
+    overflow-x: auto;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+}
+
+.tracking-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.tracking-table th {
+    background: var(--primary);
+    color: #fff;
+    padding: 10px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.tracking-table td {
+    padding: 9px 12px;
+    color: var(--text-dark);
+    border-bottom: 1px solid #eee;
+}
+
+.tracking-table tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+.tracking-table tr:hover {
+    background: var(--primary-light);
+}

@@ -1,0 +1,85 @@
+@import './base.css';
+
+.abv-page {
+  width: 100%;
+}
+
+.abv-title {
+  text-align: center;
+  font-size: 15px;
+}
+
+.abv-panel {
+  border: 1px solid #cddbbf;
+  border-radius: 4px;
+  background: #f5f5f5;
+  overflow: hidden;
+}
+
+.abv-panel-body {
+  padding: 16px;
+}
+
+.abv-filter-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 420px);
+  gap: 16px 24px;
+}
+
+.abv-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.abv-table-wrap {
+  margin-top: 14px;
+  border: 1px solid #a8c49b;
+  overflow: auto;
+  max-height: 420px;
+  background: #fff;
+}
+
+.abv-table {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: collapse;
+}
+
+.abv-table th {
+  background: #c9d9c4;
+  color: #1f2937;
+  border: 1px solid #a8c49b;
+  padding: 8px 14px;
+  text-align: left;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.abv-table td {
+  border: 1px solid #a8c49b;
+  padding: 8px 14px;
+  background: #fff;
+  white-space: nowrap;
+}
+
+.abv-link {
+  border: 0 !important;
+  background: transparent !important;
+  color: #4f46e5;
+  text-align: left;
+  padding: 0;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.abv-empty {
+  text-align: center;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .abv-filter-grid {
+    grid-template-columns: 1fr;
+  }
+}

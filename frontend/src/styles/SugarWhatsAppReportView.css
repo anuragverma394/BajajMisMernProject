@@ -1,0 +1,314 @@
+﻿/* SugarWhatsAppReportView.css */
+@import './base.css';
+
+.wa-view-root {
+    min-height: 100vh;
+    padding: 2rem;
+    background-color: #f8fafc;
+}
+
+.wa-view-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.wa-search-section {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.wa-view-header {
+    background: linear-gradient(135deg, #ea580c, #d97706);
+    padding: 1rem 1.5rem;
+}
+
+.wa-view-header-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: white;
+}
+
+.wa-view-header-content i {
+    font-size: 1.25rem;
+}
+
+.wa-view-header-content h2 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.wa-search-card-body {
+    padding: 1.5rem;
+}
+
+.wa-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.wa-input-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.wa-input-wrapper label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.wa-input-wrapper label span {
+    color: #ef4444;
+}
+
+.wa-search-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    font-size: 0.875rem;
+    background: #f8fafc;
+    transition: all 0.2s;
+}
+
+.wa-search-input:focus {
+    outline: none;
+    border-color: #ea580c;
+    box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+    background: #fff;
+}
+
+.wa-view-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.btn-wa-view-search,
+.btn-wa-view-add,
+.btn-wa-view-exit {
+    padding: 0.625rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-wa-view-search {
+    background: #ea580c;
+    color: white;
+}
+
+.btn-wa-view-search:hover {
+    background: #c2410c;
+}
+
+.btn-wa-view-add {
+    background: #d97706;
+    color: white;
+}
+
+.btn-wa-view-add:hover {
+    background: #b45309;
+}
+
+.btn-wa-view-exit {
+    margin-left: auto;
+    background: #64748b;
+    color: white;
+}
+
+.btn-wa-view-exit:hover {
+    background: #475569;
+}
+
+/* Results Section */
+.wa-results-section {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    animation: slideUp 0.5s ease-out;
+}
+
+.wa-table-scroll-wrapper {
+    overflow-x: auto;
+}
+
+.wa-log-table {
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap;
+}
+
+.wa-log-table thead th {
+    padding: 0.75rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #475569;
+    background: #f1f5f9;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.th-date {
+    text-align: left;
+    width: 120px;
+    border-right: 1px solid #e2e8f0;
+}
+
+.th-crush {
+    background: rgba(234, 88, 12, 0.05) !important;
+    color: #9a3412 !important;
+}
+
+.th-bagging {
+    background: rgba(217, 119, 6, 0.05) !important;
+    color: #92400e !important;
+}
+
+.th-stats {
+    background: rgba(225, 29, 72, 0.05) !important;
+    color: #9f1239 !important;
+}
+
+.th-actions {
+    text-align: center;
+    width: 100px;
+}
+
+.th-sub th {
+    padding: 0.5rem 1rem !important;
+    font-size: 10px !important;
+}
+
+.border-r {
+    border-right: 1px solid #e2e8f0 !important;
+}
+
+.wa-log-table tbody td {
+    padding: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.875rem;
+}
+
+.cell-date {
+    font-weight: 600;
+    color: #1e293b;
+    border-right: 1px solid #f1f5f9;
+}
+
+.cell-num {
+    text-align: right;
+    font-family: monospace;
+    color: #475569;
+}
+
+.cell-num-bold {
+    text-align: right;
+    font-family: monospace;
+    font-weight: 700;
+}
+
+.crush-to {
+    color: #ea580c;
+    background: rgba(234, 88, 12, 0.02);
+    border-right: 1px solid #f1f5f9;
+}
+
+.bagging-to {
+    color: #d97706;
+    background: rgba(217, 119, 6, 0.02);
+    border-right: 1px solid #f1f5f9;
+}
+
+.loss-od {
+    color: #ef4444;
+    text-align: right;
+    font-weight: 500;
+}
+
+.rec-td {
+    color: #be123c;
+    text-align: right;
+    background: rgba(225, 29, 72, 0.02);
+    border-right: 1px solid #f1f5f9;
+}
+
+.cell-actions {
+    text-align: center;
+}
+
+.wa-edit-btn,
+.wa-delete-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 4px;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.wa-edit-btn {
+    background: #ffedd5;
+    color: #ea580c;
+}
+
+.wa-edit-btn:hover {
+    background: #fdba74;
+    color: #fff;
+}
+
+.wa-delete-btn {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
+.wa-delete-btn:hover {
+    background: #fecaca;
+    color: #fff;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

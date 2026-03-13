@@ -1,0 +1,296 @@
+﻿.cane-plan-container {
+    font-family: 'Poppins', Arial, sans-serif;
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Header */
+.cane-plan-header {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    border-radius: 10px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: #334155;
+    box-shadow: 0 4px 18px rgba(57, 217, 172, 0.6);
+    position: relative;
+}
+
+.cane-plan-icon {
+    font-size: 28px;
+    width: 52px;
+    height: 52px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cane-plan-title {
+    font-size: 18px;
+    font-weight: 800;
+    margin: 0;
+}
+
+.cane-plan-subtitle {
+    font-size: 11px;
+    opacity: 0.8;
+    margin: 2px 0 0;
+}
+
+.cane-plan-edit-badge {
+    position: absolute;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 20px;
+    padding: 3px 14px;
+    font-size: 11.5px;
+    font-weight: 700;
+}
+
+/* Form Card */
+.cane-plan-card {
+    background: #fff;
+    border: 1px solid #e4e4e4;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+}
+
+.cane-plan-card-title {
+    background: #4db799;
+    color: #fff;
+    padding: 10px 18px;
+    font-weight: 700;
+}
+
+.cane-plan-form-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.cane-plan-top-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 640px) {
+    .cane-plan-top-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.cane-plan-label {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #065f46;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.cane-plan-req {
+    color: #e00;
+}
+
+.cane-plan-select {
+    width: 100%;
+    height: 36px;
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    padding: 0 10px;
+    font-size: 13px;
+    background: #f0fdf4;
+    font-weight: 700;
+    color: #065f46;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.cane-plan-select:focus {
+    outline: none;
+    border-color: #065f46;
+}
+
+.cane-plan-season-badge {
+    background: #ecfdf5;
+    border: 1px solid #6ee7b7;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #065f46;
+}
+
+/* Data Group Settings */
+.cane-plan-group {
+    border-radius: 8px;
+    padding: 14px;
+}
+
+.cane-plan-group-title {
+    font-size: 11.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 10px;
+    padding-bottom: 6px;
+}
+
+.cane-plan-group-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+    gap: 12px;
+}
+
+.cane-plan-field-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #666;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 3px;
+}
+
+.cane-plan-input {
+    width: 100%;
+    height: 32px;
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    padding: 0 10px;
+    font-size: 13px;
+    background: #fff;
+    box-sizing: border-box;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+
+.cane-plan-input:focus {
+    outline: none;
+    border-color: #10b981;
+}
+
+/* Footer Actions */
+.cane-plan-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 14px;
+}
+
+.cane-plan-btn {
+    height: 38px;
+    padding: 0 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.18s;
+    white-space: nowrap;
+    font-family: inherit;
+}
+
+.cane-plan-btn:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.cane-plan-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Button Variants */
+.btn-save {
+    background: #065f46;
+}
+
+.btn-update {
+    background: #0079ff;
+}
+
+.btn-delete {
+    background: #e3342f;
+}
+
+.btn-view {
+    background: #0d7a66;
+}
+
+.btn-exit {
+    background: #6c757d;
+    margin-left: auto;
+}
+
+/* Flex utilities */
+.flex-end {
+    display: flex;
+    align-items: flex-end;
+}
+
+/* Group Specific Styling */
+.cane-plan-group-cane-allocation-qtls {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+}
+
+.cane-plan-title-cane-allocation-qtls {
+    color: #1d4ed8;
+    border-bottom: 1px solid #bfdbfe;
+}
+
+.cane-plan-group-capacity {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+}
+
+.cane-plan-title-capacity {
+    color: #15803d;
+    border-bottom: 1px solid #bbf7d0;
+}
+
+.cane-plan-group-target-performance {
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+}
+
+.cane-plan-title-target-performance {
+    color: #c2410c;
+    border-bottom: 1px solid #fed7aa;
+}
+
+.cane-plan-group-alcohol-production {
+    background: #faf5ff;
+    border: 1px solid #e9d5ff;
+}
+
+.cane-plan-title-alcohol-production {
+    color: #7e22ce;
+    border-bottom: 1px solid #e9d5ff;
+}
+
+.cane-plan-group-power {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+}
+
+.cane-plan-title-power {
+    color: #92400e;
+    border-bottom: 1px solid #fde68a;
+}

@@ -1,0 +1,185 @@
+﻿@import './base.css';
+
+/* Premium Styles for CheckingDetailsOnMap.jsx */
+
+.map-detail-root {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.premium-map-card {
+    background: white;
+    border-radius: 1.5rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.map-card-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.title-with-icon {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+}
+
+.icon-blue {
+    color: #3b82f6;
+}
+
+.btn-back-square {
+    background: #f1f5f9;
+    color: #475569;
+    border: none;
+    border-radius: 0.75rem;
+    padding: 0.625rem 1.25rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.btn-back-square:hover {
+    background: #e2e8f0;
+}
+
+.spacer-r {
+    margin-right: 0.5rem;
+}
+
+.map-viewport-wrapper {
+    position: relative;
+    padding: 1rem;
+}
+
+.leaflet-map-container {
+    height: 600px;
+    border-radius: 1rem;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+
+.full-size-map {
+    height: 100%;
+    width: 100%;
+}
+
+.plot-info-panel {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    padding: 1.5rem;
+    border-radius: 1.25rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
+    border: 1px solid #e2e8f0;
+    z-index: 1000;
+    width: 18rem;
+}
+
+.panel-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.panel-stats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.stat-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.stat-value {
+    color: #1e293b;
+    font-size: 0.875rem;
+}
+
+.stat-value.bold {
+    font-weight: 700;
+}
+
+.stat-value.mono-small {
+    font-family: monospace;
+    font-size: 0.75rem;
+}
+
+.distance-highlight-row {
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dist-label {
+    font-size: 1rem;
+    color: #64748b;
+}
+
+.dist-value {
+    color: #2563eb;
+    font-weight: 800;
+    font-size: 1.25rem;
+}
+
+.btn-close-panel {
+    margin-top: 1.5rem;
+    width: 100%;
+    padding: 0.625rem;
+    background: #f8fafc;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-close-panel:hover {
+    background: #f1f5f9;
+}
+
+.premium-popup .leaflet-popup-content-wrapper {
+    border-radius: 1rem;
+    padding: 0.5rem;
+}
+
+.popup-inner {
+    text-align: center;
+}
+
+.village-text {
+    font-size: 0.75rem;
+    color: #64748b;
+}

@@ -1,0 +1,445 @@
+/* ============================================================
+   dotnet.css  — Faithful port of .NET project's CSS patterns
+   Extracted from: BajajMic/_MainLayout.cshtml, all Views
+   
+   Pattern map (dotnet  →  MERN):
+     .container-fluid      →  .dn-container
+     .box-content.card     →  .dn-card
+     .box-title            →  .dn-box-title
+     .card-content / .body →  .dn-card-body
+     .row.clearfix col-lg-3→  .dn-row / .dn-col-1 thru .dn-col-4
+     .form-group + .form-line →  .dn-form-group + .dn-form-line
+     .panel-default        →  .dn-panel
+     .panel-heading        →  .dn-panel-heading
+     .panel-body           →  .dn-panel-body
+     .btn.btn-primary      →  .btn.btn-primary (same — already in base.css)
+     .btn.exit             →  .btn.btn-exit    (same — already in base.css)
+     .table.table-sm       →  .dn-table
+     .pre-scrollable       →  .dn-scrollable
+     .header row (table)   →  .dn-table .dn-header
+     td.bg-sky             →  .dn-td-sky
+     td.bg-yellow          →  .dn-td-yellow
+     td.bg-blue-row        →  .dn-td-blue
+     td.bg-total           →  .dn-td-total
+   ============================================================ */
+
+/* ========================
+   PAGE WRAPPER
+   Equivalent to .container-fluid in the .NET views
+   ======================== */
+.dn-container {
+    width: 100%;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ========================
+   PAGE CARD
+   Equivalent to .box-content.card.white + col-lg-12
+   ======================== */
+.dn-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Page heading — equivalent to <h4 class="box-title">
+   .NET project centers it, uses dark grey */
+.dn-box-title {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+    padding: 10px 16px 6px 16px;
+    margin: 0;
+    font-family: "Poppins", Arial, sans-serif;
+    border-bottom: 1px solid #eee;
+}
+
+/* Card body — equivalent to .card-content .body */
+.dn-card-body {
+    padding: 14px 16px;
+}
+
+/* ========================
+   BOOTSTRAP-STYLE GRID 
+   (replaces col-lg-3 col-md-3 col-sm-3 col-xs-3 pattern)
+   ======================== */
+.dn-row {
+    display: grid;
+    gap: 14px;
+    margin-bottom: 12px;
+    align-items: end;
+}
+
+/* 4 columns — most common in .NET pages */
+.dn-row-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+/* 3 columns */
+.dn-row-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+/* 2 columns */
+.dn-row-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+/* 1 column full width */
+.dn-row-1 {
+    grid-template-columns: 1fr;
+}
+
+/* Mixed: 8 col (2/3 width) + 4 col (1/3) — like col-lg-8 + col-lg-4 */
+.dn-row-8-4 {
+    grid-template-columns: 2fr 1fr;
+}
+
+/* ========================
+   FORM GROUP + FORM LINE
+   Equivalent to .form-group / .form-line pattern in .NET
+   This is the fundamental form field pattern the .NET project uses
+   ======================== */
+.dn-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.dn-form-group label,
+.dn-form-group>label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #129a81;
+    /* teal — matches .NET label color */
+    margin-bottom: 2px;
+    font-family: "Poppins", Arial, sans-serif;
+    display: block;
+}
+
+/* The actual input wrapper — .form-line shows a bottom border in .NET */
+.dn-form-line {
+    position: relative;
+    width: 100%;
+}
+
+.dn-form-line input,
+.dn-form-line select,
+.dn-form-line textarea {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 13px;
+    font-family: "Poppins", Arial, sans-serif;
+    color: #333;
+    background: #fff;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.dn-form-line input:focus,
+.dn-form-line select:focus,
+.dn-form-line textarea:focus {
+    border-color: #129a81;
+}
+
+.dn-form-line input[disabled],
+.dn-form-line input[readonly] {
+    background: #f5f5f5;
+    color: #888;
+    cursor: not-allowed;
+}
+
+/* ========================
+   PANEL (filter/search sections)
+   Equivalent to .panel.panel-default
+   ======================== */
+.dn-panel {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.dn-panel-heading {
+    background: #f5f5f5;
+    border-bottom: 1px solid #ddd;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    font-family: "Poppins", Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dn-panel-body {
+    padding: 14px;
+}
+
+/* ========================
+   BUTTON ROW
+   Equivalent to the button div inside col-lg-12 
+   ======================== */
+.dn-btn-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 10px 0 4px 0;
+}
+
+/* ========================
+   REPORT / DATA TABLES
+   Equivalent to .table.table-sm.onlineStatusModewise.fRo
+   ======================== */
+.dn-table-wrapper {
+    overflow-x: auto;
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    margin-bottom: 12px;
+}
+
+.dn-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    font-family: "Poppins", Arial, sans-serif;
+    background: #fff;
+}
+
+/* Header row — equivalent to <tr class="header"> */
+.dn-table .dn-header td,
+.dn-table .dn-header th,
+.dn-table tr.dn-header td {
+    background: #129a81;
+    color: #fff;
+    font-weight: 700;
+    font-size: 12px;
+    padding: 8px 10px;
+    white-space: nowrap;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dn-table .dn-header td:last-child,
+.dn-table .dn-header th:last-child {
+    border-right: none;
+}
+
+/* Sub-header row — equivalent to <tr class="sub-head"> */
+.dn-table .dn-sub-head td,
+.dn-table tr.dn-sub-head td {
+    background: #e8f5f1;
+    color: #129a81;
+    font-weight: 600;
+    font-size: 12px;
+    padding: 6px 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Regular data cells */
+.dn-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid #eee;
+    border-right: 1px solid #f0f0f0;
+    color: #333;
+    vertical-align: middle;
+}
+
+.dn-table td:last-child {
+    border-right: none;
+}
+
+/* Sky blue label cells (mode labels in CrushingReport) */
+.dn-td-sky {
+    background-color: #89CFF0 !important;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+/* Light yellow data cells */
+.dn-td-yellow {
+    background-color: lightyellow !important;
+    text-align: right;
+}
+
+/* Blue total rows */
+.dn-td-blue {
+    background-color: #21f3b1 !important;
+    color: #333 !important;
+    font-weight: 700;
+}
+
+/* Light blue sub-total rows */
+.dn-td-lightblue {
+    background-color: #21f3b1 !important;
+    font-weight: 700;
+}
+
+/* Sky blue alternate total */
+.dn-td-total {
+    background-color: #21f3b1 !important;
+    font-weight: 700;
+}
+
+/* Right-aligned numeric cells */
+.dn-td-right {
+    text-align: right !important;
+}
+
+/* Center-aligned cells */
+.dn-td-center {
+    text-align: center !important;
+}
+
+/* Bordered total cells (Gate Total pattern in CrushingReport) */
+.dn-td-bordered {
+    border-left: 1px solid #999 !important;
+    border-top: 1px solid #999 !important;
+    border-bottom: 1px solid #999 !important;
+}
+
+.dn-td-bordered-all {
+    border: 1px solid #999 !important;
+}
+
+/* Hover rows */
+.dn-table tbody tr:hover {
+    background: #e8f5f1;
+}
+
+/* Even row striping */
+.dn-table tbody tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+/* ========================
+   SCROLLABLE CONTAINER  
+   Equivalent to .pre-scrollable (in Units/Seasons list)
+   ======================== */
+.dn-scrollable {
+    max-height: 110px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 6px 8px;
+    background: #fff;
+}
+
+/* Inside scrollable: checkbox + text rows */
+.dn-check-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+    font-size: 13px;
+    color: #333;
+    font-family: "Poppins", Arial, sans-serif;
+}
+
+.dn-check-row input[type="checkbox"] {
+    accent-color: #129a81;
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* ========================
+   STATUS INDICATORS
+   Equivalent to alert-light + bulb images (CrushingReport)
+   ======================== */
+.dn-status-bar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 6px 10px;
+    background: #f8f8f8;
+    border: 1px solid #eee;
+    border-radius: 3px;
+    margin-bottom: 10px;
+}
+
+.dn-bulb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.dn-bulb-green {
+    background: #4caf50;
+}
+
+.dn-bulb-red {
+    background: #c41e3a;
+}
+
+.dn-bulb-yellow {
+    background: #ff9800;
+}
+
+/* ========================
+   ALERT MESSAGES
+   Equivalent to .alert.alert-danger / alert-success
+   ======================== */
+.dn-alert {
+    padding: 8px 14px;
+    border-radius: 3px;
+    font-size: 13px;
+    font-family: "Poppins", Arial, sans-serif;
+    margin-top: 10px;
+}
+
+.dn-alert-danger {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.dn-alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.dn-alert-warning {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+.dn-alert-info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+/* ========================
+   RESPONSIVE BREAKPOINTS
+   (matching Bootstrap's col-sm / col-xs collapse behavior)
+   ======================== */
+@media (max-width: 1100px) {
+    .dn-row-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+
+    .dn-row-4,
+    .dn-row-3,
+    .dn-row-2,
+    .dn-row-8-4 {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,246 @@
+﻿@import './base.css';
+
+/* Premium Styles for SugarBagProducedAdd.jsx */
+
+.bag-produced-root {
+    padding: 2.5rem 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    min-height: 100vh;
+}
+
+.premium-lab-card {
+    background: white;
+    border-radius: 1.5rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.card-header-main {
+    background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+    padding: 1.5rem 2rem;
+    color: white;
+}
+
+.header-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.025em;
+}
+
+.card-body-main {
+    padding: 2rem;
+}
+
+.info-summary-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.25rem;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 2rem;
+}
+
+.field-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 0.25rem;
+}
+
+.micro-label {
+    display: block;
+    font-size: 0.625rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: #64748b;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.375rem;
+}
+
+.premium-select,
+.premium-input {
+    width: 100%;
+    height: 40px;
+    padding: 0 0.875rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    background: white;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.premium-input:focus,
+.premium-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.tab-navigation-bar {
+    display: flex;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem 0.75rem 0 0;
+    overflow: hidden;
+    background: white;
+    margin-top: 1rem;
+}
+
+.tab-link {
+    flex: 1;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #94a3b8;
+    background: white;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tab-link:hover {
+    color: #64748b;
+    background: #f8fafc;
+}
+
+.tab-link.active {
+    color: #0284c7;
+    background: rgba(224, 242, 254, 0.5);
+    border-bottom-color: #0ea5e9;
+}
+
+.tab-icon {
+    font-size: 0.875rem;
+}
+
+.tab-content-container {
+    padding: 2.5rem;
+    border: 1px solid #e2e8f0;
+    border-top: none;
+    border-radius: 0 0 0.75rem 0.75rem;
+    background: white;
+    margin-bottom: 2rem;
+    min-height: 400px;
+}
+
+.pane-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.icon-accent {
+    color: #0ea5e9;
+}
+
+.icon-accent-indigo {
+    color: #6366f1;
+}
+
+.icon-accent-teal {
+    color: #14b8a6;
+}
+
+.icon-accent-amber {
+    color: #f59e0b;
+}
+
+.pane-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+}
+
+.pane-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.pane-stack-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.segment-box {
+    padding: 1rem;
+    border-radius: 1rem;
+}
+
+.bg-indigo-faint {
+    background: rgba(238, 242, 255, 0.5);
+}
+
+.bg-slate-faint {
+    background: #f8fafc;
+}
+
+.margin-t {
+    margin-top: 1rem;
+}
+
+.actions-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.btn-premium-primary {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 0 2rem;
+    height: 44px;
+    border-radius: 0.625rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+}
+
+.btn-premium-primary:hover:not(:disabled) {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+.btn-premium-secondary {
+    background: #f1f5f9;
+    color: #475569;
+    border: none;
+    padding: 0 1.5rem;
+    height: 44px;
+    border-radius: 0.625rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-premium-secondary:hover {
+    background: #e2e8f0;
+}
+
+@media (max-width: 768px) {
+
+    .pane-grid-4,
+    .pane-grid-3 {
+        grid-template-columns: 1fr 1fr;
+    }
+}

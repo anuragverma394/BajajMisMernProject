@@ -1,0 +1,115 @@
+/* VarietyWiseCanePurchaseAmt.css — Professional Accountant View */
+
+.variety-amt-table-wrapper {
+    overflow: auto;
+    border-radius: 12px;
+    position: relative;
+    background: white;
+    border: 1px solid var(--border-light, #e0e0e0);
+}
+
+.variety-amt-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+    font-family: var(--font, 'Poppins', sans-serif);
+}
+
+/* Sticky Headers */
+.variety-amt-sticky-header th {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background-color: var(--primary-light, #e0f0ec) !important;
+    color: var(--primary, #43ab98) !important;
+    box-shadow: inset 0 -1px 0 var(--border-light, #e0e0e0);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 11px;
+    padding: 12px 16px;
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Sticky Columns */
+.variety-amt-sticky-col-1 {
+    position: sticky;
+    left: 0;
+    z-index: 30;
+    min-width: 180px;
+    background: white !important;
+    border-right: 1px solid var(--border-light, #e0e0e0);
+    font-weight: 600;
+}
+
+.variety-amt-sticky-col-2 {
+    position: sticky;
+    left: 180px;
+    z-index: 30;
+    min-width: 270px;
+    background: white !important;
+    border-right: 1px solid var(--border-light, #e0e0e0);
+}
+
+.variety-amt-sticky-col-3 {
+    position: sticky;
+    left: 450px;
+    z-index: 30;
+    min-width: 80px;
+    background: white !important;
+    border-right: 1px solid var(--border-light, #e0e0e0);
+}
+
+/* Header Overlays for Sticky Intersections */
+.variety-amt-header-sticky-col-1 {
+    left: 0;
+    z-index: 60 !important;
+}
+
+.variety-amt-header-sticky-col-2 {
+    left: 180px;
+    z-index: 60 !important;
+}
+
+.variety-amt-header-sticky-col-3 {
+    left: 450px;
+    z-index: 60 !important;
+}
+
+/* Zebra Striping & Borders */
+.variety-amt-table tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.variety-amt-table tbody tr:nth-child(even) td {
+    background-color: #fafafa;
+}
+
+.variety-amt-table tbody tr:hover td {
+    background-color: var(--primary-light, #e0f0ec) !important;
+}
+
+/* Summary Row Highlighting */
+.variety-amt-table tr.bg-slate-50 td {
+    background-color: #f8fafc !important;
+    border-top: 1px solid var(--border-light, #e0e0e0);
+    border-bottom: 2px solid var(--border-light, #e0e0e0);
+}
+
+/* Custom Scrollbar */
+.variety-amt-table-wrapper::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.variety-amt-table-wrapper::-webkit-scrollbar-track {
+    background: #f8fafc;
+}
+
+.variety-amt-table-wrapper::-webkit-scrollbar-thumb {
+    background: var(--border, #ccc);
+    border-radius: 4px;
+}
+
+.variety-amt-table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: var(--primary, #43ab98);
+}

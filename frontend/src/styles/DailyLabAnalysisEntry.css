@@ -1,0 +1,84 @@
+@import './base.css';
+
+.daily-lab-entry-page {
+  min-height: calc(100vh - 120px);
+  padding: 12px 24px 32px;
+  background: #f3f3f3;
+}
+
+.daily-lab-entry-card {
+  width: min(100%, 908px);
+  margin: 0 auto;
+  border: 1px solid #c9d9bc;
+  border-radius: 4px;
+  background: #f3f3f3;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+.daily-lab-entry-header {
+  padding: 12px 20px 14px;
+  background: #ccdac4;
+  border-bottom: 1px solid #d7e0d0;
+}
+
+.daily-lab-entry-header h1 {
+  margin: 0;
+  color: #44644e;
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.daily-lab-entry-body {
+  padding: 20px;
+  background: #f3f3f3;
+}
+
+.daily-lab-entry-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.daily-lab-entry-button {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 6px;
+  background: #1a9f8a;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.18s ease, transform 0.18s ease;
+}
+
+.daily-lab-entry-button:hover {
+  background: #168d7b;
+  transform: translateY(-1px);
+}
+
+.daily-lab-entry-button:focus-visible {
+  outline: 2px solid #7fd4c7;
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  .daily-lab-entry-page {
+    padding: 10px 14px 24px;
+  }
+
+  .daily-lab-entry-body {
+    padding: 14px;
+  }
+
+  .daily-lab-entry-button {
+    min-height: 44px;
+    font-size: 15px;
+  }
+}

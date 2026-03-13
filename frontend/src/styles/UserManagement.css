@@ -1,0 +1,158 @@
+/* User Management Module CSS */
+@import './base.css';;
+
+.usermgmt-container {
+    width: 100%;
+    padding: 16px;
+    background: var(--bg-page);
+    min-height: calc(100vh - 130px);
+}
+
+.usermgmt-card {
+    background: #fff;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 14px;
+}
+
+.usermgmt-card-header {
+    background: var(--primary);
+    color: #fff;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.usermgmt-card-content {
+    padding: 16px;
+}
+
+.usermgmt-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.usermgmt-form-group label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-mid);
+}
+
+.usermgmt-form-control {
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 13px;
+    width: 100%;
+    outline: none;
+    font-family: var(--font);
+}
+
+.usermgmt-form-control:focus {
+    border-color: var(--primary);
+}
+
+.usermgmt-btn-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.usermgmt-btn {
+    padding: 7px 18px;
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    border: none;
+    font-family: var(--font);
+}
+
+.usermgmt-btn-primary {
+    background: var(--primary);
+    color: #fff;
+}
+
+.usermgmt-btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+.usermgmt-btn-danger {
+    background: var(--danger);
+    color: #fff;
+}
+
+.usermgmt-btn-danger:hover {
+    background: #a01830;
+}
+
+.usermgmt-btn-secondary {
+    background: #fff;
+    color: var(--text-dark);
+    border: 1px solid var(--border);
+}
+
+.usermgmt-table-container {
+    overflow-x: auto;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+}
+
+.usermgmt-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.usermgmt-table th {
+    background: var(--primary);
+    color: #fff;
+    padding: 10px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.usermgmt-table td {
+    padding: 9px 12px;
+    color: var(--text-dark);
+    border-bottom: 1px solid #eee;
+}
+
+.usermgmt-table tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+.usermgmt-table tr:hover {
+    background: var(--primary-light);
+}
+
+/* Role / permission checkboxes */
+.permission-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    padding: 12px 0;
+}
+
+.permission-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.permission-item input[type="checkbox"] {
+    accent-color: var(--primary);
+    width: 16px;
+    height: 16px;
+}
+
+/* Other-unit row highlight (replaces inline backgroundColor) */
+.row-other-unit {
+    background-color: #f2d9d9 !important;
+}

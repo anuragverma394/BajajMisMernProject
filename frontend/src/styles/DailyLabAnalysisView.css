@@ -1,0 +1,299 @@
+﻿:root {
+    --lab-primary: #129a81;
+    --lab-secondary: #086e5c;
+    --lab-accent: #3b82f6;
+    --lab-bg: #f3f4f6;
+    --lab-card: #ffffff;
+    --lab-text: #1f2937;
+    --lab-border: #e5e7eb;
+}
+
+.lab-analysis-view-container {
+    padding: 1.5rem;
+    background-color: var(--lab-bg);
+    min-height: calc(100vh - 64px);
+}
+
+.lab-report-header-card {
+    background: var(--lab-card);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.report-title-section {
+    background: linear-gradient(135deg, var(--lab-primary) 0%, var(--lab-secondary) 100%);
+    padding: 1.5rem 2rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.title-icon {
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    backdrop-filter: blur(5px);
+}
+
+.report-title-section h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.report-title-section p {
+    margin: 0.2rem 0 0;
+    opacity: 0.8;
+    font-size: 0.9rem;
+}
+
+.report-filter-bar {
+    padding: 1.5rem 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    align-items: flex-end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.filter-group select,
+.filter-group input {
+    padding: 0.6rem 1rem;
+    border: 1.5px solid var(--lab-border);
+    border-radius: 8px;
+    min-width: 180px;
+    font-size: 0.95rem;
+    color: var(--lab-text);
+    transition: all 0.2s;
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+    outline: none;
+    border-color: var(--lab-primary);
+    box-shadow: 0 0 0 3px rgba(18, 154, 129, 0.1);
+}
+
+.filter-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-search {
+    background: var(--lab-primary);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+
+.btn-search:hover {
+    background: var(--lab-secondary);
+    transform: translateY(-1px);
+}
+
+.btn-add {
+    background: white;
+    color: var(--lab-primary);
+    border: 1.5px solid var(--lab-primary);
+    padding: 0.6rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+
+.btn-add:hover {
+    background: rgba(18, 154, 129, 0.05);
+}
+
+.table-responsive-container {
+    background: var(--lab-card);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.table-toolbar {
+    padding: 1rem 1.5rem;
+    background: #f9fafb;
+    border-bottom: 1px solid var(--lab-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.toolbar-btns {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.toolbar-btns button {
+    background: white;
+    border: 1px solid var(--lab-border);
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #4b5563;
+    transition: all 0.2s;
+}
+
+.toolbar-btns button:hover {
+    border-color: var(--lab-primary);
+    color: var(--lab-primary);
+}
+
+.lab-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.lab-data-table th {
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    font-weight: 600;
+    border: 1px solid var(--lab-border);
+}
+
+.lab-data-table td {
+    padding: 0.8rem 0.5rem;
+    text-align: center;
+    border: 1px solid var(--lab-border);
+    color: #374151;
+}
+
+.lab-data-table tr:hover {
+    background-color: #f8fafc;
+}
+
+.bg-primary-light {
+    background-color: #f0fdfa;
+    color: #0d9488;
+}
+
+.bg-secondary-light {
+    background-color: #eff6ff;
+    color: #2563eb;
+}
+
+.bg-accent-light {
+    background-color: #fefce8;
+    color: #a16207;
+}
+
+.bg-gray-light {
+    background-color: #f9fafb;
+    color: #4b5563;
+}
+
+.val {
+    font-weight: 500;
+}
+
+.val.highlight {
+    color: var(--lab-primary);
+    font-weight: 700;
+}
+
+.no-data-card {
+    background: white;
+    padding: 4rem 2rem;
+    border-radius: 12px;
+    text-align: center;
+    color: #9ca3af;
+    border: 2px dashed #e5e7eb;
+}
+
+.empty-state-icon {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.no-data-card h3 {
+    color: #4b5563;
+    margin-bottom: 0.5rem;
+}
+
+.font-mono {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.font-bold {
+    font-weight: 700;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.shadow-premium {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+}
+
+@media print {
+
+    .report-filter-bar,
+    .toolbar-btns,
+    .btn-add {
+        display: none !important;
+    }
+
+    .lab-analysis-view-container {
+        padding: 0;
+        background: white;
+    }
+
+    .lab-report-header-card {
+        box-shadow: none;
+        margin-bottom: 1rem;
+    }
+}

@@ -1,0 +1,57 @@
+/* ManageTblControl.css */
+@import './base.css';;
+
+.managetbl-page {
+    width: 100%;
+}
+
+/* Title row: page-title on left, back button on right */
+.managetbl-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 14px;
+    gap: 12px;
+}
+
+.managetbl-subtitle {
+    font-size: 12px;
+    color: var(--text-mid);
+    margin: 2px 0 0 0;
+    font-family: var(--font);
+}
+
+/* Name cell with the dot icon */
+.managetbl-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--text-dark);
+}
+
+.managetbl-icon-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    flex-shrink: 0;
+    display: inline-block;
+}
+
+/* Footer info row */
+.managetbl-footer {
+    padding: 8px 0 0 0;
+    font-size: 12px;
+    color: var(--text-mid);
+    font-family: var(--font);
+    border-top: 1px solid var(--border-light);
+    margin-top: 8px;
+}
+
+/* Required star (shared) */
+.required-star {
+    color: #c41e3a;
+    margin-left: 2px;
+}

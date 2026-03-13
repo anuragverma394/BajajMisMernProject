@@ -1,0 +1,91 @@
+@import './base.css';
+
+.mola-page {
+  width: 100%;
+}
+
+.mola-header {
+  text-transform: uppercase;
+}
+
+.mola-panel {
+  border: 1px solid #cddbbf;
+  border-radius: 4px;
+  background: #f5f5f5;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.mola-panel-title {
+  background: #c9d9c4;
+  color: #2f6f5d;
+  font-size: 20px;
+  font-weight: 500;
+  padding: 12px 16px;
+}
+
+.mola-panel-body {
+  padding: 14px 16px;
+}
+
+.mola-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 420px));
+  gap: 16px 24px;
+}
+
+.mola-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(260px, 1fr));
+  gap: 16px 20px;
+}
+
+.mola-card {
+  border: 1px solid #cddbbf;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.mola-card-title {
+  background: #c9d9c4;
+  color: #2f6f5d;
+  font-size: 20px;
+  font-weight: 500;
+  padding: 10px 16px;
+}
+
+.mola-card-body {
+  padding: 12px 16px 14px;
+}
+
+.mola-three {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+.mola-actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 6px;
+}
+
+@media (max-width: 1400px) {
+  .mola-meta-grid {
+    grid-template-columns: repeat(3, minmax(200px, 1fr));
+  }
+
+  .mola-cards-grid {
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .mola-meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mola-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,87 @@
+@import './base.css';
+
+.molv-page {
+  width: 100%;
+}
+
+.molv-main-title {
+  text-transform: uppercase;
+}
+
+.molv-panel {
+  border: 1px solid #cddbbf;
+  border-radius: 4px;
+  background: #f5f5f5;
+  overflow: hidden;
+}
+
+.molv-panel-title {
+  background: #c9d9c4;
+  color: #2f6f5d;
+  font-size: 20px;
+  font-weight: 500;
+  padding: 12px 16px;
+}
+
+.molv-panel-body {
+  padding: 16px 10px 14px;
+}
+
+.molv-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(260px, 420px));
+  gap: 16px 20px;
+}
+
+.molv-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.molv-table-wrap {
+  margin-top: 14px;
+  border: 1px solid #a8c49b;
+  overflow: auto;
+  max-height: 420px;
+  background: #fff;
+}
+
+.molv-table {
+  border-collapse: collapse;
+  min-width: 2200px;
+  width: max-content;
+}
+
+.molv-table th {
+  background: #c9d9c4;
+  color: #1f2937;
+  border: 1px solid #a8c49b;
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.molv-table td {
+  border: 1px solid #a8c49b;
+  padding: 7px 12px;
+  background: aliceblue;
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+.molv-empty {
+  text-align: center;
+  font-weight: 600;
+}
+
+.molv-link {
+  border: 0 !important;
+  background: transparent !important;
+  color: #4f46e5;
+  text-align: left;
+  padding: 0;
+  text-decoration: none;
+  cursor: pointer;
+}

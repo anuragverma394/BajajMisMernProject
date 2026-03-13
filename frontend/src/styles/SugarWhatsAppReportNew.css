@@ -1,0 +1,301 @@
+/* ============================================================
+   SugarWhatsAppReportNew.css — Light Professional Analytics
+   ============================================================ */
+
+.sug-wa-container {
+    font-family: var(--font, 'Poppins', Arial, sans-serif);
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.5rem;
+}
+
+/* Header - Light style matching navbar */
+.sug-wa-header {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    color: var(--text-dark, #333);
+    border-bottom: 2px solid var(--primary, #43ab98);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.sug-wa-header-icon {
+    font-size: 24px;
+    width: 48px;
+    height: 48px;
+    background: var(--primary-light, #e0f0ec);
+    color: var(--primary, #43ab98);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sug-wa-header-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.sug-wa-header-subtitle {
+    font-size: 11px;
+    color: var(--primary, #43ab98);
+    margin: 0.1rem 0 0;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Search Box - Light & Simple */
+.sug-wa-search-card {
+    background: #fff;
+    border: 1px solid var(--border-light, #e0e0e0);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow, 0 1px 4px rgba(0, 0, 0, 0.08));
+}
+
+.sug-wa-search-title {
+    background: var(--primary-light, #e0f0ec);
+    color: var(--primary, #43ab98);
+    padding: 10px 18px;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border-light, #e0e0e0);
+}
+
+.sug-wa-search-form {
+    padding: 1.5rem;
+}
+
+.sug-wa-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.sug-wa-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-mid, #2f2f2f);
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.025em;
+}
+
+.sug-wa-input {
+    width: 100%;
+    height: 38px;
+    border: 1px solid var(--border, #ccc);
+    border-radius: 6px;
+    padding: 0 10px;
+    font-size: 13px;
+    background: #fff;
+    color: var(--text-dark, #333);
+    box-sizing: border-box;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+
+.sug-wa-input:focus {
+    border-color: var(--primary, #43ab98);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--primary-light, #e0f0ec);
+}
+
+/* Actions Row */
+.sug-wa-actions {
+    display: flex;
+    gap: 10px;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-light, #e0e0e0);
+}
+
+.sug-wa-btn {
+    height: 38px;
+    padding: 0 20px;
+    border: 1px solid var(--border, #ccc);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--text-mid, #2f2f2f);
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.sug-wa-btn:hover:not(:disabled) {
+    background: var(--primary-light, #e0f0ec);
+    border-color: var(--primary, #43ab98);
+    color: var(--primary, #43ab98);
+}
+
+.sug-wa-btn-primary {
+    background: var(--primary, #43ab98);
+    color: #fff;
+    border: none;
+}
+
+.sug-wa-btn-primary:hover:not(:disabled) {
+    background: var(--primary-dark, #14806c);
+    color: #fff;
+}
+
+.sug-wa-btn-exit {
+    margin-left: auto;
+}
+
+/* Table Card */
+.sug-wa-table-card {
+    background: #fff;
+    border: 1px solid var(--border-light, #e0e0e0);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow, 0 1px 4px rgba(0, 0, 0, 0.08));
+}
+
+.sug-wa-table-scroll {
+    overflow-x: auto;
+}
+
+/* Professional Table */
+.sug-wa-table {
+    border-collapse: collapse;
+    font-size: 11.5px;
+    min-width: 100%;
+}
+
+.sug-wa-table th {
+    padding: 10px;
+    text-align: center;
+    font-weight: 700;
+    white-space: nowrap;
+    border-right: 1px solid rgba(255, 255, 255, 0.15);
+    background: var(--primary, #43ab98);
+    color: #fff;
+    text-transform: uppercase;
+    font-size: 10px;
+}
+
+.sug-wa-table th:last-child {
+    border-right: none;
+}
+
+/* Category Groupings - Professional Tones */
+.sug-wa-thead-row1 th {
+    background: var(--primary, #43ab98);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.sug-wa-cat-cap {
+    background: #34495e !important;
+}
+
+.sug-wa-cat-prod {
+    background: #2c3e50 !important;
+}
+
+.sug-wa-cat-mol {
+    background: #5d6d7e !important;
+}
+
+.sug-wa-cat-rec {
+    background: #2e86c1 !important;
+}
+
+.sug-wa-cat-loss {
+    background: #a93226 !important;
+}
+
+.sug-wa-cat-sug {
+    background: #d68910 !important;
+}
+
+.sug-wa-thead-row2 th {
+    background: var(--primary-dark, #14806c) !important;
+    padding: 6px 10px;
+}
+
+/* Table Body Styles */
+.sug-wa-table tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.sug-wa-table tbody tr:nth-last-child(1) {
+    border-bottom: none;
+}
+
+.sug-wa-table tbody tr:nth-child(even) {
+    background: #fafafa;
+}
+
+.sug-wa-table tbody tr:hover {
+    background: var(--primary-light, #e0f0ec);
+}
+
+.sug-wa-table td {
+    padding: 8px 10px;
+    text-align: right;
+    color: var(--text-dark, #333);
+    border-right: 1px solid #f0f0f0;
+    font-variant-numeric: tabular-nums;
+}
+
+.sug-wa-table td:last-child {
+    border-right: none;
+}
+
+.sug-wa-cell-factory {
+    text-align: left !important;
+    font-weight: 700;
+    color: var(--primary, #43ab98);
+}
+
+/* Color markers - Subdued */
+.sug-wa-col-crush {
+    color: var(--text-dark);
+}
+
+.sug-wa-col-bal {
+    font-weight: 800;
+    color: #000;
+}
+
+/* Print Styles */
+@media print {
+    @page {
+        size: landscape;
+        margin: 5mm;
+    }
+
+    .hide-on-print {
+        display: none !important;
+    }
+
+    .sug-wa-container {
+        padding: 0;
+    }
+
+    .sug-wa-table th {
+        background: #eee !important;
+        color: #000 !important;
+        border: 1px solid #ddd !important;
+    }
+
+    .sug-wa-table td {
+        border: 1px solid #ddd !important;
+    }
+}

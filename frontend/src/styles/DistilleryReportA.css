@@ -1,0 +1,105 @@
+/* DistilleryReportA.css */
+
+.distillery-a-report-container {
+    min-height: 100vh;
+    background-color: #f0fdfa;
+    /* Light teal tint for alternative report */
+    padding: 2rem 1rem;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.distillery-a-table-wrapper {
+    max-height: 70vh;
+    overflow: auto;
+    border: 1px solid #ccfbf1;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.distillery-a-table {
+    min-width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.distillery-a-sticky-header th {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background-color: #0d9488;
+    /* teal-600 */
+    color: #333;
+    font-weight: 700;
+    padding: 0.75rem 1rem;
+    border-bottom: 2px solid #0f766e;
+    white-space: nowrap;
+}
+
+.distillery-a-sticky-col-1 {
+    position: sticky;
+    left: 0;
+    z-index: 20;
+    background-color: #333;
+    border-right: 1px solid #e5e7eb;
+}
+
+.distillery-a-sticky-col-2 {
+    position: sticky;
+    left: 60px;
+    /* Width of col 1 */
+    z-index: 20;
+    background-color: #333;
+    border-right: 1px solid #e5e7eb;
+}
+
+.distillery-a-sticky-col-3 {
+    position: sticky;
+    left: 360px;
+    /* Width of col 1 + 2 */
+    z-index: 20;
+    background-color: #333;
+    border-right: 2px solid #ccfbf1;
+}
+
+.distillery-a-header-sticky-col-1 {
+    position: sticky;
+    left: 0;
+    z-index: 40;
+    background-color: #0f766e;
+    /* Darker teal for intersection */
+}
+
+.distillery-a-header-sticky-col-2 {
+    position: sticky;
+    left: 60px;
+    z-index: 40;
+    background-color: #0f766e;
+}
+
+.distillery-a-header-sticky-col-3 {
+    position: sticky;
+    left: 360px;
+    z-index: 40;
+    background-color: #0f766e;
+}
+
+.row-bold td {
+    font-weight: 700;
+    color: #115e59;
+    /* teal-800 */
+    background-color: #ccfbf1 !important;
+}
+
+.distillery-a-table tbody tr:hover td {
+    background-color: #f0fdfa !important;
+}

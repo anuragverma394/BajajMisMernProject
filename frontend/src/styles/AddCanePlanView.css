@@ -1,0 +1,202 @@
+﻿@import './base.css';
+
+/* Premium Styles for AddCanePlanView.jsx */
+
+.cane-plan-view-root {
+    padding: 2.5rem;
+}
+
+.cane-plan-view-container {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+
+.view-header-main {
+    background: linear-gradient(135deg, #334155 0%, #475569 100%);
+    padding: 1.25rem 2rem;
+}
+
+.view-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: white;
+    text-align: center;
+    margin: 0;
+}
+
+.view-content-body {
+    padding: 1.5rem;
+}
+
+.view-filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.filter-group {
+    width: 256px;
+}
+
+.filter-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 0.5rem;
+}
+
+.filter-select {
+    width: 100%;
+    height: 40px;
+    padding: 0 0.875rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    background: white;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.filter-select:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.button-group-row {
+    display: flex;
+    gap: 1rem;
+    flex: 1;
+}
+
+.btn-action {
+    height: 40px;
+    padding: 0 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.btn-blue {
+    background: #2563eb;
+    color: white;
+}
+
+.btn-blue:hover {
+    background: #1d4ed8;
+}
+
+.btn-emerald {
+    background: #059669;
+    color: white;
+}
+
+.btn-emerald:hover {
+    background: #047857;
+}
+
+.btn-slate-exit {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    margin-left: auto;
+}
+
+.btn-slate-exit:hover {
+    background: #e2e8f0;
+}
+
+.view-table-wrapper {
+    overflow-x: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+}
+
+.view-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+}
+
+.view-data-table thead th {
+    background: #f8fafc;
+    color: #64748b;
+    padding: 0.875rem 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e2e8f0;
+    border-right: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.view-data-table tbody td {
+    padding: 0.875rem 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+    border-right: 1px solid #f1f5f9;
+    color: #334155;
+    white-space: nowrap;
+}
+
+.clickable-row {
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.clickable-row:hover {
+    background: #f0f9ff;
+}
+
+.sticky-col {
+    position: sticky;
+    left: 0;
+    background: inherit;
+    z-index: 10;
+}
+
+thead th.sticky-col {
+    background: #f8fafc;
+}
+
+.unit-name-cell {
+    font-weight: 700;
+    color: #2563eb !important;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.font-bold {
+    font-weight: 700;
+}
+
+.empty-table-cell {
+    padding: 3rem;
+    text-align: center;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .cane-plan-view-root {
+        padding: 1rem;
+    }
+
+    .button-group-row {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .btn-slate-exit {
+        margin-left: 0;
+    }
+}

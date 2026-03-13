@@ -1,0 +1,245 @@
+/* Layout.css
+ * Core layout styles for the dn-container, dn-header, and dn-nav-bar
+ * Restored navigation styles
+ */
+
+.dn-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: var(--bg-page);
+    font-family: var(--font);
+    border-top: 5px solid #333f48;
+}
+
+.dn-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff;
+    padding: 10px 20px;
+    border-bottom: 2px solid var(--primary);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.dn-logo-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+}
+
+.dn-logo-img {
+    height: 40px;
+}
+
+.dn-season-info {
+    font-weight: 600;
+    color: var(--primary);
+    font-size: 14px;
+}
+
+.dn-user-section {
+    display: flex;
+    align-items: center;
+}
+
+.dn-user-menu-wrapper {
+    position: relative;
+}
+
+.dn-user-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    padding: 5px;
+}
+
+.dn-user-avatar {
+    width: 36px;
+    height: 36px;
+    background-color: var(--primary);
+    color: #e3dede;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.dn-user-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.dn-welcome {
+    font-weight: 600;
+    color: var(--text-dark);
+    font-size: 14px;
+}
+
+.dn-time {
+    font-size: 11px;
+    color: var(--text-mid);
+}
+
+.dn-arrow {
+    font-size: 10px;
+    color: var(--text-mid);
+}
+
+/* Dropdown Menu */
+.dn-dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #1F9E8A;
+    min-width: 240px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    border-radius: 0 0 4px 4px;
+    top: 100%;
+    border: none;
+    overflow: hidden;
+}
+
+.dn-user-dropdown-content {
+    display: block;
+    /* Overridden by conditional rendering in JSX */
+    right: 0;
+    left: auto;
+    background-color: #1F9E8A !important;
+    border: none !important;
+}
+
+.dn-nav-item:hover .dn-dropdown-content {
+    display: block;
+}
+
+.dn-dropdown-content a {
+    color: #ffffff;
+    padding: 10px 15px;
+    text-decoration: none;
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    border-bottom: 1px solid #ffffff;
+    transition: all 0.2s;
+    background-color: transparent;
+}
+
+.dn-dropdown-content a:last-child {
+    border-bottom: none;
+}
+
+.dn-dropdown-content a:hover,
+.dn-dropdown-content .active-menu {
+    background-color: #167d6d;
+    padding-left: 20px;
+    color: #ffffff;
+}
+
+/* User Menu Specific */
+.user-menu-item {
+    padding: 10px 15px;
+    background: none;
+    border: none;
+    color: #f1f5f9 !important;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-size: 13px;
+    display: block;
+    transition: background 0.2s;
+}
+
+.user-menu-item:hover {
+    background-color: #475569 !important;
+}
+
+.user-menu-item.logout {
+    color: #ff6b6b !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-menu-item.logout:hover {
+    background-color: #7f1d1d !important;
+}
+
+/* Navigation Bar */
+.dn-nav-bar {
+    display: flex;
+    background-color: #1F9E8A;
+    padding: 0 15px;
+    flex-wrap: wrap;
+}
+
+.dn-nav-item {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+}
+
+.dn-nav-link {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #ffffff !important;
+    padding: 12px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.caret-icon {
+    font-size: 9px;
+    color: #ffffff;
+    margin-left: 2px;
+}
+
+.dn-nav-item:hover .dn-nav-link {
+    background-color: #167d6d !important;
+}
+
+/* Main Content Area */
+.dn-main {
+    flex: 1;
+    padding: 0;
+    background-color: #fff;
+    overflow-x: hidden;
+}
+
+.block {
+    display: block !important;
+}
+
+.flex {
+    display: flex;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.gap-2 {
+    gap: 8px;
+}
+
+.mt-2 {
+    margin-top: 8px;
+}
+
+.text-sm {
+    font-size: 12px;
+}
+
+.text-left {
+    text-align: left;
+}

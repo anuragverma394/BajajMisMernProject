@@ -1,0 +1,923 @@
+/* ======================================================
+   Target vs Actual MIS — Premium CSS (Light Theme)
+   Bajaj MERN | Lab Module
+   ====================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap');
+
+.mis-root {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    font-family: 'Poppins', Arial, sans-serif;
+    font-size: 13px;
+    color: #334155;
+    padding: 16px 0;
+}
+
+/* ── Header ────────────────────────────────────────────── */
+.mis-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #0d9488, #059669);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(13, 148, 136, 0.25);
+    color: #fff;
+    flex-wrap: wrap;
+}
+
+.mis-header-icon {
+    font-size: 30px;
+    width: 54px;
+    height: 54px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    backdrop-filter: blur(4px);
+    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+.mis-header-text {
+    flex: 1;
+    min-width: 200px;
+}
+
+.mis-header-text h1 {
+    font-size: 20px;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: 0.3px;
+}
+
+.mis-header-text p {
+    font-size: 12px;
+    opacity: 0.9;
+    margin: 4px 0 0;
+    font-weight: 500;
+}
+
+/* ── Tabs ──────────────────────────────────────────────── */
+.mis-tab-bar {
+    display: flex;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    padding: 6px;
+}
+
+.mis-tab {
+    padding: 8px 16px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.85);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+}
+
+.mis-tab:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.mis-tab-active {
+    background: #fff;
+    color: #0f766e;
+    border-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mis-exit-btn {
+    height: 38px;
+    padding: 0 18px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.mis-exit-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: #fff;
+}
+
+/* ── Cards ─────────────────────────────────────────────── */
+.mis-card {
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.mis-card-hdr {
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    background: #0f766e;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Special header card colors */
+.bg-purple {
+    background: #3aed99;
+}
+
+.bg-indigo {
+    background: #46e59b;
+}
+
+.bg-emerald {
+    background: #065f46;
+}
+
+.mis-card-body {
+    padding: 20px 24px;
+}
+
+/* ── Form elements ─────────────────────────────────────── */
+.mis-lbl {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+    color: #475569;
+}
+
+.mis-lbl-purple {
+    color: #0f766e;
+}
+
+.mis-lbl-indigo {
+    color: #047857;
+}
+
+.mis-req {
+    color: #1de199;
+    margin-left: 2px;
+}
+
+.mis-select,
+.mis-input {
+    width: 100%;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    background: #f8fafc;
+    color: #1e293b;
+    outline: none;
+    box-sizing: border-box;
+    transition: all 0.2s;
+}
+
+.mis-select:hover,
+.mis-input:hover {
+    border-color: #94a3b8;
+}
+
+.mis-select:focus,
+.mis-input:focus {
+    border-color: #0d9488;
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+    background: #fff;
+}
+
+/* ── Buttons ───────────────────────────────────────────── */
+.mis-btn {
+    height: 38px;
+    padding: 0 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.mis-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.mis-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.mis-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.mis-btn-purple {
+    background: #0d9488;
+}
+
+.mis-btn-purple:hover:not(:disabled) {
+    background: #0f766e;
+}
+
+.mis-btn-indigo {
+    background: #059669;
+}
+
+.mis-btn-blue {
+    background: #02c77b;
+}
+
+.mis-btn-green {
+    background: #16a34a;
+}
+
+.mis-btn-red {
+    background: #0cea9c;
+}
+
+.mis-btn-gray {
+    background: #648b76;
+}
+
+.mis-btn-sm {
+    height: 32px;
+    font-size: 11px;
+    padding: 0 14px;
+    border-radius: 6px;
+}
+
+.mis-ml-auto {
+    margin-left: auto;
+}
+
+.mis-filter-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 16px;
+    align-items: end;
+}
+
+.mis-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.mis-field-btn {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.mis-btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 20px;
+    margin-top: 12px;
+}
+
+.mis-entry-header-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.mis-plan-btns {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+/* ── Results Table ─────────────────────────────────────── */
+.mis-table-card {
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.mis-table-scroll {
+    overflow-x: auto;
+    max-height: 550px;
+    overflow-y: auto;
+}
+
+.mis-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.mis-th {
+    padding: 10px 12px;
+    background: #0d9488;
+    color: #fff;
+    font-weight: 700;
+    white-space: nowrap;
+    border-right: 1px solid rgba(255, 255, 255, 0.15);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    letter-spacing: 0.3px;
+}
+
+.mis-th-fixed {
+    background: #115e59;
+    min-width: 55px;
+    left: 0;
+    z-index: 20;
+}
+
+.mis-th-group {
+    background: #0d9488;
+    color: #fff;
+    font-weight: 800;
+    font-size: 12px;
+    text-align: center;
+    padding: 8px 12px;
+    border-right: 2px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.mis-th-sub {
+    background: #0f766e;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: right;
+    padding: 6px 10px;
+    border-bottom: 2px solid #042f2e;
+    position: sticky;
+    top: 35px;
+    z-index: 9;
+}
+
+.mis-col-border {
+    border-right: 2px solid rgba(255, 255, 255, 0.25) !important;
+}
+
+.mis-tr {
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.mis-tr:hover td {
+    background: #f0fdf4 !important;
+}
+
+.mis-tr-alt {
+    background: #f8fafc;
+}
+
+.mis-td {
+    padding: 10px 12px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: #334155;
+    font-weight: 500;
+}
+
+.mis-td-idx {
+    text-align: center;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.mis-td-date {
+    white-space: nowrap;
+    font-weight: 800;
+    color: #0f172a;
+    text-align: left;
+    padding-left: 12px;
+}
+
+.mis-td-target {
+    font-weight: 800;
+    background: #f0fdfa;
+}
+
+.mis-td-below {
+    color: #1cb97f !important;
+    background: #fef2f2 !important;
+    font-weight: 800;
+}
+
+/* ── Qty Summary ───────────────────────────────────────── */
+.mis-qty-summary {
+    border-top: 1px solid #cbd5e1;
+    padding: 16px 24px;
+    background: #f8fafc;
+}
+
+.mis-qty-label {
+    font-size: 13px;
+    font-weight: 800;
+    color: #0d9488;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mis-qty-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.mis-qty-item {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.mis-qty-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.1);
+    border-color: #5eead4;
+}
+
+.mis-qty-item-label {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.mis-qty-item-val {
+    font-size: 16px;
+    font-weight: 900;
+    color: #0d9488;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Entry layout ──────────────────────────────────────── */
+.mis-entry-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 20px;
+    align-items: start;
+}
+
+.mis-entry-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.mis-entry-sidebar {
+    position: sticky;
+    top: 20px;
+}
+
+.mis-entry-sidebar .mis-card-body {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Plan Table */
+.mis-plan-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11.5px;
+}
+
+.mis-plan-tr {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.mis-plan-tr:nth-child(odd) {
+    background: #fff;
+}
+
+.mis-plan-tr:nth-child(even) {
+    background: #f0fdf4;
+}
+
+.mis-plan-td {
+    padding: 5px 8px;
+    color: #374151;
+}
+
+.mis-plan-val {
+    padding: 5px 8px;
+    text-align: right;
+    font-weight: 700;
+    color: #065f46;
+    font-variant-numeric: tabular-nums;
+}
+
+.mis-plan-empty {
+    padding: 20px;
+    text-align: center;
+    color: #aaa;
+    font-size: 12px;
+}
+
+/* Entry Section Components */
+.mis-entry-section {
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.mis-sec-hdr {
+    padding: 7px 14px;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.mis-sec-body {
+    padding: 14px;
+}
+
+.mis-sec-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+}
+
+.mis-efield-lbl {
+    font-size: 10px;
+    font-weight: 700;
+    color: #666;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 3px;
+}
+
+.mis-efield-suf {
+    color: #888;
+    font-weight: 400;
+}
+
+.mis-efield-input {
+    width: 100%;
+    height: 30px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    padding: 0 8px;
+    font-size: 12.5px;
+    font-variant-numeric: tabular-nums;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+/* ── Specific Colors ───────────────────── */
+.mis-c-blue {
+    border-color: rgba(29, 216, 144, 0.25) !important;
+    color: #1dd874 !important;
+}
+
+.mis-bg-blue {
+    background: #1dd874 !important;
+    color: #fff !important;
+}
+
+.mis-bg-blue-light {
+    background: rgba(29, 216, 144, 0.03) !important;
+}
+
+.mis-c-green {
+    border-color: rgba(5, 150, 105, 0.25) !important;
+    color: #059669 !important;
+}
+
+.mis-bg-green {
+    background: #059669 !important;
+    color: #fff !important;
+}
+
+.mis-bg-green-light {
+    background: rgba(5, 150, 105, 0.03) !important;
+}
+
+.mis-c-amber {
+    border-color: rgba(146, 64, 14, 0.25) !important;
+    color: #0e9252 !important;
+}
+
+.mis-bg-amber {
+    background: #0e9252 !important;
+    color: #fff !important;
+}
+
+.mis-bg-amber-light {
+    background: rgba(146, 64, 14, 0.03) !important;
+}
+
+.mis-c-purple {
+    border-color: rgba(124, 58, 237, 0.25) !important;
+    color: #0e9252 !important;
+}
+
+.mis-bg-purple-full {
+    background: #0e9252 !important;
+    color: #fff !important;
+}
+
+.mis-bg-purple-light {
+    background: rgba(124, 58, 237, 0.03) !important;
+}
+
+.mis-c-orange {
+    border-color: rgba(180, 83, 9, 0.25) !important;
+    color: #09b481 !important;
+}
+
+.mis-bg-orange {
+    background: #09b481 !important;
+    color: #fff !important;
+}
+
+.mis-bg-orange-light {
+    background: rgba(180, 83, 9, 0.03) !important;
+}
+
+.mis-c-orange2 {
+    border-color: rgba(194, 65, 12, 0.25) !important;
+    color: #09b481 !important;
+}
+
+.mis-bg-orange2 {
+    background: #09b481 !important;
+    color: #fff !important;
+}
+
+.mis-bg-orange2-light {
+    background: rgba(194, 65, 12, 0.03) !important;
+}
+
+.mis-c-red {
+    border-color: rgba(159, 18, 57, 0.25) !important;
+    color: #09b481 !important;
+}
+
+.mis-bg-red {
+    background: #09b481 !important;
+    color: #fff !important;
+}
+
+.mis-bg-red-light {
+    background: rgba(159, 18, 57, 0.03) !important;
+}
+
+.mis-c-sky {
+    border-color: rgba(3, 105, 161, 0.25) !important;
+    color: #09b481 !important;
+}
+
+.mis-bg-sky {
+    background: #09b481 !important;
+    color: #fff !important;
+}
+
+.mis-bg-sky-light {
+    background: rgba(3, 105, 161, 0.03) !important;
+}
+
+.mis-c-emerald {
+    border-color: rgba(6, 95, 70, 0.25) !important;
+    color: #065f46 !important;
+}
+
+.mis-bg-emerald {
+    background: #065f46 !important;
+    color: #fff !important;
+}
+
+.mis-bg-emerald-light {
+    background: rgba(6, 95, 70, 0.03) !important;
+}
+
+.mis-c-indigo {
+    border-color: rgba(67, 56, 202, 0.25) !important;
+    color: #09b481 !important;
+}
+
+.mis-bg-indigo {
+    background: #09b481 !important;
+    color: #fff !important;
+}
+
+.mis-bg-indigo-light {
+    background: rgba(67, 56, 202, 0.03) !important;
+}
+
+.mis-bg-violet-light {
+    background: rgba(126, 34, 206, 0.03) !important;
+}
+
+/* ── KPI Variants ──────────────────────── */
+.mis-v-text-pol {
+    color: #09b481 !important;
+}
+
+.mis-v-border-pol {
+    border-bottom: 2px solid #09b481 !important;
+}
+
+.mis-v-text-recov {
+    color: #059669 !important;
+}
+
+.mis-v-border-recov {
+    border-bottom: 2px solid #059669 !important;
+}
+
+.mis-v-text-bh {
+    color: #09b481 !important;
+}
+
+.mis-v-border-bh {
+    border-bottom: 2px solid #09b481 !important;
+}
+
+.mis-v-text-ch {
+    color: #09b481 !important;
+}
+
+.mis-v-border-ch {
+    border-bottom: 2px solid #09b481 !important;
+}
+
+.mis-v-text-lmos-bhy {
+    color: #09b481 !important;
+}
+
+.mis-v-border-lmos-bhy {
+    border-bottom: 2px solid #09b481 !important;
+}
+
+.mis-v-text-lmos-chy {
+    color: #09b481 !important;
+}
+
+.mis-v-border-lmos-chy {
+    border-bottom: 2px solid #09b481 !important;
+}
+
+.mis-v-text-lmos-bchy {
+    color: #09b481 !important;
+}
+
+.mis-v-border-lmos-bchy {
+    border-bottom: 2px solid #09b481 !important;
+}
+
+.mis-v-text-stm {
+    color: #09b481 !important;
+}
+
+.mis-v-border-stm {
+    border-bottom: 2px solid #09b481 !important;
+}
+
+.mis-v-text-bagasse {
+    color: #09b481 !important;
+}
+
+.mis-v-border-bagasse {
+    border-bottom: 2px solid #09b481 !important;
+}
+
+.mis-v-text-pp {
+    color: #09b481 !important;
+}
+
+.mis-v-border-pp {
+    border-bottom: 2px solid #09b481 !important;
+}
+
+.mis-v-text-pe {
+    color: #09b481 !important;
+}
+
+.mis-v-border-pe {
+    border-bottom: 2px solid #09b481 !important;
+}
+
+.neutral-text {
+    color: #374151 !important;
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 1100px) {
+    .mis-entry-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .mis-entry-sidebar {
+        position: static;
+    }
+}
+
+@media (max-width: 768px) {
+    .mis-filter-row {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .mis-field-btn {
+        grid-column: 1/-1;
+    }
+
+    .mis-tab-bar {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .mis-filter-row {
+        grid-template-columns: 1fr;
+    }
+
+    .mis-btn-row {
+        flex-direction: column;
+    }
+
+    .mis-ml-auto {
+        margin-left: 0;
+    }
+}
+
+/* ── Print ──────────────────────────────────────────────── */
+@media print {
+    @page {
+        size: landscape;
+        margin: 8mm;
+    }
+
+    body {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        background: #fff !important;
+    }
+
+    .mis-header,
+    .mis-card-hdr,
+    .mis-th,
+    .mis-th-group,
+    .mis-th-sub {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .mis-tab-bar,
+    .mis-exit-btn,
+    .mis-btn-row,
+    form {
+        display: none !important;
+    }
+
+    .mis-table-scroll {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    .mis-card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+}

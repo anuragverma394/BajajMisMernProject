@@ -1,0 +1,135 @@
+@import './base.css';
+
+.grower-meeting-page {
+  padding: 18px;
+  background: var(--bg-page);
+  min-height: 100vh;
+}
+
+.grower-meeting-header {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.grower-meeting-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(160px, 1fr));
+  gap: 14px;
+  align-items: end;
+}
+
+.grower-meeting-actions {
+  margin-top: 8px;
+  margin-bottom: 12px;
+  border-top: none;
+  padding-top: 0;
+}
+
+.grower-meeting-table-wrap {
+  max-height: 520px;
+  overflow: auto;
+  border: 1px solid #a5c4a0;
+  background: #fff;
+}
+
+.grower-meeting-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.grower-meeting-table th {
+  background: #d8e7d0;
+  color: #273129;
+  border: 1px solid #a5c4a0;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 10px;
+}
+
+.grower-meeting-table td {
+  border: 1px solid #b8cfb2;
+  font-size: 13px;
+  color: #36403a;
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+
+.grower-meeting-empty-cell {
+  height: 360px;
+  background: #fff;
+}
+
+.grower-meeting-thumb {
+  width: 80px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #c9dccc;
+  cursor: pointer;
+}
+
+.grower-meeting-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 16px;
+}
+
+.grower-meeting-modal-card {
+  position: relative;
+  background: #fff;
+  border-radius: 6px;
+  padding: 14px;
+  max-width: 980px;
+  width: 100%;
+}
+
+.grower-meeting-modal-close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  border: 1px solid #ccc;
+  background: #fff;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+}
+
+.grower-meeting-modal-image {
+  display: block;
+  width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+}
+
+@media (max-width: 1300px) {
+  .grower-meeting-filter-grid {
+    grid-template-columns: repeat(3, minmax(160px, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .grower-meeting-filter-grid {
+    grid-template-columns: repeat(2, minmax(150px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .grower-meeting-page {
+    padding: 12px;
+  }
+
+  .grower-meeting-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .grower-meeting-table th,
+  .grower-meeting-table td {
+    font-size: 12px;
+  }
+}

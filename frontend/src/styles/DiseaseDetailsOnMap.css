@@ -1,0 +1,40 @@
+﻿/* Styles for DiseaseDetailsOnMap.jsx */
+.diseasedetailsonmap-container {}
+
+.user-marker-inner {
+    background: #0066ff;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+}
+
+.plot-marker-inner {
+    background: #ff4444;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.disease-map-wrapper {
+    height: 600px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+
+.disease-map-container {
+    height: 100%;
+    width: 100%;
+}

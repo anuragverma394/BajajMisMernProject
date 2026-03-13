@@ -1,0 +1,137 @@
+@import './base.css';
+
+.target-rpt-page {
+  padding: 20px;
+  background: var(--bg-page);
+  min-height: 100vh;
+}
+
+.target-rpt-header {
+  font-size: 34px;
+  font-weight: 600;
+}
+
+.target-rpt-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(170px, 1fr));
+  gap: 14px;
+  align-items: end;
+}
+
+.target-rpt-actions {
+  margin-top: 10px;
+  margin-bottom: 16px;
+}
+
+.target-rpt-table-wrap {
+  max-height: 520px;
+  overflow: auto;
+  border: 1px solid #a5c4a0;
+}
+
+.target-rpt-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.target-rpt-table th {
+  background: #d8e7d0;
+  color: #273129;
+  border: 1px solid #a5c4a0;
+  font-size: 20px;
+  font-weight: 600;
+  padding: 11px 12px;
+}
+
+.target-rpt-table td {
+  border: 1px solid #b8cfb2;
+  font-size: 18px;
+  color: #36403a;
+  padding: 9px 10px;
+  white-space: nowrap;
+}
+
+.target-rpt-empty-cell {
+  height: 360px;
+  background: #fff;
+}
+
+.target-rpt-image-btn {
+  border: 1px solid #1f9e8a;
+  background: #1f9e8a;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.target-rpt-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 16px;
+}
+
+.target-rpt-modal-card {
+  position: relative;
+  background: #fff;
+  border-radius: 6px;
+  padding: 14px;
+  max-width: 980px;
+  width: 100%;
+}
+
+.target-rpt-modal-close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  border: 1px solid #ccc;
+  background: #fff;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+}
+
+.target-rpt-modal-image {
+  display: block;
+  width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+}
+
+@media (max-width: 1300px) {
+  .target-rpt-filter-grid {
+    grid-template-columns: repeat(3, minmax(170px, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .target-rpt-filter-grid {
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .target-rpt-page {
+    padding: 12px;
+  }
+
+  .target-rpt-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .target-rpt-header {
+    font-size: 20px;
+  }
+
+  .target-rpt-table th,
+  .target-rpt-table td {
+    font-size: 13px;
+  }
+}

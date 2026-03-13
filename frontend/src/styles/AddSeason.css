@@ -1,0 +1,12 @@
+/* AddSeason.css */
+@import './base.css';;
+
+.addseason-page {
+    width: 100%;
+}
+
+/* Required star */
+.required-star {
+    color: #c41e3a;
+    margin-left: 2px;
+}

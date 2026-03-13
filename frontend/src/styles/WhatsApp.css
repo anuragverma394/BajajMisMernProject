@@ -1,0 +1,327 @@
+/* WhatsApp Module CSS */
+@import './base.css';
+;
+
+.whatsapp-container {
+    width: 100%;
+    padding: 16px;
+    background: var(--bg-page);
+}
+
+.whatsapp-card {
+    background: #fff;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 14px;
+}
+
+.whatsapp-card-header {
+    background: var(--primary);
+    color: #fff;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.whatsapp-card-content {
+    padding: 16px;
+}
+
+.whatsapp-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.whatsapp-form-group label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-mid);
+}
+
+.whatsapp-form-control {
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 13px;
+    width: 100%;
+    outline: none;
+}
+
+.whatsapp-form-control:focus {
+    border-color: var(--primary);
+}
+
+.whatsapp-btn-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.whatsapp-btn {
+    padding: 7px 18px;
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    border: none;
+    font-family: var(--font);
+}
+
+.whatsapp-btn-primary {
+    background: var(--primary);
+    color: #fff;
+}
+
+.whatsapp-btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+.whatsapp-table-container {
+    overflow-x: auto;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+}
+
+.whatsapp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.whatsapp-table th {
+    background: var(--primary);
+    color: #fff;
+    padding: 10px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.whatsapp-table td {
+    padding: 9px 12px;
+    color: var(--text-dark);
+    border-bottom: 1px solid #eee;
+}
+
+.whatsapp-table tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+.whatsapp-table tr:hover {
+    background: var(--primary-light);
+}
+
+/* Upload Page Styles */
+.whatsapp-upload-container {
+    min-height: 100vh;
+    padding: 2rem;
+    background: #f8fafc;
+}
+
+.whatsapp-page-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    animation: fadeIn 0.5s ease;
+}
+
+.whatsapp-upload-card {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+.whatsapp-upload-header {
+    background: linear-gradient(135deg, #10b981, #059669);
+    padding: 24px;
+    text-align: center;
+    color: white;
+}
+
+.whatsapp-upload-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -0.025em;
+}
+
+.whatsapp-upload-subtitle {
+    font-size: 0.875rem;
+    opacity: 0.9;
+    margin: 4px 0 0;
+}
+
+.whatsapp-upload-content {
+    padding: 2rem;
+}
+
+.whatsapp-form-grid {
+    display: grid;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.whatsapp-upload-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.whatsapp-upload-label {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #334155;
+}
+
+.whatsapp-upload-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    font-size: 0.9375rem;
+}
+
+.whatsapp-file-dropzone {
+    position: relative;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.2s;
+    background: #fafafa;
+}
+
+.whatsapp-file-dropzone:hover {
+    border-color: #10b981;
+    background: #f0fdf4;
+}
+
+.whatsapp-hidden-file {
+    position: absolute;
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    z-index: -1;
+}
+
+.whatsapp-file-trigger {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.9375rem;
+}
+
+.whatsapp-file-trigger i {
+    font-size: 2.5rem;
+    color: #10b981;
+}
+
+.whatsapp-file-info {
+    margin-top: 0.75rem;
+    font-size: 0.8125rem;
+    color: #059669;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.whatsapp-upload-actions {
+    display: flex;
+    gap: 1rem;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 1.5rem;
+}
+
+.btn-whatsapp-upload-primary,
+.btn-whatsapp-upload-secondary {
+    flex: 1;
+    padding: 0.875rem;
+    border-radius: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.btn-whatsapp-upload-primary {
+    background: #059669;
+    color: white;
+}
+
+.btn-whatsapp-upload-primary:hover:not(:disabled) {
+    background: #053a96;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.btn-whatsapp-upload-secondary {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.btn-whatsapp-upload-secondary:hover {
+    background: #e2e8f0;
+}
+
+/* Instructions Panel */
+.whatsapp-instruction-panel {
+    background: #eff6ff;
+    border: 1px solid #dbeafe;
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.whatsapp-instruction-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #161617;
+    margin-bottom: 0.75rem;
+}
+
+.whatsapp-instruction-header h4 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 0.9375rem;
+}
+
+.whatsapp-instruction-list {
+    margin: 0;
+    padding: 0 0 0 1.25rem;
+    font-size: 0.8125rem;
+    color: #161616;
+    line-height: 1.6;
+}
+
+.whatsapp-instruction-list li {
+    margin-bottom: 0.5rem;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

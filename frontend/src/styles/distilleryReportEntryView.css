@@ -1,0 +1,215 @@
+﻿@import './base.css';
+
+/* Premium Styles for Distillery Report Entry View */
+
+.dist-entry-root {
+    padding: 2.5rem;
+    background: #f1f5f9;
+    min-height: 100vh;
+}
+
+.dist-entry-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.dist-entry-card {
+    background: white;
+    border-radius: 1.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+
+.dist-entry-header {
+    background: linear-gradient(135deg, #0d9488 0%, #059669 100%);
+    padding: 1.5rem 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+}
+
+.dist-entry-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.dist-entry-form-body {
+    padding: 2.5rem;
+}
+
+.dist-entry-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.premium-label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.premium-input {
+    width: 100%;
+    padding: 0.875rem 1.25rem;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 0.875rem;
+    font-size: 0.9375rem;
+    color: #1e293b;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premium-input:focus {
+    background: white;
+    border-color: #0d9488;
+    box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+    outline: none;
+}
+
+.dist-entry-actions {
+    display: flex;
+    gap: 1.25rem;
+    padding-top: 2rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.btn-premium {
+    padding: 0.875rem 2rem;
+    border-radius: 0.875rem;
+    font-weight: 700;
+    font-size: 0.9375rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.btn-premium-primary {
+    background: #0d9488;
+    color: white;
+    border: none;
+    box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.2);
+}
+
+.btn-premium-primary:hover {
+    background: #0f766e;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(13, 148, 136, 0.3);
+}
+
+.btn-premium-secondary {
+    background: #f8fafc;
+    color: #475569;
+    border: 1.5px solid #e2e8f0;
+}
+
+.btn-premium-secondary:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.dist-entry-table-section {
+    padding: 0 2.5rem 2.5rem;
+}
+
+.dist-table-wrapper {
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+
+.premium-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.premium-table thead {
+    background: #f8fafc;
+}
+
+.premium-table th {
+    padding: 1rem 1.25rem;
+    text-align: center;
+    font-weight: 700;
+    color: #475569;
+    border-bottom: 2px solid #e2e8f0;
+    border-right: 1px solid #f1f5f9;
+}
+
+.premium-table td {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #f1f5f9;
+    border-right: 1px solid #f1f5f9;
+    color: #334155;
+}
+
+.bg-teal-subtle {
+    background-color: #f0fdfa;
+    color: #0f766e;
+}
+
+.bg-emerald-subtle {
+    background-color: #ecfdf5;
+    color: #065f46;
+}
+
+.mono-font {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+}
+
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.btn-icon-edit {
+    background: #f0fdfa;
+    color: #0d9488;
+}
+
+.btn-icon-edit:hover {
+    background: #0d9488;
+    color: white;
+}
+
+.btn-icon-delete {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+.btn-icon-delete:hover {
+    background: #ef4444;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .dist-entry-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dist-entry-actions {
+        flex-direction: column;
+    }
+}
