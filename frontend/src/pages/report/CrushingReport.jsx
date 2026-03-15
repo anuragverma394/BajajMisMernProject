@@ -65,6 +65,17 @@ const Report_CrushingReport = () => {
     }
   };
 
+  const fetchLatestDate = async (factoryCode) => {
+    try {
+      const response = await reportService.getLatestCrushingDate({ FACTCODE: factoryCode });
+      const data = unwrapPayload(response);
+      const latest = String(data?.date || '').trim();
+      return latest;
+    } catch (error) {
+      return '';
+    }
+  };
+
   const applyReportData = (data) => {
     const payload = unwrapPayload(data);
     setReport(payload || {});
@@ -78,10 +89,13 @@ const Report_CrushingReport = () => {
 
   const loadFactoryData = async (opts = {}) => {
     const unit = opts.unit ?? filters.unit;
-    const date = opts.date ?? filters.date;
+    let date = opts.date ?? filters.date;
     if (!unit) return;
     setLoading(true);
     try {
+      if (!date) {
+        date = await fetchLatestDate(unit);
+      }
       const response = await reportService.getCrushingFactoryData({
         FACTCODE: unit,
         Date: date,
@@ -185,7 +199,17 @@ const Report_CrushingReport = () => {
                 onChange={(e) => {
                   const nextUnit = e.target.value;
                   setFilters((prev) => ({ ...prev, unit: nextUnit }));
-                  if (nextUnit) loadFactoryData({ unit: nextUnit, date: filters.date });
+                  if (nextUnit) {
+                    fetchLatestDate(nextUnit).then((latest) => {
+                      if (latest) {
+                        setFilters((prev) => ({ ...prev, date: latest }));
+                        loadFactoryData({ unit: nextUnit, date: latest });
+                      } else {
+                        toast.error('No crushing data found for this factory');
+                        loadFactoryData({ unit: nextUnit, date: filters.date });
+                      }
+                    });
+                  }
                 }}
               >
                 <option value="">-- Select Factory --</option>

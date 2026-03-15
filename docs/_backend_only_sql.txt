@@ -1,0 +1,399 @@
+﻿(select count(1) from scope_growers) as target,
+(select count(1) from target_rows) as achieved,
+* - caching layer with redis
+* @param {string} action - procedure name to execute
+* @returns {promise<object>} procedure result with rows, recordsets, rowsaffected
+* @returns {promise<object>} with keys: rows, recordsets, rowsaffected
+* @returns {promise<object>} with keys: rows, rowsaffected
+* delete value from cache
+* execute operation within database transaction
+* execute query and return first column of first row
+* execute query returning single scalar value
+* execute query using pool
+* execute query with pagination
+* execute raw sql query
+* execute scalar query
+* execute sql query and return rows
+* execute sql query and return single value
+* execute sql query for specific season
+* execute stored procedure
+* execute transaction
+* get config with defaults
+* get: target actual mis data with date range
+* getindentfailuresummary â†’ main rows with early / otherthanearly / total columns
+* gets factory code from request with multiple key fallbacks
+* post: api status report (create/update)
+* post: audit report master (create/update)
+* post: cane purchase report (create/update)
+* post: center balance report (create/update)
+* post: centre purchase truck report (create/update)
+* post: exception report (with optional export)
+* post: exception report master (create/update)
+* post: get audit report (with optional export)
+* post: indent purchase report (create/update)
+* post: sample of transporter (create/update)
+* safely executes a stored procedure with error handling
+// 2. fetch odc data (on date crushing) - start with mode table to get all modes
+// 3. helper to update mode data
+// 7. hourly reports (matching c# model properties) - execute as sql queries, not stored procedures
+// â”€â”€ build section 1: merge hours + canecrush + labhour â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€ execute all queries in parallel using safe parameterized inputs â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€ merge & compute derived columns â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€ shared select & from â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€â”€ execute all queries in parallel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// cache miss - execute callback
+// execute validation
+// helper: retry with exponential backoff
+// hh:mm format with colon?
+// if updating with new password, hash it; otherwise keep existing password
+// initialize transaction with manual begin
+// like .net: execute operations sequentially with pool-based transaction
+// merge percentages and pipeline balance into each main row
+// on error, still execute callback
+// post: api status report (create/update)
+// post: audit report (with export)
+// post: audit report master (create/update)
+// post: cane purchase report (create/update)
+// post: cane qty and sugar capacity (create/update)
+// post: capacity utilisation (create/update)
+// post: capacity utilisation from date (create/update)
+// post: center balance report (create/update)
+// post: centre purchase truck report new (create/update)
+// post: cogen report (create/update)
+// post: distillery report (create/update)
+// post: distillery report a (create/update)
+// post: exception report (with export)
+// post: exception report master (create/update)
+// post: indent purchase report new (create/update)
+// post: sample of transporter (create/update)
+// post: sugar report (create/update)
+// post: variety wise cane purchase (create/update)
+// post: variety wise cane purchase amount (create/update)
+// services should override this with actual permission check
+// truckdispatchweighed - use handler from repository with full logic
+// yard count (oynos) - all purchases with no counter assignment for this mode group
+: (applyuserfactoryfilter ?  and src.factory_code in (select factid from mi_userfact with (nolock) where userid = @userid) : );
+: (applyuserfactoryfilter ?  and tt_factory in (select factid from mi_userfact with (nolock) where userid = @userid) : );
+: (applyuserfactoryfilter ? and ${factorycolumn} in (select factid from mi_userfact with (nolock) where userid = @userid) : );
+: (applyuserfactoryfilter ? and cf.ch_factory in (select factid from mi_userfact with (nolock) where userid = @userid) : );
+: (userid ?  and src.factory_code in (select factid from mi_userfact with (nolock) where userid = @userid) : );
+: (userid ?  and tt_factory in (select factid from mi_userfact with (nolock) where userid = @userid) : );
+: (userid ? and cf.ch_factory in (select factid from mi_userfact with (nolock) where userid = @userid) : );
+: (userid ? and p.m_factory in (select factid from mi_userfact with (nolock) where userid = @userid) : );
+: select h.hours as time, avg(b_pol) as pol, avg(b_mois) as mois
+: select h.hours as time1,
+: select h.sn, h.hours as time,
+: select hou, sum(finwt) as finwt from (
+: select time,
+;with candidates as (
+;with gps as (
+;with gps_users as (
+;with latest as (
+;with scope_growers as (
+? (@fact = 0 or exists (select 1 from mi_userfact uf where uf.userid = mu.userid and uf.factid = @fact))
+? (@factorycode = 0 or exists (select 1 from mi_userfact uf where uf.userid = mu.userid and uf.factid = @factorycode))
+? select * from (${base_select}${extrawhere}) as tmp where 1=1${postfilter} order by c_code
+? select h.hours as time, avg(b_pol) as pol, avg(b_mois) as mois
+? select h.hours as time1,
+? select h.sn, h.hours as time,
+? select hou, sum(finwt) as finwt from (
+? select shift, time,
+? select time,
+{ sql: select convert(date, max([ch_dep_date])) as maxdate from [challan_final] with (nolock) }
+{ sql: select convert(date, max([m_date])) as maxdate from [purchase] with (nolock) },
+{ sql: select convert(date, max([tt_tare_dt])) as maxdate from [receipt] with (nolock) },
+and cf.ch_challan in (select tt_chln from t_token where tt_factory = @factory and cast(tt_date as date) <= @date);
+and m_centre in (select value from string_split(@gc, ,))
+and m_centre not in (select value from string_split(@gc,,))
+and m_factory=@f and m_centre in (select value from string_split(@gc,,))
+and p.m_centre in (select value from string_split(@gc, ,))
+and tt_center not in (select value from string_split(@gc, ,))
+and tt_factory=@f and tt_center not in (select value from string_split(@gc,,))
+and userid in (select userid from mi_userfact where factid=@factid)
+async execute() {
+authcache.delete(token);
+await executequery(delete from ${tablename} where id=@id, { id }, season);
+await executequery(delete from ${tablesql} where ${idcol}=@id, { id }, season);
+await executequery(delete from ${tablesql} where id=@id, { id }, season);
+await executequery(delete from ${tablesql} where rd_id=@id, { id }, season);
+await executequery(delete from ${tablesql} where rd_id=@rd_id, { rd_id }, season);
+await query(delete from mi_userfact where userid=@userid, { userid }, season, options);
+await query(delete from transferandrecievedunit where id=@id, { id }, season);
+console.log([backend] ${name} exited with ${reason});
+console.log([getanalysisdata] successfully retrieved data with ${data?.length || 0} recordsets);
+console.log([truckdispatchweighed] executing sql for filter: ${filtertype}, with params: date=${sqldate}, factory=${fcode});
+console.log(testing login with sample user...);
+const { command = insert, ...model } = req.body;
+const buildovershootsql = (activefactoryfilter) => with cte as (
+const cenoyq = select isnull(count(tt_chln),0) as oynos from t_token where tt_factory=@f;
+const chunkquery = with agg as (
+const countquery = select coalesce(count(*), 0) as total from (${sqltext}) as countquery;
+const cropq = select isnull(datediff(day, cast(s_seasonstartdate as date), cast(@date as date))+1, 0) as lblcrop
+const error = new error(user with id ${payload.id} not found);
+const exists = await executequery(select top 1 stpid from mi_stopage where stp_unit=@stp_unit, { stp_unit }, season);
+const hours = await executequery(select * from mi_hours order by sn asc, {}, season);
+const hoursq = select sn, hours, sncc from mi_hours order by sn asc;
+const isinsert = moderaw === btninsert || moderaw === insert || !isupdate;
+const isupdate = moderaw === btupdate || moderaw === update;
+const millsquery = select mill_no from lab_daily where factory = @fcode and cast(ddate as date) = @date and time1 = @sn;
+const modesq = select isnull(md_qty,0) as md_qty, md_code, md_name,
+const probe = await executequery(select object_id(mi_userfact) as userfactobj, {}, season);
+const procname = command === delete ? sp_deleteapistatusreport : sp_upsertapistatusreport;
+const procname = command === delete ? sp_deleteauditreportmaster : sp_upsertauditreportmaster;
+const procname = command === delete ? sp_deletecanepurchasereport : sp_upsertcanepurchasereport;
+const procname = command === delete ? sp_deletecenterbalancereport : sp_upsertcenterbalancereport;
+const procname = command === delete ? sp_deletecentrepurchasetruckreport : sp_upsertcentrepurchasetruckreport;
+const procname = command === delete ? sp_deleteexceptionreportmaster : sp_upsertexceptionreportmaster;
+const procname = command === delete ? sp_deleteindentpurchasereport : sp_upsertindentpurchasereport;
+const procname = command === delete ? sp_deletesampleoftransporter : sp_upsertsampleoftransporter;
+const query = with agg as (
+const res = await pool.request().query(select column_name from information_schema.columns where table_name = userworks);
+const result = await request.execute(name);
+const result = await request.execute(procedurename);
+const rows = await executequery(exec sp_helpdesk @modulid, { modulid }, season);
+const rows = await executequery(select object_id(@tablename) as objectid, { tablename }, season);
+const rows = await executequery(select top 1 * from ${tablesql} where id=@sid, { sid }, season);
+delete from ${tablesql}
+delete from lab_abc_heavy
+delete from lab_magma
+delete from mi_roll where r_code=@rolecode,
+delete from mi_user where id=@id and userid=@userid,
+delete from mi_userrollassign
+delete from mi_userrollassignextra
+delete from mi_weeklybudget
+exists (select 1 from purchase p where p.m_factory = g.g_factory and p.m_vill = g.g_vill and p.m_grow = g.g_code)
+from ${tablename} s with (nolock)
+from ${tablesql} c with (nolock)
+from (select distinct cn_unit from ${tablesql} with (nolock) where cn_unit in (${placeholders.join(,)})) u
+from challan_final cf with (nolock)
+from graphhourstatus with (nolock)
+from mi_factory f with (nolock)
+from mi_userfact with (nolock)
+from purchase p with (nolock)
+from receipt r with (nolock)
+if (!id) return res.status(400).json({ success: false, message: rd_id is required for delete });
+if (command === btupdate || command === update) {
+if (command === delete || command === btndelete) {
+if (payload.command === btupdate || payload.command === update) {
+if (payload.command === delete) {
+insert into ${tablename}
+insert into ${tablesql}
+insert into ${tablesql} (${cols.join(, )})
+insert into lab_abc_heavy (
+insert into lab_magma (
+insert into mi_stopage(stp_unit, stp_pio, stp_pim, stp_remark, userid)
+insert into mi_stopage_log(stp_unit, stopagelog, userid, flag) values(@stp_unit, @lg, @userid, @flag),
+insert into mi_user(userid, name, password, status, utid, factid, sapcode, mobile, emailid, dob, gender, type, gps_flg, timefrom, timeto)
+insert into mi_weeklybudget (wb_factory, wb_budgetamount, wb_fromdate, wb_todate, wb_week, wb_userid)
+insert into target_tran (trg_factory, trg_vill, trg_grow, trg_code, trg_crdate, trg_crby, trg_status)
+insert into transferandrecievedunit
+isnull((select distinct r_name from mi_roll where r_code=ura.r_code), na) as r_name
+isnull((select sum(ss_bx) from lab_daily
+isnull((select sum(ss_bx) from lab_daily where factory = lab.factory and time1 = lab.time and ddate = lab.ddate), 0) as ss_bx
+join mi_factory mfac with (nolock)
+left join centre cnt with (nolock)
+left join factory f with (nolock) on f.f_code = a.f_code
+left join factory f with (nolock) on f.f_code = src.factory_code
+left join mi_factory mf with (nolock) on mf.f_code = a.f_code
+left join mi_factory mf with (nolock) on mf.f_code = src.factory_code
+left join receipt r with (nolock)
+left join t_token tk with (nolock)
+message: missing or invalid authorization token. please ensure the authorization header is set with format: bearer <token>,
+message: use post /api/account/login-2 with name and password,
+mode: insert
+not exists (select 1 from purchase p where p.m_factory = g.g_factory and p.m_vill = g.g_vill and p.m_grow = g.g_code)
+or exists (select 1 from gashti h where h.gh_factory = g.g_factory and h.gh_vill = g.g_vill and h.gh_grow = g.g_code)
+order by (select null)
+return  and exists (select 1 from gashti h where h.gh_factory = g.g_factory and h.gh_vill = g.g_vill and h.gh_grow = g.g_code);
+return  and exists (select 1 from purchase p where p.m_factory = g.g_factory and p.m_vill = g.g_vill and p.m_grow = g.g_code);
+return  and not exists (select 1 from purchase p where p.m_factory = g.g_factory and p.m_vill = g.g_vill and p.m_grow = g.g_code);
+return { error: { status: 400, message: id is required for delete } };
+return { error: { status: 400, message: id is required for update } };
+return executequery(select * from mi_modual order by mid, {}, season);
+return res.status(200).json({ mode: insert });
+return res.status(400).json({ success: false, message: id is required for delete });
+return res.status(400).json({ success: false, message: id is required for update });
+return res.status(400).json({ success: false, message: wb_id/rid must be a positive number for update });
+return res.status(500).json({ success: false, message: ${tablename} does not have id column for update });
+return z.object({}).merge(...schemas);
+router.all(/a1-massecuite-delete, controller.a1massecuitedelete);
+router.all(/add-budget-delete, controller.addbudgetdelete);
+router.all(/amassecuite-delete, controller.amassecuitedelete);
+router.all(/bc-magma-delete, controller.bcmagmadelete);
+router.all(/bmassecuite-delete, controller.bmassecuitedelete);
+router.all(/c1-massecuite-delete, controller.c1massecuitedelete);
+router.all(/cmassecuite-delete, controller.cmassecuitedelete);
+router.all(/daily-lab-analysis-add-delete, controller.dailylabanalysisadddelete);
+router.all(/daily-rainfall-delete, controller.dailyrainfalldelete);
+router.all(/distillery-report-entry-delete, controller.distilleryreportentrydelete);
+router.all(/molasses-analysis-delete, controller.molassesanalysisdelete);
+router.all(/r1-delete, controller.r1delete);
+router.all(/r2-delete, controller.r2delete);
+router.all(/sugar-bag-produced-delete, controller.sugarbagproduceddelete);
+router.all(/sugar-whats-app-report-delete, controller.sugarwhatsappreportdelete);
+router.post(/add-user-right-insert, validate(validateassignpermissions), permissioncontroller.adduserrightinsert);
+router.post(/update-date, requireauth, controller.updatedate);
+router.post(/update-lap-notification, validate(validateupdatelabnotification), usercontroller.updatelapnotification);
+select ${selectlist}
+select * from mi_roll where r_code=@rolecode and mid=@moduleid,
+select @@rowcount as insertedcount;,
+select @@rowcount as rowsaffected;,
+select 1
+select 1 from mi_userrollassign ura
+select 1 from mi_userrollassignextra urae
+select a.f_code,
+select b_pol, b_mois from lab_daily
+select bl_code, bl_name
+select c.id,
+select c.name as columnname
+select c_code, c_name as f_name, sum(tgm) as tgm, sum(gtrm) as gtrm, sum(ttm) as ttm,
+select c_factory, c_code, c_name from centre where c_factory = @fact
+select cast(m_date as date) as d
+select cast(scope_identity() as int) as wb_id;,
+select cast(tt_date as date) as d
+select cd_code, cd_name
+select center_tod_pm,
+select center_today,
+select center_yes,
+select center_yes_pm,
+select ch_centre, ch_factory,
+select ch_centre, max(ch_challan) ch_challan, isnull(ch_balance, 0) ch_balance
+select ch_op_code, isnull(ch_balance, 0) ch_balance
+select coalesce(rtrim(mf.f_name), rtrim(fa.f_name), cast(tt_factory as varchar(10))) as f_name,
+select column_name
+select convert(varchar, s_seasonstartdate, 103) as s_seasonstartdate,
+select count(*) as nos
+select count(*) as nos from purchase
+select count(*) as total, count(distinct m_mode) as modes from purchase where cast(m_date as date) = @dbdate and m_factory = @factcode,
+select count(ch_challan) as nos
+select count(distinct m_centre) as nos
+select count(m_ind_no) as nos, sum(cast(m_gross as decimal(18,2)) - cast(m_tare as decimal(18,2)) - isnull(cast(m_joona as decimal(18,2)), 0)) as wt
+select d.*,
+select datepart(hour, m_tare_dt) as hou,
+select datepart(hour, tt_tare_dt) as hou,
+select distinct cast(usercode as varchar(50)) as usercode from gpsdata
+select distinct cast(usercode as varchar(50)) as usercode from gpsdata_emp
+select distinct g.g_factory, g.g_vill, g.g_code
+select distinct h.sn, h.hours as time1
+select distinct mid, modualname,
+select distinct t.trg_factory, t.trg_vill, t.trg_grow
+select distinct userid, name
+select etr.mid, m.modualname, etr.radd, etr.rupdate, etr.rdelete, etr.rview, etr.rexport, etr.rprint, etr.rsearch, etr.rnotification
+select f.f_code as cn_unit, rtrim(f.f_name) as unit
+select f_code as f_code,
+select f_code, concat(f_name,  (, f_short, )) as f_name, f_name, f_short
+select f_code, f_name +  ( + f_short + ) as f_name
+select f_code, f_name +  ( + f_short + ) as f_name, f_name, f_short
+select f_name, f_code, sum(tgm) as tgm, sum(gtrm) as gtrm, sum(ttm) as ttm,
+select factid from mi_userfact where userid=@userid,
+select gate_tod_pm,
+select gate_today as tag,
+select gate_yes,
+select gate_yes_pm,
+select grower coverage as type,
+select h.hours as time, fm_bx, fm_pol, fm_py,
+select hou, dtag, cat, sum(nos) as total_nos
+select id, pm_name
+select is_factory, is_ds_dt,
+select isnull(count(*), 0) as nos, isnull(sum(tt_netweight), 0) as wt
+select isnull(count(tt_chalanno),0) as atdnos
+select isnull(count(tt_chalanno),0) as odcnos,
+select isnull(count(tt_chalanno),0) as tdcnos,
+select isnull(s_sgt_cd, 100) as gatecode from season where factory = @fcode,
+select isnull(s_sgt_cd,0) as gatecode,
+select isnull(sum(finwt), 0) as finwt from (
+select isnull(sum(m_gross-m_tare-m_joona),0) as wt
+select m.md_factory as f_code,
+select m.mid, modualname, 0 radd, 0 rupdate, 0 rdelete, 0 rview, 0 rexport, 0 rprint, 0 rsearch, 0 rnotification
+select m.mid, modualname, radd, rupdate, rdelete, rview, rexport, rprint, rsearch, rnotification
+select m.userid, m.factid, m.lnflag, u.name, m.ufid
+select m_centre, m_factory,
+select m_factory, m_ind_dt,
+select m_tare_opr,
+select max(ch_challan) from challan_final cf2
+select max(d) as latestdate from (
+select mc_gcode as m_centre,
+select md.md_groupcode,
+select md_factory, f.f_name, md_code, md_name, md_groupcode as groupcode,
+select md_groupcode, md_name, md_code from mode where md_factory = @factcode and md_groupcode in (1,2,3,4),
+select md2.md_code from mode md2
+select mid, modualname, 0 radd, 0 rupdate, 0 rdelete, 0 rview, 0 rexport, 0 rprint, 0 rsearch, 0 rnotification
+select object_id(@tablename) as objectid,
+select object_id(mi_userfact) as userfactobj,
+select p.m_factory as f_code,
+select p.m_factory as factory_code,
+select pj_bx, pj_pol, pj_py, mj_bx, mj_pol, mj_py, lmj_bx
+select r.mid, m.modualid, m.modualname, r.radd, r.rupdate, r.rdelete, r.rview, r.rexport, r.rprint, r.rsearch, r.rnotification
+select r.rd_id,
+select r.tt_factory as factory_code,
+select r_code, r_name, rl.mid, modualname,
+select rl.r_code, rl.r_name, rl.mid, m.modualname,
+select s.${factorycol} as f_code,
+select s.factory as id, s.factory as f_code, f.f_name,
+select scope_identity() as id;,
+select src.factory_code as f_code,
+select st.stpid as id, st.stp_unit, f.f_name as unit, f.f_name as factoryname,
+select stpid, stp_unit, stp_pio as stp_pior, stp_pim, stp_remark
+select sum(b_pol) as b_pol, sum(b_mois) as b_mois
+select sum(case when ch_status > 0 then 1 else 0 end) as nos
+select sum(cast(m_gross - m_tare - m_joona as decimal(18,2))) as finwt,
+select sum(cast(m_gross-m_tare-m_joona as decimal(18,2))) as finwt
+select sum(cast(tt_grossweight - tt_tareweight - tt_joonaweight as decimal(18,2))) as finwt,
+select sum(cast(tt_grossweight-tt_tareweight-tt_joonaweight as decimal(18,2))) as finwt
+select sum(pj_bx) as pj_bx, sum(pj_pol) as pj_pol, sum(pj_py) as pj_py,
+select t.id,
+select tc_id as code, tc_name as name, format(tc_valid_till, dd/mm/yyyy) as date
+select time, cast(isnull(col2, 0) as numeric(18,0)) as juice, add_water,
+select time, sum(cast(isnull(col2, 0) as numeric(18,0))) as juice, sum(add_water) as add_water,
+select time_order, time_value
+select top (@limit)
+select top 1 *
+select top 1 1 as existsflag
+select top 1 1 as hasaccess
+select top 1 1 as hasrow
+select top 1 1 as ok from mi_roll where r_code=@rolecode,
+select top 1 c.*
+select top 1 id, pm_name
+select top 1 id, userid, password
+select top 1 isnull(s_sgt_cd, 1) as s_sgt_cd from season where factory = @factcode,
+select top 1 name from mi_user where userid=@userid,
+select top 1 r_code, r_name from mi_roll where r_code=@rolecode,
+select top 10
+select tt_center,
+select tt_chln from t_token where tt_factory=@f
+select tt_clerk,
+select u.cn_unit,
+select u.id, u.userid, u.name, u.status, u.utid, ut.ut_usertype as usertypename, u.sapcode,
+select uf.factid
+select uf.factid as factid, f.f_name, u.userid, u.name, na as r_name
+select ura.factid, f.f_name, ura.userid, u.name,
+select ura.factid, f.f_name, ura.userid, u.name, extra as r_name
+select utid, ut_usertype
+select z_code, z_name
+sqltext: insert into ${tablename} (${columns.join(, )}) values ${valuessql};,
+throw createserviceerror(password update failed, 500);
+throw new error(failed to insert user - no id returned from database);
+throw new error(no sql configuration found. set sql_conn_2526/sql_conn_default or db_server/db_name with db_use_windows_auth=true (or db_user/db_password));
+union select cl_challan from challanlock where cl_factory=@f
+union select tt_chalanno from receipt where tt_factory=@f
+unitswhere +=  and f.f_code in (select factid from mi_userfact with (nolock) where userid = @userid);
+update ${tablename}
+update ${tablesql}
+update lab_abc_heavy
+update lab_magma
+update mi_stopage
+update mi_userfact
+update mi_weeklybudget
+update mode set md_groupcode=@groupcode where md_factory=@md_factory and md_code=@md_code,
+update season
+where f_code in (select factid from mi_userfact where userid=@userid),
+where mid not in (select mid from mi_roll where r_code in (${insql})),
+where r.r_code in (select ur.r_code from mi_userrollassign ur where ur.userid = @userid)
+with cen as (
+with cet as (
+with ct as (
+with cte as (
+with my_cte as (
+with pur as (
+with rawdata as (
+with units as (

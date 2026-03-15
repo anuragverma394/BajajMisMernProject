@@ -1,8 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const { attachResponseHelpers } = require('./src/core/http/response');
-const { errorHandler, notFoundHandler } = require('./src/middleware/error.middleware');
+const { attachResponseHelpers, setupErrorHandler } = require('@bajaj/shared');
 
 dotenv.config();
 
@@ -28,9 +27,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/survey-report', require('./src/routes/survey-report.routes'));
 app.use('/api/survey-service', require('./src/routes/survey-service.routes'));
 app.use('/api/and-wmt', require('./src/routes/and-wmt.routes'));
-app.use(notFoundHandler);
-app.use(errorHandler);
+setupErrorHandler(app);
 
 module.exports = app;
 
-module.exports = app;

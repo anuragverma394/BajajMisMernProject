@@ -151,8 +151,16 @@ const resolved = await resolveProcedureName(season, procName);
 if (!resolved) {
 return res.status(200).json(buildCrushingDefaults(req));
 }
+try {
 const result = await executeProcedure(resolved, params, season);
 return res.status(200).json((result?.rows && result.rows[0]) ? result.rows[0] : (result?.rows || []));
+} catch (error) {
+const message = String(error?.message || '');
+if (message.toLowerCase().includes('could not find stored procedure')) {
+return res.status(200).json(buildCrushingDefaults(req));
+}
+throw error;
+}
 } catch (error) {
 if (typeof next === 'function') return next(error);
 throw error;

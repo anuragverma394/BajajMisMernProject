@@ -5,8 +5,24 @@ const { notFoundHandler, errorHandler } = require('./middleware/error.middleware
 
 const app = express();
 const allowedOrigins = (process.env.CORS_ORIGINS || '').split(',').filter(Boolean);
+const isDev = process.env.NODE_ENV !== 'production';
 
-app.use(cors({ origin: allowedOrigins.length ? allowedOrigins : '*' }));
+function isAllowedOrigin(origin) {
+  if (!origin) return true;
+  if (isDev && /^http:\/\/localhost:\d+$/.test(origin)) return true;
+  return allowedOrigins.includes(origin);
+}
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (isAllowedOrigin(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error('Not allowed by CORS'));
+    }
+  })
+);
 app.use(express.json({ limit: '2mb' }));
 
 app.get('/api/health', (req, res) => {

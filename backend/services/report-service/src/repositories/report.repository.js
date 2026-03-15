@@ -115,6 +115,24 @@ async function getSummaryReportUnitWise(params, season) {
   );
 }
 
+async function getLatestCrushingDate(params, season) {
+  const { factCode } = params;
+  const rows = await executeQuery(
+    `SELECT MAX(d) AS latestDate FROM (
+       SELECT CAST(M_DATE AS date) AS d
+       FROM PURCHASE
+       WHERE M_FACTORY = @factCode
+       UNION ALL
+       SELECT CAST(TT_DATE AS date) AS d
+       FROM RECEIPT
+       WHERE TT_FACTORY = @factCode
+     ) src`,
+    { factCode: String(factCode) },
+    season
+  );
+  return rows?.[0]?.latestDate || null;
+}
+
 // Get crushing report data for factory on given date
 async function getCrushingReportData(params, season) {
   const { factCode, date } = params;
@@ -730,6 +748,7 @@ module.exports = {
   getCentreCode,
   getDiseaseList,
   getSummaryReportUnitWise,
+  getLatestCrushingDate,
   getCrushingReportData,
   getAnalysisData
 };

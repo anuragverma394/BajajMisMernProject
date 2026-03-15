@@ -1,0 +1,2726 @@
+﻿Backend queries not found in BajajMic (.NET), filtered (len>=25):
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\api-gateway\src\middleware\auth.middleware.js
+[LINE] 33
+[QUERY] message: 'Missing or invalid authorization token. Please ensure the Authorization header is set with format: Bearer <token>',
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\config\sqlserver.js
+[LINE] 128
+[QUERY] throw new Error('No SQL configuration found. Set SQL_CONN_2526/SQL_CONN_DEFAULT or DB_SERVER/DB_NAME with DB_USE_WINDOWS_AUTH=true (or DB_USER/DB_PASSWORD)');
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\controllers\account.controller.js
+[LINE] 16
+[QUERY] message: 'Use POST /api/account/login-2 with Name and Password',
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\core\db\mssql.js
+[LINE] 46
+[QUERY] const result = await request.execute(name);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\repositories\auth.repository.js
+[LINE] 47
+[QUERY] SELECT @@ROWCOUNT AS RowsAffected;`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\repositories\auth.repository.js
+[LINE] 75
+[QUERY] SELECT @@ROWCOUNT AS RowsAffected;`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\repositories\auth.repository.js
+[LINE] 82
+[QUERY] return executeQuery('SELECT * FROM MI_Modual ORDER BY MID', {}, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\repositories\auth.repository.js
+[LINE] 87
+[QUERY] `SELECT r.MID, m.ModualID, m.ModualName, r.RADD, r.RUPDATE, r.RDELETE, r.RVIEW, r.REXPORT, r.RPRINT, r.RSEARCH, r.RNotification
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\repositories\auth.repository.js
+[LINE] 90
+[QUERY] WHERE r.R_Code IN (SELECT ur.R_Code FROM MI_UserRollAssign ur WHERE ur.userid = @userId)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\repositories\auth.repository.js
+[LINE] 92
+[QUERY] SELECT r.MID, m.ModualID, m.ModualName, r.RADD, r.RUPDATE, r.RDELETE, r.RVIEW, r.REXPORT, r.RPRINT, r.RSEARCH, r.RNotification
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\repositories\auth.repository.js
+[LINE] 103
+[QUERY] `SELECT r.MID, m.ModualID, m.ModualName, r.RADD, r.RUPDATE, r.RDELETE, r.RVIEW, r.REXPORT, r.RPRINT, r.RSEARCH, r.RNotification
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\repositories\auth.repository.js
+[LINE] 106
+[QUERY] WHERE r.R_Code IN (SELECT ur.R_Code FROM MI_UserRollAssign ur WHERE ur.userid = @userId)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\repositories\auth.repository.js
+[LINE] 109
+[QUERY] SELECT r.MID, m.ModualID, m.ModualName, r.RADD, r.RUPDATE, r.RDELETE, r.RVIEW, r.REXPORT, r.RPRINT, r.RSEARCH, r.RNotification
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\repositories\auth.repository.js
+[LINE] 120
+[QUERY] `SELECT tc_id AS code, tc_name AS Name, FORMAT(TC_VALID_TILL, 'dd/MM/yyyy') AS Date
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\repositories\auth.repository.js
+[LINE] 133
+[QUERY] SELECT @@ROWCOUNT AS RowsAffected;`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\routes\account.routes.js
+[LINE] 20
+[QUERY] router.post('/update-date', requireAuth, controller.UpdateDate);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\services\auth.service.js
+[LINE] 102
+[QUERY] throw createServiceError('Password update failed', 500);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\test_login.js
+[LINE] 6
+[QUERY] console.log('Testing login with sample user...');
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 266
+[QUERY] `SELECT c.name AS columnName
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 292
+[QUERY] `SELECT OBJECT_ID(@tableName) AS objectId`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 305
+[QUERY] `SELECT OBJECT_ID(@tableName) AS objectId`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 318
+[QUERY] `SELECT OBJECT_ID(@tableName) AS objectId`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 354
+[QUERY] `SELECT c.name AS columnName
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 365
+[QUERY] `SELECT c.name AS columnName
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 413
+[QUERY] const chunkQuery = `WITH agg AS (
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 414
+[QUERY] SELECT p.M_FACTORY AS F_Code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 417
+[QUERY] FROM Purchase p WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 428
+[QUERY] LEFT JOIN MI_Factory mf WITH (NOLOCK) ON mf.F_Code = a.F_Code
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 429
+[QUERY] LEFT JOIN Factory f WITH (NOLOCK) ON f.F_Code = a.F_Code
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 486
+[QUERY] : (userId ? ' AND src.factory_code IN (SELECT FactID FROM MI_UserFact WITH (NOLOCK) WHERE UserID = @userId)' : '');
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 489
+[QUERY] `SELECT src.factory_code AS F_Code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 494
+[QUERY] SELECT p.m_factory AS factory_code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 497
+[QUERY] FROM Purchase p WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 502
+[QUERY] SELECT r.tt_factory AS factory_code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 505
+[QUERY] FROM Receipt r WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 511
+[QUERY] LEFT JOIN MI_Factory mf WITH (NOLOCK) ON mf.F_Code = src.factory_code
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 512
+[QUERY] LEFT JOIN Factory f WITH (NOLOCK) ON f.F_Code = src.factory_code
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 525
+[QUERY] `SELECT Time_Order, Time_Value
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 526
+[QUERY] FROM GraphHourStatus WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 583
+[QUERY] const rows = await executeQuery('EXEC Sp_HelpDesk @ModulId', { ModulId }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 600
+[QUERY] `SELECT f_Code, f_Name + ' (' + F_Short + ')' AS F_Name, f_Name, F_Short
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 615
+[QUERY] `SELECT f_code AS f_Code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 636
+[QUERY] `SELECT md_factory, f.f_Name, md_code, md_name, md_groupcode AS groupcode,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 665
+[QUERY] `SELECT CONVERT(varchar, S_SEASONSTARTDATE, 103) AS S_SEASONSTARTDATE,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 726
+[QUERY] return res.status(200).json({ mode: 'insert' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 730
+[QUERY] `SELECT md_factory, f.f_Name, md_code, md_name, md_groupcode AS groupcode,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 760
+[QUERY] 'UPDATE Mode SET md_groupcode=@groupcode WHERE md_factory=@md_factory AND md_code=@md_code',
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 786
+[QUERY] `SELECT m.md_factory AS f_Code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 812
+[QUERY] `SELECT m.md_factory AS f_Code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 852
+[QUERY] return res.status(200).json({ mode: 'insert' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 856
+[QUERY] `SELECT STPID, STP_Unit, STP_PIO AS STP_PIOR, STP_PIM, STP_Remark
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 894
+[QUERY] 'INSERT INTO MI_Stopage_Log(STP_Unit, StopageLog, UserId, Flag) VALUES(@STP_Unit, @lg, @userId, @flag)',
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 903
+[QUERY] const exists = await executeQuery('SELECT TOP 1 STPID FROM MI_Stopage WHERE STP_Unit=@STP_Unit', { STP_Unit }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 906
+[QUERY] `INSERT INTO MI_Stopage(STP_Unit, STP_PIO, STP_PIM, STP_Remark, Userid)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 914
+[QUERY] 'INSERT INTO MI_Stopage_Log(STP_Unit, StopageLog, UserId, Flag) VALUES(@STP_Unit, @lg, @userId, @flag)',
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 959
+[QUERY] `SELECT s.FACTORY AS id, s.FACTORY AS f_Code, f.F_Name,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 982
+[QUERY] `SELECT s.FACTORY AS id, s.FACTORY AS f_Code, f.F_Name,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1024
+[QUERY] `SELECT st.STPID AS id, st.STP_Unit, f.F_Name AS unit, f.F_Name AS factoryName,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1045
+[QUERY] `SELECT st.STPID AS id, st.STP_Unit, f.F_Name AS unit, f.F_Name AS factoryName,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1091
+[QUERY] : (userId ? 'AND p.M_FACTORY IN (SELECT FactID FROM MI_UserFact WITH (NOLOCK) WHERE UserID = @userId)' : '');
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1165
+[QUERY] : (userId ? 'AND cf.ch_Factory IN (SELECT FactID FROM MI_UserFact WITH (NOLOCK) WHERE UserID = @userId)' : '');
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1261
+[QUERY] SELECT c_code, c_name AS F_name, SUM(TGM) AS TGM, SUM(GTrM) AS GTrM, SUM(TTM) AS TTM,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1288
+[QUERY] : (userId ? ' AND tt_factory IN (SELECT FactID FROM MI_UserFact WITH (NOLOCK) WHERE UserID = @userId)' : '');
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1290
+[QUERY] SELECT F_Name, F_Code, SUM(TGM) AS TGM, SUM(GTrM) AS GTrM, SUM(TTM) AS TTM,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1298
+[QUERY] SELECT COALESCE(RTRIM(mf.F_Name), RTRIM(fa.F_Name), CAST(tt_factory AS varchar(10))) AS F_Name,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1399
+[QUERY] const rows = await executeQuery(`SELECT TOP 1 * FROM ${tableSql} WHERE ID=@sid`, { sid }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1416
+[QUERY] if (command === 'delete' || command === 'btndelete') {
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1418
+[QUERY] return res.status(400).json({ success: false, message: 'id is required for delete' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1420
+[QUERY] await executeQuery(`DELETE FROM ${tableSql} WHERE ID=@id`, { id }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1455
+[QUERY] if (command === 'btupdate' || command === 'update') {
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1457
+[QUERY] return res.status(400).json({ success: false, message: 'id is required for update' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1527
+[QUERY] unitsWhere += ' AND f.F_Code IN (SELECT FactID FROM MI_UserFact WITH (NOLOCK) WHERE UserID = @userId)';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1532
+[QUERY] SELECT f.F_Code AS Cn_Unit, RTRIM(f.F_Name) AS Unit
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1533
+[QUERY] FROM MI_Factory f WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1560
+[QUERY] FROM ${tableSql} c WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1591
+[QUERY] FROM (SELECT DISTINCT Cn_Unit FROM ${tableSql} WITH (NOLOCK) WHERE Cn_Unit IN (${placeholders.join(',')})) u
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1594
+[QUERY] FROM ${tableSql} c WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1791
+[QUERY] const rows = await executeQuery(`SELECT TOP 1 * FROM ${tableSql} WHERE ID=@sid`, { sid }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1893
+[QUERY] if (command === 'btupdate' || command === 'update') {
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1895
+[QUERY] return res.status(400).json({ success: false, message: 'id is required for update' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1898
+[QUERY] return res.status(500).json({ success: false, message: `${tableName} does not have ID column for update` });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1921
+[QUERY] `INSERT INTO ${tableName}
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1945
+[QUERY] await executeQuery(`DELETE FROM ${tableName} WHERE ID=@id`, { id }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 1978
+[QUERY] await executeQuery(`DELETE FROM ${tableSql} WHERE ID=@id`, { id }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 2155
+[QUERY] if (command === 'delete' || command === 'btndelete') {
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 2156
+[QUERY] if (!id) return res.status(400).json({ success: false, message: 'RD_ID is required for delete' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 2157
+[QUERY] await executeQuery(`DELETE FROM ${tableSql} WHERE RD_ID=@id`, { id }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 2225
+[QUERY] await executeQuery(`DELETE FROM ${tableSql} WHERE RD_ID=@RD_ID`, { RD_ID }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 2364
+[QUERY] `SELECT TOP 1 Id, Pm_Name
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 2406
+[QUERY] if (command === 'delete' || command === 'btndelete') {
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 2408
+[QUERY] return res.status(400).json({ success: false, message: 'id is required for delete' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 2411
+[QUERY] await executeQuery(`DELETE FROM ${tableSql} WHERE ${idCol}=@id`, { id }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\controllers\main.controller.js
+[LINE] 2466
+[QUERY] `INSERT INTO ${tableSql} (${cols.join(', ')})
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 249
+[QUERY] `SELECT TOP 1 1 AS hasRow
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 250
+[QUERY] FROM MI_UserFact WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 283
+[QUERY] { sql: `SELECT CONVERT(date, MAX([M_DATE])) AS maxDate FROM [Purchase] WITH (NOLOCK)` },
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 284
+[QUERY] { sql: `SELECT CONVERT(date, MAX([TT_TARE_DT])) AS maxDate FROM [Receipt] WITH (NOLOCK)` },
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 285
+[QUERY] { sql: `SELECT CONVERT(date, MAX([Ch_dep_date])) AS maxDate FROM [challan_final] WITH (NOLOCK)` }
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 356
+[QUERY] `SELECT c.name AS columnName
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 382
+[QUERY] `SELECT OBJECT_ID(@tableName) AS objectId`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 395
+[QUERY] `SELECT OBJECT_ID(@tableName) AS objectId`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 408
+[QUERY] `SELECT OBJECT_ID(@tableName) AS objectId`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 444
+[QUERY] `SELECT c.name AS columnName
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 455
+[QUERY] `SELECT c.name AS columnName
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 503
+[QUERY] const chunkQuery = `WITH agg AS (
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 504
+[QUERY] SELECT p.M_FACTORY AS F_Code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 507
+[QUERY] FROM Purchase p WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 519
+[QUERY] LEFT JOIN MI_Factory mf WITH (NOLOCK) ON mf.F_Code = a.F_Code
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 520
+[QUERY] LEFT JOIN Factory f WITH (NOLOCK) ON f.F_Code = a.F_Code
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 576
+[QUERY] const query = `WITH agg AS (
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 577
+[QUERY] SELECT s.${factoryCol} AS F_Code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 580
+[QUERY] FROM ${tableName} s WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 591
+[QUERY] LEFT JOIN MI_Factory mf WITH (NOLOCK) ON mf.F_Code = a.F_Code
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 592
+[QUERY] LEFT JOIN Factory f WITH (NOLOCK) ON f.F_Code = a.F_Code
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 659
+[QUERY] : (applyUserFactoryFilter ? ' AND src.factory_code IN (SELECT FactID FROM MI_UserFact WITH (NOLOCK) WHERE UserID = @userId)' : '');
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 662
+[QUERY] `SELECT src.factory_code AS F_Code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 667
+[QUERY] SELECT p.m_factory AS factory_code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 670
+[QUERY] FROM Purchase p WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 676
+[QUERY] SELECT r.tt_factory AS factory_code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 679
+[QUERY] FROM Receipt r WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 686
+[QUERY] LEFT JOIN MI_Factory mf WITH (NOLOCK) ON mf.F_Code = src.factory_code
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 687
+[QUERY] LEFT JOIN Factory f WITH (NOLOCK) ON f.F_Code = src.factory_code
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 700
+[QUERY] `SELECT Time_Order, Time_Value
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 701
+[QUERY] FROM GraphHourStatus WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 758
+[QUERY] const rows = await executeQuery('EXEC Sp_HelpDesk @ModulId', { ModulId }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 773
+[QUERY] `SELECT f_Code, CONCAT(f_Name, ' (', F_Short, ')') AS F_Name, f_Name, F_Short
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 783
+[QUERY] `SELECT f_code AS f_Code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 807
+[QUERY] `SELECT md_factory, f.f_Name, md_code, md_name, md_groupcode AS groupcode,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 836
+[QUERY] `SELECT CONVERT(varchar, S_SEASONSTARTDATE, 103) AS S_SEASONSTARTDATE,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 897
+[QUERY] return res.status(200).json({ mode: 'insert' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 901
+[QUERY] `SELECT md_factory, f.f_Name, md_code, md_name, md_groupcode AS groupcode,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 931
+[QUERY] 'UPDATE Mode SET md_groupcode=@groupcode WHERE md_factory=@md_factory AND md_code=@md_code',
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 957
+[QUERY] `SELECT m.md_factory AS f_Code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 983
+[QUERY] `SELECT m.md_factory AS f_Code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1023
+[QUERY] return res.status(200).json({ mode: 'insert' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1027
+[QUERY] `SELECT STPID, STP_Unit, STP_PIO AS STP_PIOR, STP_PIM, STP_Remark
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1065
+[QUERY] 'INSERT INTO MI_Stopage_Log(STP_Unit, StopageLog, UserId, Flag) VALUES(@STP_Unit, @lg, @userId, @flag)',
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1074
+[QUERY] const exists = await executeQuery('SELECT TOP 1 STPID FROM MI_Stopage WHERE STP_Unit=@STP_Unit', { STP_Unit }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1077
+[QUERY] `INSERT INTO MI_Stopage(STP_Unit, STP_PIO, STP_PIM, STP_Remark, Userid)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1085
+[QUERY] 'INSERT INTO MI_Stopage_Log(STP_Unit, StopageLog, UserId, Flag) VALUES(@STP_Unit, @lg, @userId, @flag)',
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1117
+[QUERY] `SELECT s.FACTORY AS id, s.FACTORY AS f_Code, f.F_Name,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1140
+[QUERY] `SELECT s.FACTORY AS id, s.FACTORY AS f_Code, f.F_Name,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1178
+[QUERY] `SELECT st.STPID AS id, st.STP_Unit, f.F_Name AS unit, f.F_Name AS factoryName,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1199
+[QUERY] `SELECT st.STPID AS id, st.STP_Unit, f.F_Name AS unit, f.F_Name AS factoryName,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1261
+[QUERY] : (applyUserFactoryFilter ? `AND ${factoryColumn} IN (SELECT FactID FROM MI_UserFact WITH (NOLOCK) WHERE UserID = @userId)` : '');
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1405
+[QUERY] : (applyUserFactoryFilter ? 'AND cf.ch_Factory IN (SELECT FactID FROM MI_UserFact WITH (NOLOCK) WHERE UserID = @userId)' : '');
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1414
+[QUERY] const buildOverShootSql = (activeFactoryFilter) => `WITH cte AS (
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1427
+[QUERY] FROM challan_final cf WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1428
+[QUERY] LEFT JOIN Receipt r WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1432
+[QUERY] LEFT JOIN T_TOKEN tk WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1463
+[QUERY] LEFT JOIN Centre cnt WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1466
+[QUERY] JOIN MI_Factory mfac WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1556
+[QUERY] SELECT F_Name, F_Code, SUM(TGM) AS TGM, SUM(GTrM) AS GTrM, SUM(TTM) AS TTM,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1564
+[QUERY] SELECT COALESCE(RTRIM(mf.F_Name), RTRIM(fa.F_Name), CAST(tt_factory AS varchar(10))) AS F_Name,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1584
+[QUERY] SELECT c_code, c_name AS F_name, SUM(TGM) AS TGM, SUM(GTrM) AS GTrM, SUM(TTM) AS TTM,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1611
+[QUERY] : (applyUserFactoryFilter ? ' AND tt_factory IN (SELECT FactID FROM MI_UserFact WITH (NOLOCK) WHERE UserID = @userId)' : '');
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1734
+[QUERY] const rows = await executeQuery(`SELECT TOP 1 * FROM ${tableSql} WHERE ID=@sid`, { sid }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1751
+[QUERY] if (command === 'delete' || command === 'btndelete') {
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1753
+[QUERY] return res.status(400).json({ success: false, message: 'id is required for delete' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1755
+[QUERY] await executeQuery(`DELETE FROM ${tableSql} WHERE ID=@id`, { id }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1790
+[QUERY] if (command === 'btupdate' || command === 'update') {
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1792
+[QUERY] return res.status(400).json({ success: false, message: 'id is required for update' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1862
+[QUERY] unitsWhere += ' AND f.F_Code IN (SELECT FactID FROM MI_UserFact WITH (NOLOCK) WHERE UserID = @userId)';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1867
+[QUERY] SELECT f.F_Code AS Cn_Unit, RTRIM(f.F_Name) AS Unit
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1868
+[QUERY] FROM MI_Factory f WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1895
+[QUERY] FROM ${tableSql} c WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1926
+[QUERY] FROM (SELECT DISTINCT Cn_Unit FROM ${tableSql} WITH (NOLOCK) WHERE Cn_Unit IN (${placeholders.join(',')})) u
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 1929
+[QUERY] FROM ${tableSql} c WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 2126
+[QUERY] const rows = await executeQuery(`SELECT TOP 1 * FROM ${tableSql} WHERE ID=@sid`, { sid }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 2229
+[QUERY] if (command === 'btupdate' || command === 'update') {
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 2231
+[QUERY] return res.status(400).json({ success: false, message: 'id is required for update' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 2234
+[QUERY] return res.status(500).json({ success: false, message: `${tableName} does not have ID column for update` });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 2284
+[QUERY] await executeQuery(`DELETE FROM ${tableSql} WHERE ID=@id`, { id }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 2317
+[QUERY] await executeQuery(`DELETE FROM ${tableSql} WHERE ID=@id`, { id }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 2494
+[QUERY] if (command === 'delete' || command === 'btndelete') {
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 2495
+[QUERY] if (!id) return res.status(400).json({ success: false, message: 'RD_ID is required for delete' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 2496
+[QUERY] await executeQuery(`DELETE FROM ${tableSql} WHERE RD_ID=@id`, { id }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 2564
+[QUERY] await executeQuery(`DELETE FROM ${tableSql} WHERE RD_ID=@RD_ID`, { RD_ID }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 2704
+[QUERY] `SELECT TOP 1 Id, Pm_Name
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 2747
+[QUERY] if (command === 'delete' || command === 'btndelete') {
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 2749
+[QUERY] return res.status(400).json({ success: false, message: 'id is required for delete' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 2752
+[QUERY] await executeQuery(`DELETE FROM ${tableSql} WHERE ${idCol}=@id`, { id }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\repositories\main.repository.js
+[LINE] 2807
+[QUERY] `INSERT INTO ${tableSql} (${cols.join(', ')})
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\routes\main.routes.js
+[LINE] 35
+[QUERY] router.all('/sugar-whats-app-report-delete', controller.SugarWhatsAppReportDelete);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\routes\main.routes.js
+[LINE] 40
+[QUERY] router.all('/distillery-report-entry-delete', controller.DistilleryReportEntryDelete);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\routes\main.routes.js
+[LINE] 50
+[QUERY] router.all('/daily-rainfall-delete', controller.DailyRainfallDelete);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\controllers\lab.controller.js
+[LINE] 22
+[QUERY] const rows = await executeQuery('SELECT OBJECT_ID(@tableName) AS objectId', { tableName }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\controllers\lab.controller.js
+[LINE] 611
+[QUERY] const isUpdate = modeRaw === 'btupdate' || modeRaw === 'update';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\controllers\lab.controller.js
+[LINE] 612
+[QUERY] const isInsert = modeRaw === 'btninsert' || modeRaw === 'insert' || !isUpdate;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\controllers\lab.controller.js
+[LINE] 676
+[QUERY] `SELECT TOP 1 1 AS existsFlag
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\controllers\lab.controller.js
+[LINE] 690
+[QUERY] `INSERT INTO LAB_ABC_HEAVY (
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\controllers\lab.controller.js
+[LINE] 740
+[QUERY] `DELETE FROM LAB_ABC_HEAVY
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\controllers\lab.controller.js
+[LINE] 905
+[QUERY] const isUpdate = modeRaw === 'btupdate' || modeRaw === 'update';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\controllers\lab.controller.js
+[LINE] 906
+[QUERY] const isInsert = modeRaw === 'btninsert' || modeRaw === 'insert' || !isUpdate;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\controllers\lab.controller.js
+[LINE] 958
+[QUERY] `SELECT TOP 1 1 AS existsFlag
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\controllers\lab.controller.js
+[LINE] 1369
+[QUERY] `SELECT TOP 1 1 AS hasAccess
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\controllers\lab.controller.js
+[LINE] 1380
+[QUERY] const isUpdate = modeRaw === 'btupdate' || modeRaw === 'update';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\controllers\lab.controller.js
+[LINE] 1384
+[QUERY] return res.status(400).json({ success: false, message: 'WB_ID/Rid must be a positive number for update' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\controllers\lab.controller.js
+[LINE] 1416
+[QUERY] `INSERT INTO MI_WeeklyBudget (WB_Factory, WB_BudgetAmount, WB_FromDate, WB_ToDate, WB_Week, WB_Userid)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\controllers\lab.controller.js
+[LINE] 1418
+[QUERY] SELECT CAST(SCOPE_IDENTITY() AS int) AS WB_ID;`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\controllers\lab.controller.js
+[LINE] 1493
+[QUERY] `DELETE FROM MI_WeeklyBudget
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\repositories\distillery.repository.js
+[LINE] 11
+[QUERY] const rows = await executeQuery('SELECT OBJECT_ID(@tableName) AS objectId', { tableName }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\repositories\lab.repository.js
+[LINE] 40
+[QUERY] const rows = await executeQuery('SELECT OBJECT_ID(@tableName) AS objectId', { tableName }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\repositories\lab.repository.js
+[LINE] 629
+[QUERY] const isUpdate = modeRaw === 'btupdate' || modeRaw === 'update';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\repositories\lab.repository.js
+[LINE] 630
+[QUERY] const isInsert = modeRaw === 'btninsert' || modeRaw === 'insert' || !isUpdate;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\repositories\lab.repository.js
+[LINE] 694
+[QUERY] `SELECT TOP 1 1 AS existsFlag
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\repositories\lab.repository.js
+[LINE] 708
+[QUERY] `INSERT INTO LAB_ABC_HEAVY (
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\repositories\lab.repository.js
+[LINE] 758
+[QUERY] `DELETE FROM LAB_ABC_HEAVY
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\repositories\lab.repository.js
+[LINE] 923
+[QUERY] const isUpdate = modeRaw === 'btupdate' || modeRaw === 'update';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\repositories\lab.repository.js
+[LINE] 924
+[QUERY] const isInsert = modeRaw === 'btninsert' || modeRaw === 'insert' || !isUpdate;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\repositories\lab.repository.js
+[LINE] 976
+[QUERY] `SELECT TOP 1 1 AS existsFlag
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\repositories\lab.repository.js
+[LINE] 1387
+[QUERY] `SELECT TOP 1 1 AS hasAccess
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\repositories\lab.repository.js
+[LINE] 1398
+[QUERY] const isUpdate = modeRaw === 'btupdate' || modeRaw === 'update';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\repositories\lab.repository.js
+[LINE] 1402
+[QUERY] return res.status(400).json({ success: false, message: 'WB_ID/Rid must be a positive number for update' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\repositories\lab.repository.js
+[LINE] 1434
+[QUERY] `INSERT INTO MI_WeeklyBudget (WB_Factory, WB_BudgetAmount, WB_FromDate, WB_ToDate, WB_Week, WB_Userid)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\repositories\lab.repository.js
+[LINE] 1436
+[QUERY] SELECT CAST(SCOPE_IDENTITY() AS int) AS WB_ID;`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\repositories\lab.repository.js
+[LINE] 1511
+[QUERY] `DELETE FROM MI_WeeklyBudget
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\routes\lab.routes.js
+[LINE] 11
+[QUERY] router.all('/daily-lab-analysis-add-delete', controller.DailyLabAnalysisAddDelete);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\routes\lab.routes.js
+[LINE] 12
+[QUERY] router.all('/sugar-bag-produced-delete', controller.SugarBagProducedDelete);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\routes\lab.routes.js
+[LINE] 21
+[QUERY] router.all('/amassecuite-delete', controller.AMassecuiteDelete);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\routes\lab.routes.js
+[LINE] 26
+[QUERY] router.all('/a1-massecuite-delete', controller.A1MassecuiteDelete);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\routes\lab.routes.js
+[LINE] 31
+[QUERY] router.all('/bmassecuite-delete', controller.BMassecuiteDelete);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\routes\lab.routes.js
+[LINE] 36
+[QUERY] router.all('/cmassecuite-delete', controller.CMassecuiteDelete);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\routes\lab.routes.js
+[LINE] 41
+[QUERY] router.all('/c1-massecuite-delete', controller.C1MassecuiteDelete);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\routes\lab.routes.js
+[LINE] 46
+[QUERY] router.all('/r1-delete', controller.R1Delete);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\routes\lab.routes.js
+[LINE] 51
+[QUERY] router.all('/r2-delete', controller.R2Delete);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\routes\lab.routes.js
+[LINE] 56
+[QUERY] router.all('/molasses-analysis-delete', controller.MolassesAnalysisDelete);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\routes\lab.routes.js
+[LINE] 61
+[QUERY] router.all('/bc-magma-delete', controller.BcMagmaDelete);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\routes\lab.routes.js
+[LINE] 78
+[QUERY] router.all('/add-budget-delete', controller.AddBudgetDelete);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\core\db\mssql.js
+[LINE] 66
+[QUERY] const result = await request.execute(name);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\core\db\mssql.js
+[LINE] 83
+[QUERY] // Initialize transaction with manual BEGIN
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\repositories\lab.repository.js
+[LINE] 40
+[QUERY] const rows = await executeQuery('SELECT OBJECT_ID(@tableName) AS objectId', { tableName }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\repositories\lab.repository.js
+[LINE] 629
+[QUERY] const isUpdate = modeRaw === 'btupdate' || modeRaw === 'update';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\repositories\lab.repository.js
+[LINE] 630
+[QUERY] const isInsert = modeRaw === 'btninsert' || modeRaw === 'insert' || !isUpdate;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\repositories\lab.repository.js
+[LINE] 694
+[QUERY] `SELECT TOP 1 1 AS existsFlag
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\repositories\lab.repository.js
+[LINE] 708
+[QUERY] `INSERT INTO LAB_ABC_HEAVY (
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\repositories\lab.repository.js
+[LINE] 758
+[QUERY] `DELETE FROM LAB_ABC_HEAVY
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\repositories\lab.repository.js
+[LINE] 923
+[QUERY] const isUpdate = modeRaw === 'btupdate' || modeRaw === 'update';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\repositories\lab.repository.js
+[LINE] 924
+[QUERY] const isInsert = modeRaw === 'btninsert' || modeRaw === 'insert' || !isUpdate;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\repositories\lab.repository.js
+[LINE] 976
+[QUERY] `SELECT TOP 1 1 AS existsFlag
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\repositories\lab.repository.js
+[LINE] 1414
+[QUERY] `SELECT TOP 1 1 AS hasAccess
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\repositories\lab.repository.js
+[LINE] 1426
+[QUERY] const isUpdate = modeRaw === 'btupdate' || modeRaw === 'update';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\repositories\lab.repository.js
+[LINE] 1430
+[QUERY] return res.status(400).json({ success: false, message: 'WB_ID/Rid must be a positive number for update' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\repositories\lab.repository.js
+[LINE] 1462
+[QUERY] `INSERT INTO MI_WeeklyBudget (WB_Factory, WB_BudgetAmount, WB_FromDate, WB_ToDate, WB_Week, WB_Userid)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\repositories\lab.repository.js
+[LINE] 1464
+[QUERY] SELECT CAST(SCOPE_IDENTITY() AS int) AS WB_ID;`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\repositories\lab.repository.js
+[LINE] 1568
+[QUERY] `DELETE FROM MI_WeeklyBudget
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\account-reports.controller.js
+[LINE] 63
+[QUERY] // POST: Variety Wise Cane Purchase (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\account-reports.controller.js
+[LINE] 66
+[QUERY] const { Command = 'Insert', ...model } = req.body;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\account-reports.controller.js
+[LINE] 90
+[QUERY] // POST: Capacity Utilisation (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\account-reports.controller.js
+[LINE] 93
+[QUERY] const { Command = 'Insert', ...model } = req.body;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\account-reports.controller.js
+[LINE] 117
+[QUERY] // POST: Cane Qty and Sugar Capacity (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\account-reports.controller.js
+[LINE] 120
+[QUERY] const { Command = 'Insert', ...model } = req.body;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\account-reports.controller.js
+[LINE] 151
+[QUERY] // POST: Capacity Utilisation From Date (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\account-reports.controller.js
+[LINE] 154
+[QUERY] const { Command = 'Insert', ...model } = req.body;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\account-reports.controller.js
+[LINE] 222
+[QUERY] // POST: Sugar Report (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\account-reports.controller.js
+[LINE] 225
+[QUERY] const { Command = 'Insert', ...model } = req.body;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\account-reports.controller.js
+[LINE] 249
+[QUERY] // POST: Cogen Report (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\account-reports.controller.js
+[LINE] 252
+[QUERY] const { Command = 'Insert', ...model } = req.body;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\account-reports.controller.js
+[LINE] 276
+[QUERY] // POST: Distillery Report (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\account-reports.controller.js
+[LINE] 279
+[QUERY] const { Command = 'Insert', ...model } = req.body;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\account-reports.controller.js
+[LINE] 303
+[QUERY] // POST: Distillery Report A (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\account-reports.controller.js
+[LINE] 306
+[QUERY] const { Command = 'Insert', ...model } = req.body;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\account-reports.controller.js
+[LINE] 330
+[QUERY] // POST: Variety Wise Cane Purchase Amount (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\account-reports.controller.js
+[LINE] 333
+[QUERY] const { Command = 'Insert', ...model } = req.body;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\new-report.controller.js
+[LINE] 110
+[QUERY] // POST: Exception Report Master (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\new-report.controller.js
+[LINE] 113
+[QUERY] const { Command = 'Insert', ...model } = req.body;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\new-report.controller.js
+[LINE] 137
+[QUERY] // POST: Exception Report (with export)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\new-report.controller.js
+[LINE] 226
+[QUERY] // POST: Audit Report (with export)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\new-report.controller.js
+[LINE] 302
+[QUERY] // POST: Audit Report Master (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\new-report.controller.js
+[LINE] 305
+[QUERY] const { Command = 'Insert', ...model } = req.body;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\report-new.controller.js
+[LINE] 59
+[QUERY] // POST: Indent Purchase Report New (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\report-new.controller.js
+[LINE] 62
+[QUERY] const { Command = 'Insert', ...model } = req.body;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\report-new.controller.js
+[LINE] 99
+[QUERY] // POST: Centre Purchase Truck Report New (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\report-new.controller.js
+[LINE] 102
+[QUERY] const { Command = 'Insert', ...model } = req.body;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\report-new.controller.js
+[LINE] 140
+[QUERY] // POST: Center Balance Report (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\report-new.controller.js
+[LINE] 143
+[QUERY] const { Command = 'Insert', ...model } = req.body;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\report-new.controller.js
+[LINE] 182
+[QUERY] // POST: Cane Purchase Report (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\report-new.controller.js
+[LINE] 185
+[QUERY] const { Command = 'Insert', ...model } = req.body;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\report-new.controller.js
+[LINE] 209
+[QUERY] // POST: Sample Of Transporter (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\report-new.controller.js
+[LINE] 212
+[QUERY] const { Command = 'Insert', ...model } = req.body;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\report-new.controller.js
+[LINE] 267
+[QUERY] // POST: API Status Report (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\report-new.controller.js
+[LINE] 270
+[QUERY] const { Command = 'Insert', ...model } = req.body;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\report.controller.js
+[LINE] 15
+[QUERY] * @param {string} action - Procedure name to execute
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\report.controller.js
+[LINE] 95
+[QUERY] * Gets factory code from request with multiple key fallbacks
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\report.controller.js
+[LINE] 111
+[QUERY] * Safely executes a stored procedure with error handling
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\controllers\report.controller.js
+[LINE] 300
+[QUERY] // TruckDispatchWeighed - use handler from repository with full logic
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\account-reports.repository.js
+[LINE] 65
+[QUERY] await query('DELETE FROM TransferandRecievedUnit WHERE id=@id', { id }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\account-reports.repository.js
+[LINE] 71
+[QUERY] `INSERT INTO TransferandRecievedUnit
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\new-report.repository.js
+[LINE] 82
+[QUERY] const procName = command === 'Delete' ? 'sp_DeleteExceptionReportMaster' : 'sp_UpsertExceptionReportMaster';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\new-report.repository.js
+[LINE] 218
+[QUERY] const procName = command === 'Delete' ? 'sp_DeleteAuditReportMaster' : 'sp_UpsertAuditReportMaster';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report-new.repository.js
+[LINE] 34
+[QUERY] const procName = command === 'Delete' ? 'sp_DeleteIndentPurchaseReport' : 'sp_UpsertIndentPurchaseReport';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report-new.repository.js
+[LINE] 74
+[QUERY] const procName = command === 'Delete' ? 'sp_DeleteCentrePurchaseTruckReport' : 'sp_UpsertCentrePurchaseTruckReport';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report-new.repository.js
+[LINE] 114
+[QUERY] const procName = command === 'Delete' ? 'sp_DeleteCenterBalanceReport' : 'sp_UpsertCenterBalanceReport';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report-new.repository.js
+[LINE] 154
+[QUERY] const procName = command === 'Delete' ? 'sp_DeleteCanePurchaseReport' : 'sp_UpsertCanePurchaseReport';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report-new.repository.js
+[LINE] 181
+[QUERY] const procName = command === 'Delete' ? 'sp_DeleteSampleOfTransporter' : 'sp_UpsertSampleOfTransporter';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report-new.repository.js
+[LINE] 234
+[QUERY] const procName = command === 'Delete' ? 'sp_DeleteApiStatusReport' : 'sp_UpsertApiStatusReport';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 231
+[QUERY] const hoursQ = `SELECT SN, HOURS, SNCC FROM Mi_Hours ORDER BY SN ASC`;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 235
+[QUERY] ? `SELECT hou, SUM(FinWt) AS FinWt FROM (
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 236
+[QUERY] SELECT SUM(CAST(M_GROSS - M_TARE - M_JOONA AS DECIMAL(18,2))) AS FinWt,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 242
+[QUERY] SELECT SUM(CAST(tt_grossweight - tt_tareweight - tt_joonaweight AS DECIMAL(18,2))) AS FinWt,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 249
+[QUERY] : `SELECT hou, SUM(FinWt) AS FinWt FROM (
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 250
+[QUERY] SELECT SUM(CAST(M_GROSS - M_TARE - M_JOONA AS DECIMAL(18,2))) AS FinWt,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 256
+[QUERY] SELECT SUM(CAST(tt_grossweight - tt_tareweight - tt_joonaweight AS DECIMAL(18,2))) AS FinWt,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 297
+[QUERY] ? `SELECT h.Hours AS TIME1,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 307
+[QUERY] : `SELECT h.Hours AS TIME1,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 320
+[QUERY] ? `SELECT h.Hours AS Time, AVG(B_POL) AS Pol, AVG(B_MOIS) AS Mois
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 326
+[QUERY] : `SELECT h.Hours AS Time, AVG(B_POL) AS Pol, AVG(B_MOIS) AS Mois
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 335
+[QUERY] ? `SELECT h.SN, h.Hours AS Time,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 337
+[QUERY] ISNULL((SELECT SUM(SS_BX) FROM LAB_DAILY
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 343
+[QUERY] : `SELECT h.SN, h.Hours AS Time,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 345
+[QUERY] ISNULL((SELECT SUM(SS_BX) FROM LAB_DAILY
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 352
+[QUERY] // â”€â”€ Execute all queries in parallel using safe parameterized inputs â”€â”€â”€â”€â”€â”€â”€â”€
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 363
+[QUERY] // â”€â”€ Build Section 1: merge hours + caneCrush + labHour â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 498
+[QUERY] SELECT m_Centre, M_Factory,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 515
+[QUERY] SELECT CH_Centre, ch_Factory,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 591
+[QUERY] // â”€â”€ Shared SELECT & FROM â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 665
+[QUERY] AND cf.ch_challan IN (SELECT TT_CHLN FROM T_Token WHERE TT_FACTORY = @Factory AND CAST(TT_DATE AS DATE) <= @Date)`;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 681
+[QUERY] ? `SELECT * FROM (${BASE_SELECT}${extraWhere}) AS Tmp WHERE 1=1${postFilter} ORDER BY C_Code`
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 684
+[QUERY] console.log(`[TruckDispatchWeighed] Executing SQL for filter: ${filterType}, with params: Date=${sqlDate}, Factory=${fcode}`);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 709
+[QUERY] *   GETINDENTFAILURESUMMARY  â†’ main rows with Early / OtherThanEarly / Total columns
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 752
+[QUERY] SELECT IS_FACTORY, IS_DS_DT,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 763
+[QUERY] SELECT M_FACTORY, M_IND_DT,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 799
+[QUERY] SELECT IS_FACTORY, IS_DS_DT,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 808
+[QUERY] SELECT M_FACTORY, M_IND_DT,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 833
+[QUERY] // Merge percentages and pipeline balance into each main row
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 913
+[QUERY] SELECT C_FACTORY, C_CODE, C_NAME FROM CENTRE WHERE C_FACTORY = @Fact
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 916
+[QUERY] SELECT MC_GCode AS M_CENTRE,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 946
+[QUERY] SELECT CH_CENTRE, MAX(CH_CHALLAN) CH_CHALLAN, ISNULL(CH_BALANCE, 0) CH_BALANCE
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1056
+[QUERY] SELECT ch_op_code, ISNULL(CH_BALANCE, 0) CH_BALANCE
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1061
+[QUERY] SELECT MAX(CH_CHALLAN) FROM CHALLAN_FINAL cf2
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1073
+[QUERY] SELECT ch_op_code, ISNULL(CH_BALANCE, 0) CH_BALANCE
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1078
+[QUERY] SELECT MAX(CH_CHALLAN) FROM CHALLAN_FINAL cf2
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1088
+[QUERY] // â”€â”€ Merge & compute derived columns â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1197
+[QUERY] SELECT HOU, DTAG, CAT, SUM(NOS) AS TOTAL_NOS
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1350
+[QUERY] `SELECT ISNULL(S_SGT_CD,'0') AS GATECODE,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1363
+[QUERY] const cropQ = `SELECT ISNULL(DATEDIFF(DAY, CAST(S_SEASONSTARTDATE AS DATE), CAST(@Date AS DATE))+1, 0) AS lblcrop
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1368
+[QUERY] const modesQ = `SELECT ISNULL(md_qty,0) AS md_qty, md_code, md_name,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1379
+[QUERY] SELECT md2.md_code FROM Mode md2
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1392
+[QUERY] SELECT md2.md_code FROM Mode md2
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1406
+[QUERY] SELECT md2.md_code FROM Mode md2
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1410
+[QUERY] AND p.M_CENTRE IN (SELECT value FROM STRING_SPLIT(@GC, ','))
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1423
+[QUERY] SELECT md2.md_code FROM Mode md2
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1427
+[QUERY] AND p.M_CENTRE IN (SELECT value FROM STRING_SPLIT(@GC, ','))
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1435
+[QUERY] SELECT ISNULL(COUNT(tt_chalanNo),0) AS ODCNos,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1439
+[QUERY] AND tt_center NOT IN (SELECT value FROM STRING_SPLIT(@GC, ','))
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1446
+[QUERY] SELECT ISNULL(COUNT(tt_chalanNo),0) AS TDCNos,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1450
+[QUERY] AND tt_center NOT IN (SELECT value FROM STRING_SPLIT(@GC, ','))
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1456
+[QUERY] const cenOYQ = `SELECT ISNULL(COUNT(TT_CHLN),0) AS OYNos FROM T_token WHERE TT_FACTORY=@F`;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1461
+[QUERY] SELECT ISNULL(COUNT(TT_CHALANNO),0) AS AtDNos
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1470
+[QUERY] SELECT DATEPART(HOUR, M_TARE_DT) AS hou,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1475
+[QUERY] AND M_CENTRE IN (SELECT value FROM STRING_SPLIT(@GC, ','))
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1482
+[QUERY] SELECT DATEPART(HOUR, TT_TARE_DT) AS hou,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1487
+[QUERY] AND TT_CENTER NOT IN (SELECT value FROM STRING_SPLIT(@GC, ','))
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1495
+[QUERY] SELECT 'GATE_TODAY' AS TAG,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1500
+[QUERY] AND M_FACTORY=@F AND M_CENTRE IN (SELECT value FROM STRING_SPLIT(@GC,','))
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1507
+[QUERY] AND TT_FACTORY=@F AND TT_CENTER NOT IN (SELECT value FROM STRING_SPLIT(@GC,','))
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1514
+[QUERY] AND M_FACTORY=@F AND M_CENTRE IN (SELECT value FROM STRING_SPLIT(@GC,','))
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1521
+[QUERY] AND TT_FACTORY=@F AND TT_CENTER NOT IN (SELECT value FROM STRING_SPLIT(@GC,','))
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1529
+[QUERY] AND M_FACTORY=@F AND M_CENTRE IN (SELECT value FROM STRING_SPLIT(@GC,','))
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1536
+[QUERY] AND TT_FACTORY=@F AND TT_CENTER NOT IN (SELECT value FROM STRING_SPLIT(@GC,','))
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1543
+[QUERY] AND M_FACTORY=@F AND M_CENTRE IN (SELECT value FROM STRING_SPLIT(@GC,','))
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1550
+[QUERY] AND TT_FACTORY=@F AND TT_CENTER NOT IN (SELECT value FROM STRING_SPLIT(@GC,','))
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1556
+[QUERY] SELECT COUNT(DISTINCT M_CENTRE) AS NOS
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1559
+[QUERY] AND M_CENTRE NOT IN (SELECT value FROM STRING_SPLIT(@GC,','))
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1565
+[QUERY] SELECT ISNULL(SUM(M_GROSS-M_TARE-M_JOONA),0) AS WT
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1568
+[QUERY] AND M_CENTRE NOT IN (SELECT value FROM STRING_SPLIT(@GC,','))
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1574
+[QUERY] SELECT COUNT(CH_CHALLAN) AS NOS
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1582
+[QUERY] SELECT SUM(CASE WHEN CH_status > 0 THEN 1 ELSE 0 END) AS NOS
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1595
+[QUERY] SELECT TT_CHLN FROM T_TOKEN WHERE TT_FACTORY=@F
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1596
+[QUERY] UNION SELECT tt_chalanNo FROM RECEIPT WHERE TT_FACTORY=@F
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1597
+[QUERY] UNION SELECT CL_CHALLAN FROM CHALLANLOCK WHERE cl_factory=@F
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1609
+[QUERY] SELECT TT_CHLN FROM T_TOKEN WHERE TT_FACTORY=@F
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1610
+[QUERY] UNION SELECT tt_chalanNo FROM RECEIPT WHERE TT_FACTORY=@F
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1611
+[QUERY] UNION SELECT CL_CHALLAN FROM CHALLANLOCK WHERE cl_factory=@F
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.controller.repository.js
+[LINE] 1614
+[QUERY] // â”€â”€â”€ Execute all queries in parallel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 121
+[QUERY] `SELECT MAX(d) AS latestDate FROM (
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 122
+[QUERY] SELECT CAST(M_DATE AS date) AS d
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 126
+[QUERY] SELECT CAST(TT_DATE AS date) AS d
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 154
+[QUERY] `SELECT COUNT(*) as total, COUNT(DISTINCT M_MODE) as modes FROM PURCHASE WHERE CAST(M_DATE AS date) = @dbDate AND M_FACTORY = @factCode`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 162
+[QUERY] `SELECT TOP 1 ISNULL(S_SGT_CD, '1') as S_SGT_CD FROM SEASON WHERE FACTORY = @factCode`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 217
+[QUERY] // 2. Fetch ODC Data (On Date Crushing) - Start with Mode table to get all modes
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 219
+[QUERY] `SELECT md_groupcode, md_name, MD_CODE FROM Mode WHERE MD_FACTORY = @factCode AND md_groupcode IN (1,2,3,4)`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 254
+[QUERY] // 3. Helper to update mode data
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 270
+[QUERY] // Yard Count (OYNos) - All purchases with no counter assignment for this mode group
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 273
+[QUERY] `SELECT COUNT(*) as nos FROM PURCHASE
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 287
+[QUERY] `SELECT COUNT(*) as nos FROM PURCHASE
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 302
+[QUERY] `SELECT COUNT(M_IND_NO) as nos, SUM(CAST(M_GROSS AS DECIMAL(18,2)) - CAST(M_TARE AS DECIMAL(18,2)) - ISNULL(CAST(M_JOONA AS DECIMAL(18,2)), 0)) as wt
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 353
+[QUERY] `SELECT ISNULL(COUNT(*), 0) as nos, ISNULL(SUM(tt_netweight), 0) as wt
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 364
+[QUERY] `SELECT ISNULL(COUNT(*), 0) as nos, ISNULL(SUM(tt_netweight), 0) as wt
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 411
+[QUERY] // 7. Hourly Reports (matching C# model properties) - Execute as SQL queries, not stored procedures
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 525
+[QUERY] `SELECT ISNULL(S_SGT_CD, '100') as GateCode FROM SEASON WHERE FACTORY = @fCode`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 532
+[QUERY] const hours = await executeQuery('SELECT * FROM Mi_Hours ORDER BY SN ASC', {}, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 548
+[QUERY] SELECT ISNULL(SUM(FinWt), 0) as FinWt FROM (
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 549
+[QUERY] SELECT SUM(CAST(M_GROSS-M_TARE-M_JOONA as decimal(18,2))) as FinWt
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 553
+[QUERY] SELECT SUM(CAST(TT_GROSSWEIGHT-TT_TAREWEIGHT-TT_JOONAWEIGHT as decimal(18,2))) as FinWt
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 565
+[QUERY] SELECT Time, CAST(ISNULL(Col2, 0) as numeric(18,0)) as Juice, ADD_WATER,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 571
+[QUERY] SELECT Time, SUM(CAST(ISNULL(Col2, 0) as numeric(18,0))) as Juice, SUM(ADD_WATER) as ADD_WATER,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 613
+[QUERY] SELECT DISTINCT h.SN, h.Hours as TIME1
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 624
+[QUERY] const millsQuery = `SELECT MILL_NO FROM LAB_DAILY WHERE FACTORY = @fCode AND CAST(DDATE as Date) = @date AND TIME1 = @sn`;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 630
+[QUERY] SELECT PJ_BX, PJ_POL, PJ_PY, MJ_BX, MJ_POL, MJ_PY, LMJ_BX
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 636
+[QUERY] SELECT SUM(PJ_BX) as PJ_BX, SUM(PJ_POL) as PJ_POL, SUM(PJ_PY) as PJ_PY,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 694
+[QUERY] const millsQuery = `SELECT MILL_NO FROM LAB_DAILY WHERE FACTORY = @fCode AND CAST(DDATE as Date) = @date AND TIME1 = @sn`;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 699
+[QUERY] SELECT B_POL, B_MOIS FROM LAB_DAILY
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 703
+[QUERY] SELECT SUM(B_POL) as B_POL, SUM(B_MOIS) as B_MOIS
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 724
+[QUERY] SELECT h.Hours as Time, FM_BX, FM_POL, FM_PY,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\repositories\report.repository.js
+[LINE] 725
+[QUERY] ISNULL((SELECT SUM(SS_BX) FROM LAB_DAILY WHERE FACTORY = lab.FACTORY AND TIME1 = lab.TIME AND DDATE = lab.DDATE), 0) as SS_BX
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\services\account-reports.service.js
+[LINE] 33
+[QUERY] if (payload.command === 'btupdate' || payload.command === 'update') {
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\services\account-reports.service.js
+[LINE] 35
+[QUERY] return { error: { status: 400, message: 'id is required for update' } };
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\services\account-reports.service.js
+[LINE] 41
+[QUERY] if (payload.command === 'delete') {
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\services\account-reports.service.js
+[LINE] 43
+[QUERY] return { error: { status: 400, message: 'id is required for delete' } };
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\services\new-report.service.js
+[LINE] 16
+[QUERY] * GET: Target Actual MIS Data with date range
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\services\new-report.service.js
+[LINE] 70
+[QUERY] * POST: Exception Report Master (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\services\new-report.service.js
+[LINE] 98
+[QUERY] * POST: Exception Report (with optional export)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\services\new-report.service.js
+[LINE] 166
+[QUERY] * POST: Get Audit Report (with optional export)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\services\new-report.service.js
+[LINE] 230
+[QUERY] * POST: Audit Report Master (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\services\report-new.service.js
+[LINE] 28
+[QUERY] * POST: Indent Purchase Report (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\services\report-new.service.js
+[LINE] 68
+[QUERY] * POST: Centre Purchase Truck Report (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\services\report-new.service.js
+[LINE] 108
+[QUERY] * POST: Center Balance Report (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\services\report-new.service.js
+[LINE] 151
+[QUERY] * POST: Cane Purchase Report (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\services\report-new.service.js
+[LINE] 179
+[QUERY] * POST: Sample Of Transporter (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\services\report-new.service.js
+[LINE] 237
+[QUERY] * POST: API Status Report (Create/Update)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\services\report.service.js
+[LINE] 200
+[QUERY] console.log(`[getAnalysisData] Successfully retrieved data with ${data?.length || 0} recordsets`);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\controllers\tracking.controller.js
+[LINE] 55
+[QUERY] EXISTS (SELECT 1 FROM purchase p WHERE p.m_factory = g.g_factory AND p.m_vill = g.g_vill AND p.m_grow = g.g_code)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\controllers\tracking.controller.js
+[LINE] 56
+[QUERY] OR EXISTS (SELECT 1 FROM gashti h WHERE h.gh_factory = g.g_factory AND h.gh_vill = g.g_vill AND h.gh_grow = g.g_code)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\controllers\tracking.controller.js
+[LINE] 61
+[QUERY] NOT EXISTS (SELECT 1 FROM purchase p WHERE p.m_factory = g.g_factory AND p.m_vill = g.g_vill AND p.m_grow = g.g_code)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\controllers\tracking.controller.js
+[LINE] 62
+[QUERY] OR EXISTS (SELECT 1 FROM gashti h WHERE h.gh_factory = g.g_factory AND h.gh_vill = g.g_vill AND h.gh_grow = g.g_code)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\controllers\tracking.controller.js
+[LINE] 66
+[QUERY] return ' AND EXISTS (SELECT 1 FROM purchase p WHERE p.m_factory = g.g_factory AND p.m_vill = g.g_vill AND p.m_grow = g.g_code)';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\controllers\tracking.controller.js
+[LINE] 69
+[QUERY] return ' AND NOT EXISTS (SELECT 1 FROM purchase p WHERE p.m_factory = g.g_factory AND p.m_vill = g.g_vill AND p.m_grow = g.g_code)';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\controllers\tracking.controller.js
+[LINE] 72
+[QUERY] return ' AND EXISTS (SELECT 1 FROM gashti h WHERE h.gh_factory = g.g_factory AND h.gh_vill = g.g_vill AND h.gh_grow = g.g_code)';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\controllers\tracking.controller.js
+[LINE] 273
+[QUERY] INSERT INTO target_tran (trg_factory, trg_vill, trg_grow, trg_code, trg_crdate, trg_crby, trg_status)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\controllers\tracking.controller.js
+[LINE] 284
+[QUERY] SELECT @@ROWCOUNT AS insertedCount;`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\controllers\tracking.controller.js
+[LINE] 323
+[QUERY] `SELECT OBJECT_ID('MI_UserFact') AS userFactObj`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\controllers\tracking.controller.js
+[LINE] 482
+[QUERY] const probe = await executeQuery(`SELECT OBJECT_ID('MI_UserFact') AS userFactObj`, {}, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\controllers\tracking.controller.js
+[LINE] 485
+[QUERY] ? `(@factoryCode = 0 OR EXISTS (SELECT 1 FROM MI_UserFact uf WHERE uf.UserID = mu.Userid AND uf.FactID = @factoryCode))`
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\controllers\tracking.controller.js
+[LINE] 592
+[QUERY] const probe = await executeQuery(`SELECT OBJECT_ID('MI_UserFact') AS userFactObj`, {}, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\controllers\tracking.controller.js
+[LINE] 595
+[QUERY] ? `(@fact = 0 OR EXISTS (SELECT 1 FROM MI_UserFact uf WHERE uf.UserID = mu.Userid AND uf.FactID = @fact))`
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\controllers\tracking.controller.js
+[LINE] 753
+[QUERY] `;WITH scope_growers AS (
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\controllers\tracking.controller.js
+[LINE] 754
+[QUERY] SELECT DISTINCT g.g_factory, g.g_vill, g.g_code
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\controllers\tracking.controller.js
+[LINE] 765
+[QUERY] SELECT DISTINCT t.trg_factory, t.trg_vill, t.trg_grow
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\controllers\tracking.controller.js
+[LINE] 777
+[QUERY] SELECT 'Grower Coverage' AS type,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\controllers\tracking.controller.js
+[LINE] 778
+[QUERY] (SELECT COUNT(1) FROM scope_growers) AS target,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\controllers\tracking.controller.js
+[LINE] 779
+[QUERY] (SELECT COUNT(1) FROM target_rows) AS achieved`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\repositories\tracking.repository.js
+[LINE] 73
+[QUERY] EXISTS (SELECT 1 FROM purchase p WHERE p.m_factory = g.g_factory AND p.m_vill = g.g_vill AND p.m_grow = g.g_code)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\repositories\tracking.repository.js
+[LINE] 74
+[QUERY] OR EXISTS (SELECT 1 FROM gashti h WHERE h.gh_factory = g.g_factory AND h.gh_vill = g.g_vill AND h.gh_grow = g.g_code)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\repositories\tracking.repository.js
+[LINE] 79
+[QUERY] NOT EXISTS (SELECT 1 FROM purchase p WHERE p.m_factory = g.g_factory AND p.m_vill = g.g_vill AND p.m_grow = g.g_code)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\repositories\tracking.repository.js
+[LINE] 80
+[QUERY] OR EXISTS (SELECT 1 FROM gashti h WHERE h.gh_factory = g.g_factory AND h.gh_vill = g.g_vill AND h.gh_grow = g.g_code)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\repositories\tracking.repository.js
+[LINE] 84
+[QUERY] return ' AND EXISTS (SELECT 1 FROM purchase p WHERE p.m_factory = g.g_factory AND p.m_vill = g.g_vill AND p.m_grow = g.g_code)';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\repositories\tracking.repository.js
+[LINE] 87
+[QUERY] return ' AND NOT EXISTS (SELECT 1 FROM purchase p WHERE p.m_factory = g.g_factory AND p.m_vill = g.g_vill AND p.m_grow = g.g_code)';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\repositories\tracking.repository.js
+[LINE] 90
+[QUERY] return ' AND EXISTS (SELECT 1 FROM gashti h WHERE h.gh_factory = g.g_factory AND h.gh_vill = g.g_vill AND h.gh_grow = g.g_code)';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\repositories\tracking.repository.js
+[LINE] 291
+[QUERY] INSERT INTO target_tran (trg_factory, trg_vill, trg_grow, trg_code, trg_crdate, trg_crby, trg_status)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\repositories\tracking.repository.js
+[LINE] 302
+[QUERY] SELECT @@ROWCOUNT AS insertedCount;`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\repositories\tracking.repository.js
+[LINE] 341
+[QUERY] `SELECT OBJECT_ID('MI_UserFact') AS userFactObj`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\repositories\tracking.repository.js
+[LINE] 514
+[QUERY] const probe = await executeQuery(`SELECT OBJECT_ID('MI_UserFact') AS userFactObj`, {}, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\repositories\tracking.repository.js
+[LINE] 517
+[QUERY] ? `(@factoryCode = 0 OR EXISTS (SELECT 1 FROM MI_UserFact uf WHERE uf.UserID = mu.Userid AND uf.FactID = @factoryCode))`
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\repositories\tracking.repository.js
+[LINE] 625
+[QUERY] const probe = await executeQuery(`SELECT OBJECT_ID('MI_UserFact') AS userFactObj`, {}, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\repositories\tracking.repository.js
+[LINE] 628
+[QUERY] ? `(@fact = 0 OR EXISTS (SELECT 1 FROM MI_UserFact uf WHERE uf.UserID = mu.Userid AND uf.FactID = @fact))`
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\repositories\tracking.repository.js
+[LINE] 1067
+[QUERY] SELECT DISTINCT CAST(USERCODE AS varchar(50)) AS USERCODE FROM GPSData_EMP
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\repositories\tracking.repository.js
+[LINE] 1069
+[QUERY] SELECT DISTINCT CAST(USERCODE AS varchar(50)) AS USERCODE FROM GPSData
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\core\db\mssql.js
+[LINE] 69
+[QUERY] const result = await request.execute(name);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\core\db\mssql.js
+[LINE] 78
+[QUERY] // Like .NET: execute operations sequentially with pool-based transaction
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\permission.repository.js
+[LINE] 16
+[QUERY] sqlText: `INSERT INTO ${tableName} (${columns.join(', ')}) VALUES ${valuesSql};`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\permission.repository.js
+[LINE] 35
+[QUERY] `SELECT ura.factid, f.F_Name, ura.Userid, u.Name,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\permission.repository.js
+[LINE] 36
+[QUERY] ISNULL((SELECT DISTINCT R_Name FROM MI_Roll WHERE R_Code=ura.R_Code), 'NA') AS R_Name
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\permission.repository.js
+[LINE] 43
+[QUERY] SELECT ura.factid, f.F_Name, ura.Userid, u.Name, 'Extra' AS R_Name
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\permission.repository.js
+[LINE] 50
+[QUERY] SELECT uf.FactID AS factid, f.F_Name, u.Userid, u.Name, 'NA' AS R_Name
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\permission.repository.js
+[LINE] 56
+[QUERY] SELECT 1 FROM MI_UserRollAssign ura
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\permission.repository.js
+[LINE] 60
+[QUERY] SELECT 1 FROM MI_UserRollAssignExtra urae
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\permission.repository.js
+[LINE] 80
+[QUERY] `DELETE FROM MI_UserRollAssign
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\permission.repository.js
+[LINE] 89
+[QUERY] `DELETE FROM MI_UserRollAssignExtra
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\role.repository.js
+[LINE] 16
+[QUERY] sqlText: `INSERT INTO ${tableName} (${columns.join(', ')}) VALUES ${valuesSql};`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\role.repository.js
+[LINE] 23
+[QUERY] `SELECT rl.R_Code, rl.R_Name, rl.MID, m.Modualname,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\role.repository.js
+[LINE] 50
+[QUERY] 'SELECT TOP 1 1 AS ok FROM MI_Roll WHERE R_Code=@roleCode',
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\role.repository.js
+[LINE] 60
+[QUERY] 'SELECT TOP 1 R_Code, R_Name FROM MI_Roll WHERE R_Code=@roleCode',
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\role.repository.js
+[LINE] 69
+[QUERY] 'DELETE FROM MI_Roll WHERE R_Code=@roleCode',
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\role.repository.js
+[LINE] 103
+[QUERY] SELECT m.MID, Modualname, '0' RADD, '0' RUPDATE, '0' RDELETE, '0' RVIEW, '0' REXPORT, '0' RPRINT, '0' RSEARCH, '0' RNotification
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\role.repository.js
+[LINE] 106
+[QUERY] SELECT m.MID, Modualname, RADD, RUPDATE, RDELETE, RVIEW, REXPORT, RPRINT, RSEARCH, RNotification
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\role.repository.js
+[LINE] 111
+[QUERY] SELECT DISTINCT MID, Modualname,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\role.repository.js
+[LINE] 126
+[QUERY] 'SELECT * FROM MI_Roll WHERE R_Code=@roleCode AND MID=@moduleId',
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\role.repository.js
+[LINE] 160
+[QUERY] `SELECT etr.MID, m.Modualname, etr.RADD, etr.RUPDATE, etr.RDELETE, etr.RVIEW, etr.REXPORT, etr.RPRINT, etr.RSEARCH, etr.RNotification
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\role.repository.js
+[LINE] 172
+[QUERY] `SELECT MID, Modualname, '0' RADD, '0' RUPDATE, '0' RDELETE, '0' RVIEW, '0' REXPORT, '0' RPRINT, '0' RSEARCH, '0' RNotification
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\role.repository.js
+[LINE] 187
+[QUERY] `SELECT MID, Modualname, '0' RADD, '0' RUPDATE, '0' RDELETE, '0' RVIEW, '0' REXPORT, '0' RPRINT, '0' RSEARCH, '0' RNotification
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\role.repository.js
+[LINE] 189
+[QUERY] WHERE MID NOT IN (SELECT MID FROM MI_Roll WHERE R_Code IN (${inSql}))`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\role.repository.js
+[LINE] 205
+[QUERY] `SELECT R_Code, R_Name, rl.MID, Modualname,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\user.repository.js
+[LINE] 48
+[QUERY] sqlText: `INSERT INTO ${tableName} (${columns.join(', ')}) VALUES ${valuesSql};`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\user.repository.js
+[LINE] 55
+[QUERY] `SELECT UTID, UT_UserType
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\user.repository.js
+[LINE] 92
+[QUERY] `SELECT u.ID, u.Userid, u.Name, u.Status, u.UTID, ut.UT_UserType AS UserTypeName, u.SAPCode,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\user.repository.js
+[LINE] 113
+[QUERY] `SELECT TOP 1 ID, Userid, Password
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\user.repository.js
+[LINE] 125
+[QUERY] `INSERT INTO MI_User(Userid, Name, Password, Status, UTID, FactID, SAPCode, Mobile, EmailID, DOB, Gender, Type, GPS_FLG, TimeFrom, TimeTo)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\user.repository.js
+[LINE] 128
+[QUERY] SELECT SCOPE_IDENTITY() AS ID;`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\user.repository.js
+[LINE] 152
+[QUERY] throw new Error('Failed to insert user - no ID returned from database');
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\user.repository.js
+[LINE] 191
+[QUERY] await query('DELETE FROM MI_UserFact WHERE UserID=@userId', { userId }, season, options);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\user.repository.js
+[LINE] 220
+[QUERY] 'SELECT FactID FROM MI_UserFact WHERE UserID=@userId',
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\user.repository.js
+[LINE] 234
+[QUERY] `SELECT DISTINCT Userid, Name
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\user.repository.js
+[LINE] 237
+[QUERY] AND UserID IN (SELECT UserID FROM MI_UserFact WHERE FactID=@factId)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\user.repository.js
+[LINE] 247
+[QUERY] 'SELECT TOP 1 Name FROM MI_User WHERE Userid=@userId',
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\user.repository.js
+[LINE] 255
+[QUERY] `SELECT f_Code, f_Name + ' (' + F_Short + ')' AS F_Name
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\user.repository.js
+[LINE] 257
+[QUERY] WHERE f_code IN (SELECT FactID FROM MI_UserFact WHERE UserID=@userId)`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\user.repository.js
+[LINE] 266
+[QUERY] 'DELETE FROM MI_User WHERE ID=@id AND Userid=@userId',
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\repositories\user.repository.js
+[LINE] 275
+[QUERY] `SELECT m.UserID, m.FactID, m.LNFlag, u.Name, m.UFID
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\routes\user-management.routes.js
+[LINE] 38
+[QUERY] router.post('/add-user-right-insert', validate(validateAssignPermissions), permissionController.AddUserRightInsert);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\routes\user-management.routes.js
+[LINE] 42
+[QUERY] router.post('/update-lap-notification', validate(validateUpdateLabNotification), userController.UpdateLapNotification);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\services\user.service.js
+[LINE] 61
+[QUERY] const error = new Error(`User with ID ${payload.ID} not found`);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\services\user.service.js
+[LINE] 66
+[QUERY] // If updating with new password, hash it; otherwise keep existing password
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\validations\user.validation.js
+[LINE] 54
+[QUERY] // HH:MM format with colon?
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\check_userworks.js
+[LINE] 9
+[QUERY] const res = await pool.request().query("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'userworks'");
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 265
+[QUERY] `SELECT c.name AS columnName
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 291
+[QUERY] `SELECT OBJECT_ID(@tableName) AS objectId`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 304
+[QUERY] `SELECT OBJECT_ID(@tableName) AS objectId`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 317
+[QUERY] `SELECT OBJECT_ID(@tableName) AS objectId`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 353
+[QUERY] `SELECT c.name AS columnName
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 364
+[QUERY] `SELECT c.name AS columnName
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 412
+[QUERY] const chunkQuery = `WITH agg AS (
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 413
+[QUERY] SELECT p.M_FACTORY AS F_Code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 416
+[QUERY] FROM Purchase p WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 427
+[QUERY] LEFT JOIN MI_Factory mf WITH (NOLOCK) ON mf.F_Code = a.F_Code
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 428
+[QUERY] LEFT JOIN Factory f WITH (NOLOCK) ON f.F_Code = a.F_Code
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 485
+[QUERY] : (userId ? ' AND src.factory_code IN (SELECT FactID FROM MI_UserFact WITH (NOLOCK) WHERE UserID = @userId)' : '');
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 488
+[QUERY] `SELECT src.factory_code AS F_Code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 493
+[QUERY] SELECT p.m_factory AS factory_code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 496
+[QUERY] FROM Purchase p WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 501
+[QUERY] SELECT r.tt_factory AS factory_code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 504
+[QUERY] FROM Receipt r WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 510
+[QUERY] LEFT JOIN MI_Factory mf WITH (NOLOCK) ON mf.F_Code = src.factory_code
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 511
+[QUERY] LEFT JOIN Factory f WITH (NOLOCK) ON f.F_Code = src.factory_code
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 524
+[QUERY] `SELECT Time_Order, Time_Value
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 525
+[QUERY] FROM GraphHourStatus WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 582
+[QUERY] const rows = await executeQuery('EXEC Sp_HelpDesk @ModulId', { ModulId }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 597
+[QUERY] `SELECT f_Code, f_Name + ' (' + F_Short + ')' AS F_Name, f_Name, F_Short
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 614
+[QUERY] `SELECT md_factory, f.f_Name, md_code, md_name, md_groupcode AS groupcode,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 643
+[QUERY] `SELECT CONVERT(varchar, S_SEASONSTARTDATE, 103) AS S_SEASONSTARTDATE,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 704
+[QUERY] return res.status(200).json({ mode: 'insert' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 708
+[QUERY] `SELECT md_factory, f.f_Name, md_code, md_name, md_groupcode AS groupcode,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 738
+[QUERY] 'UPDATE Mode SET md_groupcode=@groupcode WHERE md_factory=@md_factory AND md_code=@md_code',
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 764
+[QUERY] `SELECT m.md_factory AS f_Code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 790
+[QUERY] `SELECT m.md_factory AS f_Code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 830
+[QUERY] return res.status(200).json({ mode: 'insert' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 834
+[QUERY] `SELECT STPID, STP_Unit, STP_PIO AS STP_PIOR, STP_PIM, STP_Remark
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 872
+[QUERY] 'INSERT INTO MI_Stopage_Log(STP_Unit, StopageLog, UserId, Flag) VALUES(@STP_Unit, @lg, @userId, @flag)',
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 881
+[QUERY] const exists = await executeQuery('SELECT TOP 1 STPID FROM MI_Stopage WHERE STP_Unit=@STP_Unit', { STP_Unit }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 884
+[QUERY] `INSERT INTO MI_Stopage(STP_Unit, STP_PIO, STP_PIM, STP_Remark, Userid)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 892
+[QUERY] 'INSERT INTO MI_Stopage_Log(STP_Unit, StopageLog, UserId, Flag) VALUES(@STP_Unit, @lg, @userId, @flag)',
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 924
+[QUERY] `SELECT s.FACTORY AS id, s.FACTORY AS f_Code, f.F_Name,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 947
+[QUERY] `SELECT s.FACTORY AS id, s.FACTORY AS f_Code, f.F_Name,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 985
+[QUERY] `SELECT st.STPID AS id, st.STP_Unit, f.F_Name AS unit, f.F_Name AS factoryName,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1006
+[QUERY] `SELECT st.STPID AS id, st.STP_Unit, f.F_Name AS unit, f.F_Name AS factoryName,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1052
+[QUERY] : (userId ? 'AND p.M_FACTORY IN (SELECT FactID FROM MI_UserFact WITH (NOLOCK) WHERE UserID = @userId)' : '');
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1126
+[QUERY] : (userId ? 'AND cf.ch_Factory IN (SELECT FactID FROM MI_UserFact WITH (NOLOCK) WHERE UserID = @userId)' : '');
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1222
+[QUERY] SELECT c_code, c_name AS F_name, SUM(TGM) AS TGM, SUM(GTrM) AS GTrM, SUM(TTM) AS TTM,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1249
+[QUERY] : (userId ? ' AND tt_factory IN (SELECT FactID FROM MI_UserFact WITH (NOLOCK) WHERE UserID = @userId)' : '');
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1251
+[QUERY] SELECT F_Name, F_Code, SUM(TGM) AS TGM, SUM(GTrM) AS GTrM, SUM(TTM) AS TTM,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1259
+[QUERY] SELECT COALESCE(RTRIM(mf.F_Name), RTRIM(fa.F_Name), CAST(tt_factory AS varchar(10))) AS F_Name,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1360
+[QUERY] const rows = await executeQuery(`SELECT TOP 1 * FROM ${tableSql} WHERE ID=@sid`, { sid }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1377
+[QUERY] if (command === 'delete' || command === 'btndelete') {
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1379
+[QUERY] return res.status(400).json({ success: false, message: 'id is required for delete' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1381
+[QUERY] await executeQuery(`DELETE FROM ${tableSql} WHERE ID=@id`, { id }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1416
+[QUERY] if (command === 'btupdate' || command === 'update') {
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1418
+[QUERY] return res.status(400).json({ success: false, message: 'id is required for update' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1488
+[QUERY] unitsWhere += ' AND f.F_Code IN (SELECT FactID FROM MI_UserFact WITH (NOLOCK) WHERE UserID = @userId)';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1493
+[QUERY] SELECT f.F_Code AS Cn_Unit, RTRIM(f.F_Name) AS Unit
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1494
+[QUERY] FROM MI_Factory f WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1521
+[QUERY] FROM ${tableSql} c WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1552
+[QUERY] FROM (SELECT DISTINCT Cn_Unit FROM ${tableSql} WITH (NOLOCK) WHERE Cn_Unit IN (${placeholders.join(',')})) u
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1555
+[QUERY] FROM ${tableSql} c WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1752
+[QUERY] const rows = await executeQuery(`SELECT TOP 1 * FROM ${tableSql} WHERE ID=@sid`, { sid }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1854
+[QUERY] if (command === 'btupdate' || command === 'update') {
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1856
+[QUERY] return res.status(400).json({ success: false, message: 'id is required for update' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1859
+[QUERY] return res.status(500).json({ success: false, message: `${tableName} does not have ID column for update` });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1882
+[QUERY] `INSERT INTO ${tableName}
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1906
+[QUERY] await executeQuery(`DELETE FROM ${tableName} WHERE ID=@id`, { id }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 1939
+[QUERY] await executeQuery(`DELETE FROM ${tableSql} WHERE ID=@id`, { id }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 2116
+[QUERY] if (command === 'delete' || command === 'btndelete') {
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 2117
+[QUERY] if (!id) return res.status(400).json({ success: false, message: 'RD_ID is required for delete' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 2118
+[QUERY] await executeQuery(`DELETE FROM ${tableSql} WHERE RD_ID=@id`, { id }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 2186
+[QUERY] await executeQuery(`DELETE FROM ${tableSql} WHERE RD_ID=@RD_ID`, { RD_ID }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 2325
+[QUERY] `SELECT TOP 1 Id, Pm_Name
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 2367
+[QUERY] if (command === 'delete' || command === 'btndelete') {
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 2369
+[QUERY] return res.status(400).json({ success: false, message: 'id is required for delete' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 2372
+[QUERY] await executeQuery(`DELETE FROM ${tableSql} WHERE ${idCol}=@id`, { id }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\controllers\main.controller.js
+[LINE] 2427
+[QUERY] `INSERT INTO ${tableSql} (${cols.join(', ')})
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 273
+[QUERY] `SELECT c.name AS columnName
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 299
+[QUERY] `SELECT OBJECT_ID(@tableName) AS objectId`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 312
+[QUERY] `SELECT OBJECT_ID(@tableName) AS objectId`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 325
+[QUERY] `SELECT OBJECT_ID(@tableName) AS objectId`,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 361
+[QUERY] `SELECT c.name AS columnName
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 372
+[QUERY] `SELECT c.name AS columnName
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 420
+[QUERY] const chunkQuery = `WITH agg AS (
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 421
+[QUERY] SELECT p.M_FACTORY AS F_Code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 424
+[QUERY] FROM Purchase p WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 435
+[QUERY] LEFT JOIN MI_Factory mf WITH (NOLOCK) ON mf.F_Code = a.F_Code
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 436
+[QUERY] LEFT JOIN Factory f WITH (NOLOCK) ON f.F_Code = a.F_Code
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 493
+[QUERY] : (userId ? ' AND src.factory_code IN (SELECT FactID FROM MI_UserFact WITH (NOLOCK) WHERE UserID = @userId)' : '');
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 496
+[QUERY] `SELECT src.factory_code AS F_Code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 501
+[QUERY] SELECT p.m_factory AS factory_code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 504
+[QUERY] FROM Purchase p WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 509
+[QUERY] SELECT r.tt_factory AS factory_code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 512
+[QUERY] FROM Receipt r WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 518
+[QUERY] LEFT JOIN MI_Factory mf WITH (NOLOCK) ON mf.F_Code = src.factory_code
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 519
+[QUERY] LEFT JOIN Factory f WITH (NOLOCK) ON f.F_Code = src.factory_code
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 532
+[QUERY] `SELECT Time_Order, Time_Value
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 533
+[QUERY] FROM GraphHourStatus WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 590
+[QUERY] const rows = await executeQuery('EXEC Sp_HelpDesk @ModulId', { ModulId }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 605
+[QUERY] `SELECT f_Code, CONCAT(f_Name, ' (', F_Short, ')') AS F_Name, f_Name, F_Short
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 622
+[QUERY] `SELECT md_factory, f.f_Name, md_code, md_name, md_groupcode AS groupcode,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 651
+[QUERY] `SELECT CONVERT(varchar, S_SEASONSTARTDATE, 103) AS S_SEASONSTARTDATE,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 712
+[QUERY] return res.status(200).json({ mode: 'insert' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 716
+[QUERY] `SELECT md_factory, f.f_Name, md_code, md_name, md_groupcode AS groupcode,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 746
+[QUERY] 'UPDATE Mode SET md_groupcode=@groupcode WHERE md_factory=@md_factory AND md_code=@md_code',
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 772
+[QUERY] `SELECT m.md_factory AS f_Code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 798
+[QUERY] `SELECT m.md_factory AS f_Code,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 838
+[QUERY] return res.status(200).json({ mode: 'insert' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 842
+[QUERY] `SELECT STPID, STP_Unit, STP_PIO AS STP_PIOR, STP_PIM, STP_Remark
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 880
+[QUERY] 'INSERT INTO MI_Stopage_Log(STP_Unit, StopageLog, UserId, Flag) VALUES(@STP_Unit, @lg, @userId, @flag)',
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 889
+[QUERY] const exists = await executeQuery('SELECT TOP 1 STPID FROM MI_Stopage WHERE STP_Unit=@STP_Unit', { STP_Unit }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 892
+[QUERY] `INSERT INTO MI_Stopage(STP_Unit, STP_PIO, STP_PIM, STP_Remark, Userid)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 900
+[QUERY] 'INSERT INTO MI_Stopage_Log(STP_Unit, StopageLog, UserId, Flag) VALUES(@STP_Unit, @lg, @userId, @flag)',
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 932
+[QUERY] `SELECT s.FACTORY AS id, s.FACTORY AS f_Code, f.F_Name,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 955
+[QUERY] `SELECT s.FACTORY AS id, s.FACTORY AS f_Code, f.F_Name,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 993
+[QUERY] `SELECT st.STPID AS id, st.STP_Unit, f.F_Name AS unit, f.F_Name AS factoryName,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1014
+[QUERY] `SELECT st.STPID AS id, st.STP_Unit, f.F_Name AS unit, f.F_Name AS factoryName,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1060
+[QUERY] : (userId ? 'AND p.M_FACTORY IN (SELECT FactID FROM MI_UserFact WITH (NOLOCK) WHERE UserID = @userId)' : '');
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1134
+[QUERY] : (userId ? 'AND cf.ch_Factory IN (SELECT FactID FROM MI_UserFact WITH (NOLOCK) WHERE UserID = @userId)' : '');
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1230
+[QUERY] SELECT c_code, c_name AS F_name, SUM(TGM) AS TGM, SUM(GTrM) AS GTrM, SUM(TTM) AS TTM,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1257
+[QUERY] : (userId ? ' AND tt_factory IN (SELECT FactID FROM MI_UserFact WITH (NOLOCK) WHERE UserID = @userId)' : '');
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1259
+[QUERY] SELECT F_Name, F_Code, SUM(TGM) AS TGM, SUM(GTrM) AS GTrM, SUM(TTM) AS TTM,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1267
+[QUERY] SELECT COALESCE(RTRIM(mf.F_Name), RTRIM(fa.F_Name), CAST(tt_factory AS varchar(10))) AS F_Name,
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1368
+[QUERY] const rows = await executeQuery(`SELECT TOP 1 * FROM ${tableSql} WHERE ID=@sid`, { sid }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1385
+[QUERY] if (command === 'delete' || command === 'btndelete') {
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1387
+[QUERY] return res.status(400).json({ success: false, message: 'id is required for delete' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1389
+[QUERY] await executeQuery(`DELETE FROM ${tableSql} WHERE ID=@id`, { id }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1424
+[QUERY] if (command === 'btupdate' || command === 'update') {
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1426
+[QUERY] return res.status(400).json({ success: false, message: 'id is required for update' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1496
+[QUERY] unitsWhere += ' AND f.F_Code IN (SELECT FactID FROM MI_UserFact WITH (NOLOCK) WHERE UserID = @userId)';
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1501
+[QUERY] SELECT f.F_Code AS Cn_Unit, RTRIM(f.F_Name) AS Unit
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1502
+[QUERY] FROM MI_Factory f WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1529
+[QUERY] FROM ${tableSql} c WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1560
+[QUERY] FROM (SELECT DISTINCT Cn_Unit FROM ${tableSql} WITH (NOLOCK) WHERE Cn_Unit IN (${placeholders.join(',')})) u
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1563
+[QUERY] FROM ${tableSql} c WITH (NOLOCK)
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1760
+[QUERY] const rows = await executeQuery(`SELECT TOP 1 * FROM ${tableSql} WHERE ID=@sid`, { sid }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1862
+[QUERY] if (command === 'btupdate' || command === 'update') {
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1864
+[QUERY] return res.status(400).json({ success: false, message: 'id is required for update' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1867
+[QUERY] return res.status(500).json({ success: false, message: `${tableName} does not have ID column for update` });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1917
+[QUERY] await executeQuery(`DELETE FROM ${tableSql} WHERE ID=@id`, { id }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 1950
+[QUERY] await executeQuery(`DELETE FROM ${tableSql} WHERE ID=@id`, { id }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 2127
+[QUERY] if (command === 'delete' || command === 'btndelete') {
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 2128
+[QUERY] if (!id) return res.status(400).json({ success: false, message: 'RD_ID is required for delete' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 2129
+[QUERY] await executeQuery(`DELETE FROM ${tableSql} WHERE RD_ID=@id`, { id }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 2197
+[QUERY] await executeQuery(`DELETE FROM ${tableSql} WHERE RD_ID=@RD_ID`, { RD_ID }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 2337
+[QUERY] `SELECT TOP 1 Id, Pm_Name
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 2380
+[QUERY] if (command === 'delete' || command === 'btndelete') {
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 2382
+[QUERY] return res.status(400).json({ success: false, message: 'id is required for delete' });
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 2385
+[QUERY] await executeQuery(`DELETE FROM ${tableSql} WHERE ${idCol}=@id`, { id }, season);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\repositories\main.repository.js
+[LINE] 2440
+[QUERY] `INSERT INTO ${tableSql} (${cols.join(', ')})
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\core\db\mssql.js
+[LINE] 34
+[QUERY] * Execute SQL query for specific season
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\core\db\mssql.js
+[LINE] 39
+[QUERY] * @returns {Promise<Object>} With keys: rows, rowsAffected
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\core\db\mssql.js
+[LINE] 64
+[QUERY] * Execute query and return first column of first row
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\core\db\mssql.js
+[LINE] 86
+[QUERY] * Execute stored procedure
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\core\db\mssql.js
+[LINE] 91
+[QUERY] * @returns {Promise<Object>} With keys: rows, recordsets, rowsAffected
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\core\db\mssql.js
+[LINE] 102
+[QUERY] const result = await request.execute(name);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\core\db\mssql.js
+[LINE] 112
+[QUERY] * Execute operation within database transaction
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\core\db\query-executor.js
+[LINE] 15
+[QUERY] * Execute SQL query and return rows
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\core\db\query-executor.js
+[LINE] 28
+[QUERY] * Execute SQL query and return single value
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\core\db\query-executor.js
+[LINE] 40
+[QUERY] * Execute stored procedure
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\core\db\query-executor.js
+[LINE] 45
+[QUERY] * @returns {Promise<Object>} Procedure result with rows, recordsets, rowsAffected
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\db\mssql.js
+[LINE] 54
+[QUERY] const result = await request.execute(name);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\db\sqlserver.js
+[LINE] 128
+[QUERY] throw new Error('No SQL configuration found. Set SQL_CONN_2526/SQL_CONN_DEFAULT or DB_SERVER/DB_NAME with DB_USE_WINDOWS_AUTH=true (or DB_USER/DB_PASSWORD)');
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\lib\config\index.js
+[LINE] 86
+[QUERY] * Get config with defaults
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\lib\db\mssql.js
+[LINE] 173
+[QUERY] * Execute query using pool
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\lib\db\mssql.js
+[LINE] 222
+[QUERY] * Execute stored procedure
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\lib\db\mssql.js
+[LINE] 240
+[QUERY] const result = await request.execute(procedureName);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\lib\db\query-executor.js
+[LINE] 36
+[QUERY] * Execute query returning single scalar value
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\lib\db\query-executor.js
+[LINE] 53
+[QUERY] * Execute stored procedure
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\lib\db\query-executor.js
+[LINE] 72
+[QUERY] * Execute query with pagination
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\lib\db\query-executor.js
+[LINE] 77
+[QUERY] const countQuery = `SELECT COALESCE(COUNT(*), 0) as total FROM (${sqlText}) as countQuery`;
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\lib\middleware\auth.middleware.js
+[LINE] 206
+[QUERY] // Services should override this with actual permission check
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\lib\middleware\validate.middleware.js
+[LINE] 120
+[QUERY] return z.object({}).merge(...schemas);
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\lib\utils\cache.js
+[LINE] 108
+[QUERY] * Delete value from cache
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\lib\utils\cache.js
+[LINE] 169
+[QUERY] // Cache miss - execute callback
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\lib\utils\cache.js
+[LINE] 181
+[QUERY] // On error, still execute callback
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\lib\utils\index.js
+[LINE] 27
+[QUERY] // Helper: Retry with exponential backoff
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\shared\index.js
+[LINE] 8
+[QUERY] * - Caching layer with Redis
+
+[FILE] A:\vibrant technology\clone\BajajMisMernProject\backend\server.js
+[LINE] 67
+[QUERY] console.log(`[backend] ${name} exited with ${reason}`);
+

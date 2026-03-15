@@ -14,7 +14,7 @@
 const http = require('./lib/http');
 const middleware = require('./lib/middleware');
 const db = require('./lib/db');
-const { getLogger, setLogLevel, Logger, cache } = require('./lib/utils');
+const { getLogger, setLogLevel, Logger, cache, createNotImplementedHandler } = require('./lib/utils');
 const { config, getConfig, logConfig, validateEnv, validateCritical } = require('./lib/config');
 
 /**
@@ -74,6 +74,7 @@ module.exports = {
   setLogLevel,
   Logger,
   cache,
+  createNotImplementedHandler,
 
   // Configuration
   config,

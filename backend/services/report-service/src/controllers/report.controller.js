@@ -167,9 +167,47 @@ exports.CrushingReport = async (req, res, next) => {
   }
 };
 
-exports.Imagesblub = createProcedureHandler(CONTROLLER, 'Imagesblub', 'string F_code');
-exports.LOADMODEWISEDATA = createProcedureHandler(CONTROLLER, 'LOADMODEWISEDATA', 'string DATE, string FACTCODE');
-exports.LOADFACTORYDATA = createProcedureHandler(CONTROLLER, 'LOADFACTORYDATA', 'string FACTCODE, string Date');
+// Use repository handler to gracefully fall back when stored proc is missing
+exports.Imagesblub = reportControllerRepository.Imagesblub;
+exports.LOADMODEWISEDATA = async (req, res, next) => {
+  try {
+    const data = await reportService.loadModeWiseData(req);
+    return res.status(200).json({
+      success: true,
+      message: 'Report.LOADMODEWISEDATA executed',
+      data
+    });
+  } catch (error) {
+    if (typeof next === 'function') return next(error);
+    throw error;
+  }
+};
+exports.LOADFACTORYDATA = async (req, res, next) => {
+  try {
+    const data = await reportService.loadFactoryData(req);
+    return res.status(200).json({
+      success: true,
+      message: 'Report.LOADFACTORYDATA executed',
+      data
+    });
+  } catch (error) {
+    if (typeof next === 'function') return next(error);
+    throw error;
+  }
+};
+exports.LatestCrushingDate = async (req, res, next) => {
+  try {
+    const date = await reportService.getLatestCrushingDate(req);
+    return res.status(200).json({
+      success: true,
+      message: 'Report.LatestCrushingDate executed',
+      data: { date }
+    });
+  } catch (error) {
+    if (typeof next === 'function') return next(error);
+    throw error;
+  }
+};
 exports.Value = createProcedureHandler(CONTROLLER, 'Value', 'string a');
 exports.GetYesterdaytransitDetail = createProcedureHandler(CONTROLLER, 'GetYesterdaytransitDetail', '');
 exports.GetTodaytransitDetail = createProcedureHandler(CONTROLLER, 'GetTodaytransitDetail', '');

@@ -1,4 +1,4 @@
-const { createNotImplementedHandler } = require('../utils/notImplemented');
+const { createNotImplementedHandler } = require('@bajaj/shared');
 
 const CONTROLLER = 'BajajMisService';
 

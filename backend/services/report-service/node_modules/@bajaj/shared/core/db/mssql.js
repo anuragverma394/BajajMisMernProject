@@ -5,7 +5,7 @@
  */
 
 const { sql, getPool } = require('./database');
-const CONFIG = require('./constants');
+const CONFIG = require('../../config/constants');
 
 /**
  * Normalize and validate season value

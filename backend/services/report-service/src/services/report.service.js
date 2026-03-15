@@ -137,6 +137,20 @@ async function loadModeWiseData(req) {
   }
 }
 
+async function getLatestCrushingDate(req) {
+  const season = getSeason(req);
+  const factCode = getFactoryCode(req, 'FACTCODE', 'FactCode', 'factoryCode', 'F_code');
+  if (!factCode) throw new Error('Factory code is required');
+  const latest = await repository.getLatestCrushingDate({ factCode }, season);
+  if (!latest) return '';
+  const dt = new Date(latest);
+  if (Number.isNaN(dt.getTime())) return '';
+  const dd = String(dt.getDate()).padStart(2, '0');
+  const mm = String(dt.getMonth() + 1).padStart(2, '0');
+  const yyyy = dt.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
 // Empty template for error handling
 function getCrushingReportTemplate() {
   return {
@@ -200,5 +214,6 @@ module.exports = {
   loadFactoryData,
   loadModeWiseData,
   getAnalysisData,
-  getCrushingReportTemplate
+  getCrushingReportTemplate,
+  getLatestCrushingDate
 };

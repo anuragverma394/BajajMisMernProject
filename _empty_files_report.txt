@@ -1,0 +1,29 @@
+﻿
+FullName                                                                                                               
+--------                                                                                                               
+A:\vibrant technology\clone\BajajMisMernProject\backend\node_modules\mime\.npmignore                                   
+A:\vibrant technology\clone\BajajMisMernProject\backend\node_modules\msnodesqlv8\cpp\mocks\mock_odbc_statement_handl...
+A:\vibrant technology\clone\BajajMisMernProject\backend\node_modules\msnodesqlv8\cpp\mocks\mock_odbc_statement_handle.h
+A:\vibrant technology\clone\BajajMisMernProject\backend\node_modules\msnodesqlv8\cpp\src\js\js_param.cpp               
+A:\vibrant technology\clone\BajajMisMernProject\backend\node_modules\msnodesqlv8\cpp\src\odbc\odbc-environment-init.cpp
+A:\vibrant technology\clone\BajajMisMernProject\backend\node_modules\napi-build-utils\index.md                         
+A:\vibrant technology\clone\BajajMisMernProject\backend\node_modules\node-addon-api\nothing.c                          
+A:\vibrant technology\clone\BajajMisMernProject\backend\node_modules\tar-fs\test\fixtures\d\file1                      
+A:\vibrant technology\clone\BajajMisMernProject\backend\node_modules\tar-fs\test\fixtures\d\file2                      
+A:\vibrant technology\clone\BajajMisMernProject\backend\node_modules\tar-fs\test\fixtures\d\sub-dir\file5              
+A:\vibrant technology\clone\BajajMisMernProject\backend\node_modules\tar-fs\test\fixtures\d\sub-files\file3            
+A:\vibrant technology\clone\BajajMisMernProject\backend\node_modules\tar-fs\test\fixtures\d\sub-files\file4            
+A:\vibrant technology\clone\BajajMisMernProject\backend\node_modules\tar-fs\test\fixtures\e\directory\.ignore          
+A:\vibrant technology\clone\BajajMisMernProject\backend\node_modules\tar-fs\test\fixtures\e\file                       
+A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\.env.example                             
+A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\.env.example                        
+A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\.env.example                       
+A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\.env.example                              
+A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\.env.example                           
+A:\vibrant technology\clone\BajajMisMernProject\backend\services\survey-service\.env.example                           
+A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\.env.example                         
+A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\.env.example                             
+A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\.env.example                         
+A:\vibrant technology\clone\BajajMisMernProject\frontend\node_modules\@standard-schema\spec\dist\index.js              
+
+

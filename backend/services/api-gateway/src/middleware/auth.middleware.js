@@ -1,3 +1,23 @@
+const authCache = new Map();
+const getCacheTtlMs = () => {
+  const raw = Number(process.env.AUTH_CACHE_TTL_MS || 30000);
+  return Number.isFinite(raw) && raw > 0 ? raw : 30000;
+};
+
+function getCachedUser(token) {
+  const entry = authCache.get(token);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    authCache.delete(token);
+    return null;
+  }
+  return entry.user;
+}
+
+function setCachedUser(token, user) {
+  authCache.set(token, { user, expiresAt: Date.now() + getCacheTtlMs() });
+}
+
 async function authenticate(req, res, next) {
   const auth = req.headers.authorization || '';
   
@@ -18,6 +38,12 @@ async function authenticate(req, res, next) {
   }
 
   try {
+    const cachedUser = getCachedUser(auth);
+    if (cachedUser) {
+      req.user = cachedUser;
+      return next();
+    }
+
     const verifyUrl = `${process.env.AUTH_SERVICE_URL}/api/account/verify`;
     const response = await fetch(verifyUrl, {
       method: 'POST',
@@ -41,6 +67,7 @@ async function authenticate(req, res, next) {
     }
 
     req.user = data.data;
+    setCachedUser(auth, data.data);
     console.log(`[AUTH] Success - User: ${data.data?.userId}, Path: ${path}`);
     return next();
   } catch (err) {

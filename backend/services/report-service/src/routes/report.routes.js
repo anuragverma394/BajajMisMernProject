@@ -7,6 +7,7 @@ router.all('/crushing-report', controller.CrushingReport);
 router.all('/imagesblub', controller.Imagesblub);
 router.all('/loadmodewisedata', controller.LOADMODEWISEDATA);
 router.all('/loadfactorydata', controller.LOADFACTORYDATA);
+router.get('/latest-crushing-date', controller.LatestCrushingDate);
 router.all('/value', controller.Value);
 router.all('/get-yesterdaytransit-detail', controller.GetYesterdaytransitDetail);
 router.all('/get-todaytransit-detail', controller.GetTodaytransitDetail);

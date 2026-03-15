@@ -30,6 +30,10 @@ export const reportService = {
         const response = await apiClient.get('/report/imagesblub', { params });
         return response.data;
     },
+    getLatestCrushingDate: async (params) => {
+        const response = await apiClient.get('/report/latest-crushing-date', { params });
+        return response.data;
+    },
 
     getAnalysisData: async (params) => {
         const response = await apiClient.get('/report/analysisdata', { params });

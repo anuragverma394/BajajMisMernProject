@@ -1,8 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const { attachResponseHelpers } = require('./src/core/http/response');
-const { errorHandler, notFoundHandler } = require('./src/middleware/error.middleware');
+const { attachResponseHelpers, setupErrorHandler } = require('@bajaj/shared');
 
 dotenv.config();
 
@@ -26,7 +25,6 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/whats-app', require('./src/routes/whats-app.routes'));
-app.use(notFoundHandler);
-app.use(errorHandler);
+setupErrorHandler(app);
 
 module.exports = app;

@@ -3,7 +3,7 @@
  * Provides standardized response helpers and error building
  */
 
-const CONFIG = require('../config/constants');
+const CONFIG = require('../../config/constants');
 
 /**
  * Convert error to string

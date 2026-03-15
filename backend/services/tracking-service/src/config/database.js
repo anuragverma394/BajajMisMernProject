@@ -1,8 +1,7 @@
-const { getPool } = require('./sqlserver');
+const { mssqlConnection } = require('@bajaj/shared');
 
 async function connectDatabase() {
-  await getPool(process.env.DEFAULT_SEASON || '2526');
-  console.log('Database connection ready');
+  await mssqlConnection.getConnectionPool({}, 'default');
 }
 
 module.exports = connectDatabase;

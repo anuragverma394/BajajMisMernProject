@@ -17,6 +17,7 @@ const { getLogger } = require('../utils/logger');
 const logger = getLogger('mssql-connection');
 
 const connectionPools = new Map();
+const pendingPools = new Map();
 
 /**
  * Create a mock connection pool for testing without database
@@ -101,6 +102,10 @@ async function getConnectionPool(config = {}, poolName = 'default') {
         return pool;
       }
     }
+    // Reuse in-flight connection to avoid duplicate logs/creation
+    if (pendingPools.has(poolName)) {
+      return pendingPools.get(poolName);
+    }
 
     const useWindowsAuth = String((config.useWindowsAuth ?? process.env.DB_USE_WINDOWS_AUTH) || 'false').toLowerCase() === 'true';
 
@@ -157,11 +162,17 @@ async function getConnectionPool(config = {}, poolName = 'default') {
     });
 
     // Connect
-    await pool.connect();
-    logger.info('Connection pool connected', { poolName });
-
-    connectionPools.set(poolName, pool);
-    return pool;
+    const connectPromise = pool.connect().then(() => {
+      logger.info('Connection pool connected', { poolName });
+      connectionPools.set(poolName, pool);
+      pendingPools.delete(poolName);
+      return pool;
+    }).catch((err) => {
+      pendingPools.delete(poolName);
+      throw err;
+    });
+    pendingPools.set(poolName, connectPromise);
+    return connectPromise;
 
   } catch (err) {
     logger.error('Failed to create connection pool', err);

@@ -4,6 +4,7 @@
 
 const { getLogger, setLogLevel, Logger, LOG_LEVELS } = require('./logger');
 const cache = require('./cache');
+const { createNotImplementedHandler } = require('./notImplemented');
 
 // Date utilities
 const date = require('../../utils/date');
@@ -20,6 +21,9 @@ module.exports = {
   
   // Date utils
   date,
+
+  // Not implemented helper
+  createNotImplementedHandler,
   
   // Helper: Create cache key
   cacheKey: (...parts) => parts.filter(Boolean).join(':'),

@@ -1,0 +1,863 @@
+﻿HASH: 1E3C6FDEAD4E6271147662B29514D4EF9C67CA52A49A39FDFF041F69D08DE0FC
+  A:\vibrant technology\clone\BajajMisMernProject\backend\package-lock.json
+  A:\vibrant technology\clone\BajajMisMernProject\_backup_before_restructure\backend\package-lock.json
+HASH: 614D1E59377C09534E5544ACD28CBDBBAF63EF727056409B0BDC2ADD51C5DFB7
+  A:\vibrant technology\clone\BajajMisMernProject\backend\package.json
+  A:\vibrant technology\clone\BajajMisMernProject\_backup_before_restructure\backend\package.json
+HASH: AFCF79B5A5FC2AF9595CD0CBCF81FF4E35BDED2494B9EA43A63506DB7BD39AFC
+  A:\vibrant technology\clone\BajajMisMernProject\backend\rebuild.js
+  A:\vibrant technology\clone\BajajMisMernProject\_backup_before_restructure\backend\rebuild.js
+HASH: 780C63D4EDB35BA37FF7BE0F410988CE04FF39E818E0BC9966D1F943D7069161
+  A:\vibrant technology\clone\BajajMisMernProject\backend\server.js
+  A:\vibrant technology\clone\BajajMisMernProject\_backup_before_restructure\backend\server.js
+HASH: BFF1388B073DE991A105C3AC4A3B16360C4E7E15C19305BC0909FCA1D3FA92C5
+  A:\vibrant technology\clone\BajajMisMernProject\backend\start.js
+  A:\vibrant technology\clone\BajajMisMernProject\_backup_before_restructure\backend\start.js
+HASH: E88404C3E688961E5BE0227A24CD9A9012A448FAD2D496771CE8C9931AECEFBE
+  A:\vibrant technology\clone\BajajMisMernProject\backend\scripts\install.bat
+  A:\vibrant technology\clone\BajajMisMernProject\_backup_before_restructure\backend\install.bat
+HASH: 47DDBFC85EB7BC80ADA53681CEF5B99C3E44F0A1BBA0EB5B5488C852EACABAA4
+  A:\vibrant technology\clone\BajajMisMernProject\backend\scripts\link.bat
+  A:\vibrant technology\clone\BajajMisMernProject\_backup_before_restructure\backend\link.bat
+HASH: 69654B5C00E69B14D0BF404AE9D153889D6E8987742546B926325054D06EF351
+  A:\vibrant technology\clone\BajajMisMernProject\backend\scripts\setup.bat
+  A:\vibrant technology\clone\BajajMisMernProject\_backup_before_restructure\backend\setup.bat
+HASH: 790F8C8DD8A90936EEEE3A6A55835B636A00E8ADDFC57F0DBEDCDD91312D5E6D
+  A:\vibrant technology\clone\BajajMisMernProject\backend\scripts\setup.sh
+  A:\vibrant technology\clone\BajajMisMernProject\_backup_before_restructure\backend\setup.sh
+HASH: E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\.env.example
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\.env.example
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\.env.example
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\.env.example
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\.env.example
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\survey-service\.env.example
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\.env.example
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\.env.example
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\.env.example
+HASH: ED2AE2503988ACF2F09A059FD122F9FC2DE28C991793A166357C5260D575C50F
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\config\sqlserver.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\config\sqlserver.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\config\sqlserver.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\config\sqlserver.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\config\sqlserver.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\survey-service\src\config\sqlserver.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\config\sqlserver.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\config\sqlserver.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\config\sqlserver.js
+HASH: 9AC7B256BD508058DDBEC4D875810B6A2B7768B87FD27CBC0B53DA0F12EF00DD
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\core\db\mssql.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\core\db\mssql.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\core\db\mssql.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\survey-service\src\core\db\mssql.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\core\db\mssql.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\core\db\mssql.js
+HASH: 8D8A52EC72D28981EA97216C9EE6ECFBACA262FEDB72D4121930A766ED72112C
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\core\db\query-executor.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\core\db\query-executor.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\core\db\query-executor.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\core\db\query-executor.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\core\db\query-executor.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\survey-service\src\core\db\query-executor.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\core\db\query-executor.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\core\db\query-executor.js
+HASH: 260450BD94ABC4021F811682D86C66C08A45228DBAACDA6F2EFA55B516DE015A
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\core\http\errors.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\core\http\errors.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\core\http\errors.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\core\http\errors.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\core\http\errors.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\survey-service\src\core\http\errors.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\core\http\errors.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\core\http\errors.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\core\http\errors.js
+HASH: 32FA0A7D2C1B88D95CCC8609D0F15309ED55F81FE223916F09706E088785000C
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\core\http\response.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\core\http\response.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\core\http\response.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\core\http\response.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\core\http\response.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\survey-service\src\core\http\response.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\core\http\response.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\core\http\response.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\core\http\response.js
+HASH: ED250E432B2979B456786AB58662908D74EEA111A6757E08EBED76A5388D539F
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\middleware\auth.middleware.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\middleware\auth.middleware.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\middleware\auth.middleware.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\middleware\auth.middleware.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\middleware\auth.middleware.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\survey-service\src\middleware\auth.middleware.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\middleware\auth.middleware.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\middleware\auth.middleware.js
+HASH: 0EF09CAD80E877D3C9FDF85AF60A88506601BA30C3D9912727DE8F82077A9752
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\middleware\error.middleware.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\middleware\error.middleware.js
+HASH: A3039181C6E644358D042C6AAF5031D34F1758C3E76190F4D4C521FC67D913B5
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\middleware\validate.middleware.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\middleware\validate.middleware.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\middleware\validate.middleware.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\middleware\validate.middleware.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\middleware\validate.middleware.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\survey-service\src\middleware\validate.middleware.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\middleware\validate.middleware.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\middleware\validate.middleware.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\middleware\validate.middleware.js
+HASH: 96310EE2565C1CF06D04B02F5D85EB53751EE51EEB3D91FEA18DDCCA85146DF0
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\utils\date.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\utils\date.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\utils\date.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\utils\date.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\utils\date.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\survey-service\src\utils\date.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\utils\date.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\utils\date.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\utils\date.js
+HASH: 32AF58B718AAF13C782977C360A84180C67638DC4D72C2CC60507C2552D9648A
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\auth-service\src\utils\notImplemented.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\utils\notImplemented.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\utils\notImplemented.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\utils\notImplemented.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\utils\notImplemented.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\survey-service\src\utils\notImplemented.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\utils\notImplemented.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\user-service\src\utils\notImplemented.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\utils\notImplemented.js
+HASH: ACE43DD9F7AC733C933BDE8CD5084C0A148871EDA3BD2DB7F41B02D46AD05A35
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\dashboard-service\src\middleware\error.middleware.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\middleware\error.middleware.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\middleware\error.middleware.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\survey-service\src\middleware\error.middleware.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\middleware\error.middleware.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\middleware\error.middleware.js
+HASH: D3CE7E5779292994A8BFE348282EA0F5BE409D6D137F19F7CF47CD72EC8F99D6
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\config\database.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\config\database.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\survey-service\src\config\database.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\tracking-service\src\config\database.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\whatsapp-service\src\config\database.js
+HASH: D2BA2E2ECE4A5DA1A3AA54F01E86465FBC8BE66FD49AA2A362BE374870A70A67
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\controllers\lab.controller.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\controllers\lab.controller.js
+HASH: D8A64077DB00586A286357BA493AD4C37014BF382D911DD05EDD0EC0B5F4DF2A
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\routes\distillery.routes.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\routes\distillery.routes.js
+HASH: 27F372A2309760C04001B883BAE45412CC27BA871441207CE5D115A0E7E1403A
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\routes\lab.routes.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\routes\lab.routes.js
+HASH: 8BB6208A41CD71887B71F0E29EB716804B1B60C10CA8425BE03C7A884CE69A06
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\services\lab.service.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\services\lab.service.js
+HASH: AC53F5C7B8971FD5D584FDFF8D6B69D34A5832F1CE90E6DFBB5549BBDBB1DB80
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\distillery-service\src\validations\lab.validation.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\validations\lab.validation.js
+HASH: 850B20B6204FE22579010506B33C5F0C28C912BB5C5A2AC810C108B1BC6B1AD6
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\lab-service\src\core\db\mssql.js
+  A:\vibrant technology\clone\BajajMisMernProject\backend\services\report-service\src\core\db\mssql.js
+HASH: 635E130AB4E4782B530C001E5B9A81790B465F0C4E979CD2B8C17C2D9A84B8DE
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\favicon.ico
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\favicon.ico
+HASH: 9A50426ADDC263C1A4E4940ADE6350339E16A932A4C58C8DAED83A3661731E72
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\manifest.json
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\manifest.json
+HASH: C473F7F11A0E8C5AEEB4CF79D92379AABED8034180EDAF0F741A212BB98E3262
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\Checking_logPlots-CUZEd1rq.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\DiseaseDetails-CUZEd1rq.js
+HASH: 111DDE25E4FBE117157FF130B88C8CECE7499E165C6EE7A3E5AEB2CBA3B315C3
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\css\app-dark.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\css\app-dark.css
+HASH: A6401B4EA5B0523399E1BE70E1D5A1F31AF33258D3BF7700E94F42C126D66A1A
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\css\app-dark.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\css\app-dark.min.css
+HASH: 1268DA068E537D3B80F7A1249A3FA2AE3F8C008918BCB3A2570EAD2A4340B3CA
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\css\app-dark.min.css.map
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\css\app-dark.min.css.map
+HASH: 645B9A0EC8AA3F773A705CF1BD158CD3A98D899932E5F356377CE5CE79DDB5A7
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\css\app-rtl.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\css\app-rtl.css
+HASH: 71FF93D797F9C795CCA7DB624580F55575AAA4B1D68AF7735655AE9A206D0A3A
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\css\app-rtl.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\css\app-rtl.min.css
+HASH: 161794084AB6D8A6695CF722ECBC690CC0390C006F354C6017A1434B0BC59E46
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\css\app-rtl.min.css.map
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\css\app-rtl.min.css.map
+HASH: DAA7F6F0919CBF8AD25BD4F21F1119397A52131BEBCA16CB4D2189D29BC6942E
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\css\app.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\css\app.css
+HASH: 4F07B1B604FFC046E32029224ECAB1CC469D663CB4AC558CA00A1C39A2D7D016
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\css\app.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\css\app.min.css
+HASH: 4012C8BE4D2EBE33F0BFDFB73E0776665E6DF8C9C49E765A471398E9BE65CE1A
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\css\app.min.css.map
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\css\app.min.css.map
+HASH: 604507FDAF657B5B7090E3EF4811403EB3C3D42C02DE4493EDDCC37110CF048D
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\css\bootstrap-dark.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\css\bootstrap-dark.css
+HASH: F95601956F64FEB9B218D25A5A240A160F6111BCE489F2BAD136E0F3DCAC5CE3
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\css\bootstrap-dark.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\css\bootstrap-dark.min.css
+HASH: 4B3F8388106E00A2E3B650039556610AEB02E2D5BD49141F2A19EDC057DFED36
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\css\bootstrap-dark.min.css.map
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\css\bootstrap-dark.min.css.map
+HASH: FECDD78B33AFC57372A83F6B8133C1D01B95E655676D813245AAA9098620653E
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\css\bootstrap.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\css\bootstrap.css
+HASH: 04782A1427DC4F2DDAEE2AC6A48FF91428D8D110EAEE35AFCFFAC9601519C4A2
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\css\bootstrap.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\css\bootstrap.min.css
+HASH: 36A28AA20D315736850674FA9F9E7D371C30EF0C68C6A19F83054417626AF6E5
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\css\bootstrap.min.css.map
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\css\bootstrap.min.css.map
+HASH: 8C0A31084CEC71EF3245DBBB57BC84A756A91ECEC7E9802D152A49A389C09CD3
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\css\buttons.dataTables.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\css\buttons.dataTables.min.css
+HASH: EC3E6E0C16FB3EF63ABB6376F3D4B101148D226528E6D87A8CDFCCC4F80ECA04
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\css\custom.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\css\custom.css
+HASH: 6CEEC32FDB077F1EE14690F1D02CCB18E085AEDEA5C294DA742A65522F370A82
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\css\icons.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\css\icons.css
+HASH: 0F51B011763AE9371113404205CC150D06831CCBF908252356CACF670B596F87
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\css\icons.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\css\icons.min.css
+HASH: BDEB822B681C0FFC94F5DFC1A5A389FB776692C3D129352902B7E313AA84B3BB
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\css\icons.min.css.map
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\css\icons.min.css.map
+HASH: 900CC836DBCC45E0A0084786B2D19DC99361F1BCBDC493F0C21306E8BBC0D98C
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\css\jquery.dataTables.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\css\jquery.dataTables.min.css
+HASH: 032FA229D30337ABEE6CAC29BBCD781805B8412B74B7645654E53C8176E75D8A
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-bold.eot
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-bold.eot
+HASH: 6DF94E17234D66B842AE77CFCD381657286B5AEAE459B19ECD31CB163C3359DB
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-bold.svg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-bold.svg
+HASH: 807189BD6C5156609672E9E875DB36FB2AA14CEB9CF85F5983F64A79847CB6CA
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-bold.ttf
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-bold.ttf
+HASH: 3E5D3E72C0EDD99FFBE1626506E869BA504306E0A6C29E1C1D0A2C896ADE0099
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-bold.woff
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-bold.woff
+HASH: F8D5CB4A2425379AD6D903FC334B3CFA5672884C95F3306C7E5243E67FBAADE5
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-bold.woff2
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-bold.woff2
+HASH: B3D8C69B9D4EF3B07E15BDE1F82D45C78E7167F7DFA2AD71BF59BDBC6FD665D1
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-light.eot
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-light.eot
+HASH: 936367077C471BFE0F84343E1ED8569F573A4DACD3500CB4A3B51A9D1EE96851
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-light.svg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-light.svg
+HASH: E953EEA4EA2CAB2F3F4C7E8A05CAD0106FC907FBF72EDC29BE926DEE93642DBE
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-light.ttf
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-light.ttf
+HASH: D7519CDAB765D2E0E880EE3034E09354A69EC8ED5277CC36BBE4FA52366FA792
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-light.woff
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-light.woff
+HASH: BD7024F262888520CC70F2B3B49840147E44586989EAAD5F4F733BC39714E457
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-light.woff2
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-light.woff2
+HASH: 01926DE3C3328B2748EC530C036139779A5831EACAEA15468C5C0A1324B10F4C
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-medium.eot
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-medium.eot
+HASH: 6CDBC897691FB6F532C2DC7CC15C3C9F86C82000E00A88D9C6EB3E59A6B2AA44
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-medium.svg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-medium.svg
+HASH: A4C7C18F788563B996D9AC3DFF3917EB0C04C29B8B1A23E34870AF24940531F9
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-medium.ttf
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-medium.ttf
+HASH: 01AE6777C4D1DBB560DB90E8A88CA21BD6888BD0336DFF9770F22EBFC87D9EC5
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-medium.woff
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-medium.woff
+HASH: DC98F40EBECE2F8DC570EDDA8EB4E246D75C84683A0823286F9949FF6F9F0D7E
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-medium.woff2
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-medium.woff2
+HASH: 2B59020704AB97D85929356ECBD3EA6AC03A4B9BE5E083AE3899A404DCDF48D4
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-regular.eot
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-regular.eot
+HASH: E1D815B3C4F214A3B4B4C5B32704DCE449CB1DC1AF2BC1B03D36C85C88CB57B4
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-regular.svg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-regular.svg
+HASH: E4ECAD7928DAEA3128C2F247E0AC68E2CE14333471233BBF4AA3DAE346ADE1D8
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-regular.ttf
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-regular.ttf
+HASH: 1DFE61A1D3FFA70DADAC136A457C8D8568694CC6A2ADFC270C972E1526B150A5
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-regular.woff
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-regular.woff
+HASH: 4A50C99C9A5C1822E1086A4A35851B3B67FAB7BD80155C877BA12C5C7D8F1F14
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-regular.woff2
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-regular.woff2
+HASH: 3023135A32C35A440BE4C4E3A555BF02FCFE464511D176D3E34029003635CD02
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-semibold.eot
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-semibold.eot
+HASH: 6187CE8C20FC678A0AEF8495F81613F04756041E12098633D027D738E66EB8AF
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-semibold.svg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-semibold.svg
+HASH: 5BD868340965860067DECA2AE4FB265E59D12EE66212E0BE4C4AF8A3391BB7D3
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-semibold.ttf
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-semibold.ttf
+HASH: 2BAA03965FEE0B25D5A02AE6B43780FD9271C7AE2A39DA22F62233957E694A53
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-semibold.woff
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-semibold.woff
+HASH: FFF11D01F6813FE69B79A9BAFADF6EB0BE1ED23E4368626961A151FB3803B136
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\cerebrisans-semibold.woff2
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\cerebrisans-semibold.woff2
+HASH: EDD368AC484524FB5E2DDB34887DF1FC585D8C626F1B37684790F17808BE8D47
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\summernote.eot
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\summernote.eot
+HASH: 2EECA7400913B10E892C1FC25479A3AC2163F9BE42FBE0772F0E27EB88E5E3BD
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\summernote.ttf
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\summernote.ttf
+HASH: 68282F2B3296B4842FD67F8A80665686A08AAD35B7283C52730F0A12F00B6D23
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\summernote.woff
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\summernote.woff
+HASH: 81D87AC324376251E2708DF410E242470C4E1CF8EDA505E6BF9F893109C8DA20
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\unicons.eot
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\unicons.eot
+HASH: 2B1DF7049427CDF5FBE6F639468141694CBAEB145055895336D9DFEAE2DE43E0
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\unicons.svg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\unicons.svg
+HASH: A2905B4812D18491E6C65A8B1BA3A3F803B4FA46633D8F9A0C67C33BD068C739
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\fonts\unicons.ttf
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\fonts\unicons.ttf
+HASH: 255D5E3C3644D88170A506D0B815220086063768690A66498248499B769DF365
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\auth-bg.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\auth-bg.jpg
+HASH: 3F9D286C35CE9B0D27FBA9EE56D01D6BDB577207C32624462ED136625B14CE59
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\Bajaj_Logo.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\Bajaj_Logo.png
+HASH: A28F4772F46FB77769154E703D1E4750B943612BE07C45FF143D766C83EC00D3
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\Bajaj_LogoOld.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\Bajaj_LogoOld.png
+HASH: F2B0ECA7D6AC2948924F893848B88F6E49D5D24DB9CCEF3D6373D0A3D250C442
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\Bajaj_Sugar_page-0001-removebg-preview.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\Bajaj_Sugar_page-0001-removebg-preview.png
+HASH: A8F7E86B1C5726E197E9F43E20E200890F483294CBBEFB457D791D75616258BE
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\cal.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\cal.png
+HASH: DF637154AF96AB2D6E6D0925C06DD167A931B493FEC3B956CF7B3BF65AAA04EF
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\cal.svg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\cal.svg
+HASH: FFED6B77EF2A280D79E9507F0CF37B5FDBD54BE97242FCFA6CF3491DEF3004EB
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\favicon.ico
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\favicon.ico
+HASH: 888C205E1B8E2138D466CA54C2B980EC39312BF69D1A7AA8DE99A54668975308
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\imageeditBajaj.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\imageeditBajaj.png
+HASH: 441EB9B65544DDE2ED585A22A98BEBC23DCA4AA27464C0E3DD93F6631FB9D53A
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\images (1).png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\images (1).png
+HASH: ED62E288BEAFBD6F81B7F80EE5DF2BAED98A74D3A892453C9FB2C2EF49C85046
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\loading.gif
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\loading.gif
+HASH: D126ECFF9283DDCFAA69FFF76F351822F133849D457FED5E90BD83ED4576BB35
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\logo.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\logo.jpg
+HASH: B42A6B0690D7EDA0ECAD40F930327206544D98E7059922A9FA78869D04B47096
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\logo.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\logo.png
+HASH: A9B1FB0EDC0B25EE0D387FD6F05EF35733B030EB1CF29D8867D997E5DE834BDC
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\logo.svg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\logo.svg
+HASH: 7EED582FCCBDB562BA5AE8307E0C358AD4E0F4E53798BDE016B33E53F2DC59F6
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\logo1.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\logo1.png
+HASH: BF5CCDD74903B7E3EB8F13659B32EBF981CCE20331D4FBFCE8C7E26F92FFB000
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\maintenance.svg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\maintenance.svg
+HASH: 29888971B28AD412D9B990C17366504054170D4FA90239DE69CD4C7021A20D38
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\not-found.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\not-found.png
+HASH: 3D80F30B11A60ECEB72973A88339A4D7FD9670447131EF61E7F15A35CE6EE000
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\server-down.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\server-down.png
+HASH: 6F591F0204C58EE92E9CB47596B6CC51C3E5E6C2F75EA0935BB59519492EF57D
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\attached-files\img-1.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\attached-files\img-2.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\attached-files\img-3.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\attached-files\img-1.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\attached-files\img-2.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\attached-files\img-3.jpg
+HASH: 5D806A196ECE8F597D16F4AB07E056CD26FF0765A97A053B07EFE052CD7193ED
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\brands\angular.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\brands\angular.png
+HASH: A070B5AE0E07EC437B1B43B38FD1B8DCC1B476B579A74F1978466E0CDF44506E
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\brands\bootstrap.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\brands\bootstrap.png
+HASH: 6E0D8BC23FCEB25DC05E68BF3BB9C211CAC1369FBFD2C458E310EDC2785FDD8D
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\brands\css3.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\brands\css3.png
+HASH: 7CF91D847BA9082DD040A808D2000B01BA7FACF39A19DC785A1AEF41BB4AD5BE
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\brands\gulp.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\brands\gulp.png
+HASH: 99723A3EAB04B57DEF3A4733BEA51B7FADE9504D872619066E886A3160994F97
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\brands\html5.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\brands\html5.png
+HASH: 92E56AB45F881CAFD37BC95B3C7FE9B6ED37E3C7E49DC210AF17D72E8F8BCBCE
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\brands\jquery.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\brands\jquery.png
+HASH: AAE4844D940801475970798F23DF619F771484573B1847982BF6270E2BFD3F3A
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\brands\laravel.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\brands\laravel.png
+HASH: 3CE0919D3CAB3F7D04D2646756612D68C5E97B7DD4F4422CBF5CEFB323596FBB
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\brands\mix.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\brands\mix.png
+HASH: 5C07A68C74A43AEC8A3125D8910E6215698BDFCAC68F43B63E36AF9E7C39C986
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\brands\npm.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\brands\npm.png
+HASH: 03EAB9C5476C950BAC9A57D00DB8707BDE415196378F185AB3E098C6A346F641
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\brands\react.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\brands\react.png
+HASH: 405B71BBE54AE64820B9FAC5BAFA5D3EAC9A29208E61B3B0455DFC0BAE3BD74D
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\brands\redux.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\brands\redux.png
+HASH: 5C10EBE8A309AE5FB8EE1C1A6B7B3D3CACB311D490753C09124479C4616223F9
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\brands\saga.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\brands\saga.png
+HASH: 3FC927F21B0456A817519227C4E460DA2E8402F0EFA114DCCFACD9F0CFDCCAA6
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\brands\sass.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\brands\sass.png
+HASH: DF7EB6FC82C231EFBB44923EEA8B82DEE8B9E33CBD53FE866F3135C8E8474821
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\brands\ts.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\brands\ts.png
+HASH: 896F6CB9C5371BBB01A57C4A7556CAB39C3FD03A3709EF73670CBB2A4A8AE7C6
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\brands\vue.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\brands\vue.png
+HASH: 3A5B7C7807D9C94EC132649AE8D985F4D0DE912C12C67469466BA18441A5302C
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\brands\yarn.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\brands\yarn.png
+HASH: E1A530CEDC69A1ED11855F1BDFD8E73A56A68C8469D288E3CBE4650CA02C7585
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\covers\2.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\covers\2.jpg
+HASH: DD082D845E477F587F8394DAC0AF5D2442D17B5EAD0AEFC80FED5E815F5BA4B9
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\covers\pattern.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\covers\pattern.png
+HASH: E0C0958DB0AF5973A9B3DF943A8330CD4C13FD40570C2B9D6CBABD1C9D209215
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\flags\french.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\flags\french.jpg
+HASH: E4804904213E5D23CA11AADA2620EB7B26AD23EEEC415A4F405D96166D48B4BD
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\flags\germany.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\flags\germany.jpg
+HASH: 60312152A4B4B767A62B767BC2D0D327AD5EDDD8B3584A1FF1F82758C248C451
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\flags\italy.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\flags\italy.jpg
+HASH: 5EC913BEC98F4EAF3F8054A3FDF3BF059279E61E476A6A81EC847D0D512459A1
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\flags\russia.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\flags\russia.jpg
+HASH: B8603382952CCACA27EED9D518C6A99B93AD44C0360C3131B199988A8E1EA85F
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\flags\spain.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\flags\spain.jpg
+HASH: 39840385496BA77EBCDB3DE129CEEE9FEF22EEADEE54BE38F4C7343901788762
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\flags\us.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\flags\us.jpg
+HASH: 7750118A22230D75AD3506C689C94A2B89A464B4E8134FCF4D726470C7DB7A48
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\layouts\boxed-full.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\layouts\boxed-full.png
+HASH: DD78AD32E829EE478AD8979FBC6189512C0088C52A19F79D7A8DB04B0ADA4793
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\layouts\boxed-landing.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\layouts\boxed-landing.png
+HASH: 7204099B2E5435BDEC49A3B9EF92E21D1F0335CC3F614B2216BE3CA4505366D5
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\layouts\boxed.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\layouts\boxed.jpg
+HASH: 899039A86A96D2B596AAAC04118327E09E0DAABDDA7A90F27753D53C3576A92A
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\layouts\dark-full.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\layouts\dark-full.png
+HASH: FC5DD6D83C552D820649815C142D7E8F31D421F9DD96E8BFCBCD63BED3DAF1BB
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\layouts\dark-landing.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\layouts\dark-landing.png
+HASH: 88CADDCC5043F24E328E746625781878300BB59098495D3BBF5C022B017413D3
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\layouts\horizontal-full.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\layouts\horizontal-full.png
+HASH: E25C646EBB44792958001BA1058BD2781D34E18DFCF798D74B51400B7EE24BFB
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\layouts\horizontal-landing.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\layouts\horizontal-landing.png
+HASH: 38490F99292F1019D199CBD223A60E26DD5B170EB1D326B89A015AF6EC766298
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\layouts\horizontal.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\layouts\horizontal.jpg
+HASH: 451242DAA7BC635B1D9ECCD707A2311333D772EC4D32EE797D27A8D5DB1EA3DA
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\layouts\task-app.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\layouts\task-app.png
+HASH: 92CE011FCDFC14C821402B018BFF2ACD174A6D71E5B3916C59A532532E87F671
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\layouts\vertical-condensed-full.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\layouts\vertical-condensed-full.png
+HASH: 7CA956B5F10F2E33B24BB2BD92325D0C2A7AEC8707EE3B1E7E5310197140427D
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\layouts\vertical-condensed-landing.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\layouts\vertical-condensed-landing.png
+HASH: 82C6E24EE7E385D61CE65560CDC2A81B0920BCB3E9627FAEC5584CE454C62A6C
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\layouts\vertical-condensed.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\layouts\vertical-condensed.jpg
+HASH: 89647AC1D98EC53EA1AB45304B2189E2B91EFFD0B9FAD566C3504261E53B21BD
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\layouts\vertical-dark-sidebar-full.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\layouts\vertical-dark-sidebar-full.png
+HASH: C108BDD2E3F1D0F852593B8C82D64B0224E2A5F7D55CCB96D7A9B5510FAA6A99
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\layouts\vertical-dark-sidebar-landing.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\layouts\vertical-dark-sidebar-landing.png
+HASH: B59D3A107A6A672CF10EBFFAD9CC1CCA254849958EE6848FF6AFA8832A7B920F
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\layouts\vertical-dark-sidebar.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\layouts\vertical-dark-sidebar.jpg
+HASH: 71889138E63E2002FF3939AF9CBAE98262F09D94558A48F5F9B485F103B5101B
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\layouts\vertical-full-sm.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\layouts\vertical-full-sm.png
+HASH: 924887754F056BA056BDD980FF1DED454BC715B90E221E5A63EC2D53E7AA3344
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\layouts\vertical-full.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\layouts\vertical-full.png
+HASH: 1B36E208035837E643C1D5C86074C80B625566F340BC5CBD160517B30D29E927
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\layouts\vertical-landing.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\layouts\vertical-landing.jpg
+HASH: 07A59826C3F6460D1F2FB2C0A78CFB025478D7945F092CA672196B67029700D8
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\layouts\vertical.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\layouts\vertical.jpg
+HASH: FD5C0477CA1D7B12DDEBD1B50D9D0ADAC7C3805603350DFD5BCAAB8111B720BA
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\pages-sample\error-404.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\pages-sample\error-404.jpg
+HASH: ECD49887CBBB278CAF4A0D2FCB4CD3D699C585BE196FF73F20B530A16BB69CAB
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\pages-sample\error-404.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\pages-sample\error-404.png
+HASH: 3FA159424CE73C3ECAEEB67424232BB5A6BF688C09EAF54E026981D50DE4ADE4
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\pages-sample\inbox.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\pages-sample\inbox.png
+HASH: 4350A7D71B200EB7B7FD4E213D7EEE0134B3B938B1CB9055133390EE7BF00BF6
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\pages-sample\invoice.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\pages-sample\invoice.png
+HASH: 07E62A823CD7205D141F188F24ECF4DFC1A904ED92F5583E330B3E1B577E38E8
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\pages-sample\password.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\pages-sample\password.png
+HASH: 9ED11BAB43DBF39E5EAF6500A21027DE3F57E7BEFEF92439D06BD9CC51C3889B
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\pages-sample\pricing.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\pages-sample\pricing.png
+HASH: 5AE3013C5D9A8531D5E6B198DEB0063C5C0D4228A38CEAF7C702C8526C9E5D7C
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\pages-sample\profile-page.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\pages-sample\profile-page.png
+HASH: 6D4308F58CA03CF866B290A30DEB8ECF0F30B934731EDBB3F6BECF8820DF9875
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\pages-sample\register.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\pages-sample\register.png
+HASH: C79914DD7AECE2E8C27BC2CF314A746EDF7555E76212380E0CAC0F5DF68CC878
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\plugin\multiple-arrow.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\plugin\multiple-arrow.png
+HASH: C10D8D21F4BF9D78F38AFCE5D2916AAA82E54BD60A713063C9EC7316B44DC06E
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\projects\project-1.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\projects\project-1.jpg
+HASH: 6440D83C53E3CE1CA35683B02917DA28CE6B0C34872575714DACE9B895D05F1B
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\projects\project-2.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\projects\project-2.jpg
+HASH: BD16089FEC7C53BE0819EB27F437420EAC42074A267720B7A1A46A38E4DF852E
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\projects\project-3.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\projects\project-3.jpg
+HASH: AD8FFF80E1C019F0E65780B0CAE6DC549C60D16B7FCEACB58152B713C1EC71BC
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\projects\project-4.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\projects\project-4.jpg
+HASH: 49E7CF03BAB9AAB455A3CDE3071A035DED8DDA2A57212ADAE32052FBC282A9B4
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\small\img-1.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\small\img-2.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\small\img-3.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\small\img-4.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\small\img-5.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\small\img-6.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\small\img-7.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\small\img-1.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\small\img-2.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\small\img-3.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\small\img-4.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\small\img-5.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\small\img-6.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\small\img-7.jpg
+HASH: A53300813EF03C2206B85B3AFF3119FD968D9D51EF147F47A34734194BD7EE13
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\users\avatar-1.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\users\avatar-10.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\users\avatar-2.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\users\avatar-3.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\users\avatar-4.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\users\avatar-5.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\users\avatar-6.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\users\avatar-7.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\users\avatar-8.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\users\avatar-9.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\users\avatar-1.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\users\avatar-10.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\users\avatar-2.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\users\avatar-3.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\users\avatar-4.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\users\avatar-5.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\users\avatar-6.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\users\avatar-7.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\users\avatar-8.jpg
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\users\avatar-9.jpg
+HASH: 39E65F0967DDD1B11D462CBBD4ECA06918FBE822D405FECF81C71580D6B89DEF
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\widgets-sample\1.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\widgets-sample\1.png
+HASH: 02556B760FE8D758314C5EECA782B2D68B5B4D8CC2FE03DB9C1C5E078238450F
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\widgets-sample\10.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\widgets-sample\10.png
+HASH: B7372056FC57B314377E2A7E601AD21FBFD21F06EB40DB9A9E848669C7B423E0
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\widgets-sample\11.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\widgets-sample\11.png
+HASH: 133989225439A718FF9345827A0483992A43382F0EA6B9AD00B80B748743DCA4
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\widgets-sample\12.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\widgets-sample\12.png
+HASH: 334354CBD1AF745A053F8FC67A363B8E9AC282821BF9E67425667FB2CFFD5881
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\widgets-sample\13.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\widgets-sample\13.png
+HASH: 852D4CFDA358DB0D5D4E0E5C9C7D03DE1DD0FE4AD60A728CC03A2B3001DAC89C
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\widgets-sample\14.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\widgets-sample\14.png
+HASH: 69B8ED10D15CD53696ED0F02EDDC2C4C2BDB8AEA9DC770D049412CFBA7089DBD
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\widgets-sample\15.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\widgets-sample\15.png
+HASH: 8B5383EDE1CC4FEBE7DF12416EA635AFCB89DA124253AB385AE6B04BF470B8A9
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\widgets-sample\16.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\widgets-sample\16.png
+HASH: 8B9B7A2E035C26217E01EB2A64CF2F1BBF367558AE49C795E9A597906FD8A4EF
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\widgets-sample\17.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\widgets-sample\17.png
+HASH: 9DC72F3517FDCD21822ACD808A508D7912A0D3FC9151843247E60B372EED87DB
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\widgets-sample\2.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\widgets-sample\2.png
+HASH: 023F2813B40A185C2AF5CE84CF21F371AEE278EE68D6E9EC660984488AD94EEB
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\widgets-sample\3.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\widgets-sample\3.png
+HASH: B53E65A295DCB9C0EEC93E279D93946CB8B0406F5069D3E891002C6654303088
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\widgets-sample\4.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\widgets-sample\4.png
+HASH: DE213CC0DB1F09D8CDE7E189E4A6C01F7F0655218921B1B61D8375A4CFA9056B
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\widgets-sample\5.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\widgets-sample\5.png
+HASH: D659077BA1217E15E67A15313B1AC42A8ED11021BD29BDAEFD8D23851648D439
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\widgets-sample\6.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\widgets-sample\6.png
+HASH: A8F6113A7B504B1021D6BF15AF7CFEFE024991E6E3272BF11A60AE3286A2E3CD
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\widgets-sample\7.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\widgets-sample\7.png
+HASH: 982F97BC339DBD7ACCDF1CC67AE44ED7548DE5CD829586C7832E9C2648847660
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\widgets-sample\8.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\widgets-sample\8.png
+HASH: B79C97D8E2C492C772C11EBDB8AC779E08DB6BC174EAF739D49F10CA69CE5554
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\images\widgets-sample\9.png
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\images\widgets-sample\9.png
+HASH: 20D28DE172365E7836FCB570762D553B6378975E2000DDCA78D22210DB6FB3BA
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\js\app.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\js\app.js
+HASH: 8D3FCAFE5FCF9CB22B9987B495F47CFE5EF22644FFEC02F11248957FE4BF25AB
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\js\app.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\js\app.min.js
+HASH: 2C902A3B84D4550A80491901F5E1ABCB9F4D4AFE136A633DF49FE6E92F7CBB73
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\js\app.min.js.map
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\js\app.min.js.map
+HASH: 068F766895A8366592283006B0203960A5259A49F4D2E0326BA3DCCF8FBDBA80
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\js\jquery-1.5.1.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\js\jquery-1.5.1.min.js
+HASH: 074C6B598502F811A164E44BAF86C33DCEBEF9E4D86657C7D808D15CD5064454
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\js\vendor.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\js\vendor.js
+HASH: 0365DE9BA3EAB7961A5573419AE41BC2E059110FF041FB0011451D2A8AE4D2E3
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\js\vendor.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\js\vendor.min.js
+HASH: B66429C0199880E59BD7D777A246513785A8FF6C8C620956328704574E7D52B0
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\js\vendor.min.js.map
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\js\vendor.min.js.map
+HASH: E487811F28E662D1759FDFB2265EFC2E8323CCF2B2B09DFD90604C56C152EC81
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\js\pages\apexcharts.init.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\js\pages\apexcharts.init.js
+HASH: 2BDAF6DA5AC24A80E0E3FE6D2CA6719BB68AD69089FB74CBC0D41B1261D7F7A4
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\js\pages\calendar.init.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\js\pages\calendar.init.js
+HASH: 75E160BDD1015881ECACCCD238A3E0FBB0BF84A3BF7CCC6653472C5C096C8A48
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\js\pages\dashboard.init.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\js\pages\dashboard.init.js
+HASH: ABDDBA0891C44E9D9825D8628D096BE56073A362EEA737B96B380AB06878F040
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\js\pages\datatables.init.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\js\pages\datatables.init.js
+HASH: 78511477378CD0C4632321265C8848B3E4994E3EFA79E454E3C4B2CE598C340B
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\js\pages\email-inbox.init.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\js\pages\email-inbox.init.js
+HASH: F52CA2168107CFCD01B52964B5AB5E00BF90A9A4EB0E00FC10B9F4DE813D5981
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\js\pages\form-advanced.init.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\js\pages\form-advanced.init.js
+HASH: C879C7AD6E1F1106051885D7FA63C7F7E0CB90248D5138C1F86CF93327DDCF3E
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\js\pages\form-editor.init.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\js\pages\form-editor.init.js
+HASH: 3F4D48324970420A82E68D192015A25AD49C0AC93078674CC4FAE8B2DBFB4421
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\js\pages\form-validation.init.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\js\pages\form-validation.init.js
+HASH: 6E40E6DB4955E643190A616FFD7441ECB2A1A22D81C62A7F382C5FFD83049B95
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\js\pages\form-wizard.init.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\js\pages\form-wizard.init.js
+HASH: DD522E56407498B96E0483A3219B521227CA07925A569DBC585A194EDE88614D
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\js\pages\kanban.init.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\js\pages\kanban.init.js
+HASH: 4DD2BF7ECAA3CA7FA68025E6C647DCC7D07EB23B77BEE470714E44C07D1B3EAF
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\js\pages\table-listjs.init.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\js\pages\table-listjs.init.js
+HASH: C545E894D3BA4729C19AE0BBEB4D0BE1CEBD76FCCD5E0A18E44371CBA418345A
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\js\pages\widgets.init.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\js\pages\widgets.init.js
+HASH: A251F6BBC5D97DF3101B93A43ECB2DE8FE95CB84BE99CDFD1474F44B1D224513
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\apexcharts\apexcharts.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\apexcharts\apexcharts.min.js
+HASH: 3DBBE0F0BE80611C9050D9EE161DA339E9FB7C6703793FE35B74B6F5299B9651
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\bootstrap-colorpicker\bootstrap-colorpicker.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\bootstrap-colorpicker\bootstrap-colorpicker.min.css
+HASH: 798B38B4C517CFFDAF541FB5D85399EFDE060CD833EACC82B6D867BB8F9A8469
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\bootstrap-colorpicker\bootstrap-colorpicker.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\bootstrap-colorpicker\bootstrap-colorpicker.min.js
+HASH: 4C7931B0800CA6449EEA57A6B82AD70B5E4A1CA9A231C0903D9F9EEBF2DCD719
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\bootstrap-tagsinput\bootstrap-tagsinput.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\bootstrap-tagsinput\bootstrap-tagsinput.css
+HASH: 2A3809DB57C261015460A2A9CDB3CB3697D2961DA01AC2F4BC3F2E2C99EF6C13
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\bootstrap-tagsinput\bootstrap-tagsinput.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\bootstrap-tagsinput\bootstrap-tagsinput.min.js
+HASH: 653A93404407A60ABE05612EB83C3EA58F6B02F82731223CA8AFA08694D07562
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\bootstrap-touchspin\jquery.bootstrap-touchspin.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\bootstrap-touchspin\jquery.bootstrap-touchspin.css
+HASH: D1FD117DB3779030662383428DDBD6CF69F114A20B96C31CFC7AC9A06B2EAF78
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\bootstrap-touchspin\jquery.bootstrap-touchspin.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\bootstrap-touchspin\jquery.bootstrap-touchspin.min.js
+HASH: E955B4398A7FB858A57117EFFEFBF198C48FE9C0C6B1C626990C8771E698F9D9
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\datatables\buttons.bootstrap4.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\datatables\buttons.bootstrap4.min.css
+HASH: 3F786509710E20D298C495A8B6FEE79907953C3845B6FA91381C547CC58EC38E
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\datatables\buttons.bootstrap4.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\datatables\buttons.bootstrap4.min.js
+HASH: 83116AAD0903F40F4C553372ADD8BD0D5AB909BF6224C9DB1D8030ABA7C2BE55
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\datatables\buttons.flash.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\datatables\buttons.flash.min.js
+HASH: AF6773132A3DC4524426CB5B00C0ED8D340546D002D35AFC091D3103B5F7CB0E
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\datatables\buttons.html5.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\datatables\buttons.html5.min.js
+HASH: BC0114F0D2E08E6D597DAA42F78283EF7DAA7A9646FB1093FFF6AA601204E3CC
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\datatables\buttons.print.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\datatables\buttons.print.min.js
+HASH: E64A99384F542863C895CC3D97D528C413DE79C8C16544BC362956F63CEF1CE7
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\datatables\dataTables.bootstrap4.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\datatables\dataTables.bootstrap4.min.css
+HASH: 9F939C1AC3DA961E4E8E046F82765A764061B80CE932D5ABD89B0DDE90F4367F
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\datatables\dataTables.bootstrap4.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\datatables\dataTables.bootstrap4.min.js
+HASH: 3461BFA9E8D39F52FA7AE2D75E6F3C8E3022C73CE851A8BDA18ED3224F2AF37D
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\datatables\dataTables.buttons.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\datatables\dataTables.buttons.min.js
+HASH: BB2701FF8F8C89E67A9D8EE90D788AA252680D36EB9B2DF0451E1E16E40458E5
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\datatables\dataTables.keyTable.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\datatables\dataTables.keyTable.min.js
+HASH: CDEB7FE27C30E4EDBF1E1BAE52DFBFBC3B445BDE4084267C60C9DC664336046D
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\datatables\dataTables.responsive.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\datatables\dataTables.responsive.min.js
+HASH: E4BBB13A7896BEFD883523B77DAAC05D2D5F7E0187EA84260EF3FBD24DBA31B3
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\datatables\dataTables.select.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\datatables\dataTables.select.min.js
+HASH: 1AE5C42F51D8E000F2FCD53A3C2ACCFBFA05EEBFF6DDDD858FD98AA96F192783
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\datatables\jquery.dataTables.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\datatables\jquery.dataTables.min.js
+HASH: 99E381361415BE98D3B7DA26D63E68B93B9A1033C9151991E4A1B50108B07349
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\datatables\responsive.bootstrap4.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\datatables\responsive.bootstrap4.min.css
+HASH: 0B580D6FDE9BE41DD86A9FF39C6E4B603710D2B38237811D3B9C32131CDE90FF
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\datatables\responsive.bootstrap4.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\datatables\responsive.bootstrap4.min.js
+HASH: 99CFD899F71305C524B571278CD95055A4927697D895C88C2B6636411BCB589C
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\datatables\select.bootstrap4.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\datatables\select.bootstrap4.min.css
+HASH: 0B5B87C980C6AD00C093521B9AD9E45E75D3FEEDCF90CF70874864A4B321CBC5
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\dropzone\dropzone.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\dropzone\dropzone.min.css
+HASH: 6EF30868BBF4187533F1DA64A54F10D179A1F57BEE5F0BB26CD1D7D6750C462D
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\dropzone\dropzone.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\dropzone\dropzone.min.js
+HASH: 79FAE38B670230A436655069F13022106283EA89DF48DDF43701D981E9A87EEE
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\flatpickr\flatpickr.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\flatpickr\flatpickr.min.css
+HASH: DDC788CE5DC25FC75AF0FD78CAFA5CC056FEE04A6281EEAD748F8279C3172497
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\flatpickr\flatpickr.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\flatpickr\flatpickr.min.js
+HASH: 3480E1DCDDE1A1F4951809C15D7C65BA347BE2FEA1D2A11265F641E25AFC062F
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\fullcalendar-bootstrap\main.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\fullcalendar-bootstrap\main.min.css
+HASH: F089079FAB1DBA8EC883E16486FD1362BC6B551AB42EB61AE0B92965BEC624C6
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\fullcalendar-bootstrap\main.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\fullcalendar-bootstrap\main.min.js
+HASH: 1C3163BEA22D5DD8D6ED310CD1C8CDFFDA3D0913E4A68E61986B5DE80A8DD76E
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\fullcalendar-core\main.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\fullcalendar-core\main.min.css
+HASH: 0D09444CC4689DF1679911BC6170A69F61AD8BD7BF029948E245BB8C876BF12A
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\fullcalendar-core\main.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\fullcalendar-core\main.min.js
+HASH: 36DD638DC6FB063A4818BF411098E764DF6CC9225775822FC8184CA1AA377EE8
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\fullcalendar-daygrid\main.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\fullcalendar-daygrid\main.min.css
+HASH: DAB6E5B65AEC368CFF02D4DF89D96964564ACD3472F5F6F55545177263D63EE6
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\fullcalendar-daygrid\main.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\fullcalendar-daygrid\main.min.js
+HASH: 7EDB3449924914FA478DFE47348AAFCECAD848C796A04C42A8BE60FA806162D3
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\fullcalendar-interaction\main.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\fullcalendar-interaction\main.min.js
+HASH: 3551EDD586ADC2154CED39536AFC28887CFDCC41BE600674CF02C8ACA773F57C
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\fullcalendar-list\main.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\fullcalendar-list\main.min.css
+HASH: 56F5DE5E30F83F5E374CAD3D1ACDC2937DE426FE944058274AC309F5485F6AAB
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\fullcalendar-list\main.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\fullcalendar-list\main.min.js
+HASH: 5880FA017CD4BC59F91DB0E26EABA50B9A93EBF044545D3A2A01546131580D43
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\fullcalendar-timegrid\main.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\fullcalendar-timegrid\main.min.css
+HASH: 0FAEE33A41C5441D79A1AF7596EECC92988E87B1793E64F42F1F0DE3AFEF6E1A
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\fullcalendar-timegrid\main.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\fullcalendar-timegrid\main.min.js
+HASH: 7125C151F7E479A7E642EE97D82027089DBFC7406D3D5C7EEA2FBECBBA765901
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\jqvmap\jquery.vmap.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\jqvmap\jquery.vmap.min.js
+HASH: 6B06C2DDFBAB6FE3FF0AF6D404BB571EB05EAE333D9E55E7CB38F073C215AEF0
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\jqvmap\jquery.vmap.usa.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\jqvmap\jquery.vmap.usa.js
+HASH: 4CDE575C187400616C0A90EE5A00BBB141D593C8DBE9E587B4E553F7F96D1302
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\jqvmap\jqvmap.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\jqvmap\jqvmap.min.css
+HASH: D146725E293649FCCA951F03A831DE75CE89CFD9DE0B7D7B0AC03692E55349B1
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\list-js\list.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\list-js\list.min.js
+HASH: E22419E8154BE2A34A950DBB4C4C448413751C53EF02F00C6C56AF28AA2C4964
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\moment\moment.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\moment\moment.min.js
+HASH: F46009F7BE307C9150921FDF07437B679215DAE4D52E138C2022068D0AD8EB70
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\multiselect\jquery.multi-select.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\multiselect\jquery.multi-select.js
+HASH: 6A76D7547C24EF2760F9E79B3E294EF3CE777AAD812C76A98B4463530A96769A
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\multiselect\multi-select.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\multiselect\multi-select.css
+HASH: 7E80DDA1CFB95FBAB9FCD611BB298DD8FE869E1E8C707C7600DF6B65EDE679BA
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\parsleyjs\parsley.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\parsleyjs\parsley.min.js
+HASH: C2A282DD6DAC10A3FBF469B4E67F489608777854E6D157BF11233DFBAA16851E
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\select2\select2.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\select2\select2.min.css
+HASH: 3FD7CD504F1B499F7A7B2077047BFE1B17CB6FFEC659626CDA05681D6E360E9F
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\select2\select2.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\select2\select2.min.js
+HASH: D3DE776EA571253C4403140F65A5C557FEE9BBE0B711211EF70CE62F4C71FDFE
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\smartwizard\jquery.smartWizard.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\smartwizard\jquery.smartWizard.min.js
+HASH: D7CA3C67BE879F46289EF230A16F67EB48F108457F2C775725944B626C4398B0
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\smartwizard\smart_wizard.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\smartwizard\smart_wizard.min.css
+HASH: 2056911512227C5F46B01889BA969841DB5B923DDD0F6A2F597B0A33A6E59608
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\smartwizard\smart_wizard_theme_arrows.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\smartwizard\smart_wizard_theme_arrows.min.css
+HASH: 4F3B16FFEFAAF210684C8EBC4B77562C0141560FE04A9D91CFE2AB9D3F3EF424
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\smartwizard\smart_wizard_theme_circles.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\smartwizard\smart_wizard_theme_circles.min.css
+HASH: FD25427FC8E12752DD8CE0854284CA8F0D78C82296A0CACE1C54D11A14A8CDB5
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\smartwizard\smart_wizard_theme_dots.min.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\smartwizard\smart_wizard_theme_dots.min.css
+HASH: CAE0A1713C2F562509EE6466F041CA2389CF9F1DFA9F5553140F0F9AB3692DDE
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\sortablejs\Sortable.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\sortablejs\Sortable.min.js
+HASH: 08B3181D5897342C4351DFF248B789263C8BB6D7816708EA678739A7A53B2FBF
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\summernote\summernote-bs4.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\summernote\summernote-bs4.css
+HASH: C5DA43EB276DB2C5FDF5E8B32B5E298142F7E212932715A49DBA3370BCE48575
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\dist\assets\libs\summernote\summernote-bs4.min.js
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\public\assets\libs\summernote\summernote-bs4.min.js
+HASH: 108F8D1DA5706735C0ACA12784198D14DB7362E365341F92A0A31859605CCFF1
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\src\styles\AddModeGroup.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\src\styles\AddSeasonView.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\src\styles\ManageTblControl.css
+HASH: 31FCE64B34777DCB4246584525FC6F113394ACBC038FDA6494C465D5C6E5D5D4
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\src\styles\CHeavyEthanolReport.css
+  A:\vibrant technology\clone\BajajMisMernProject\frontend\src\styles\SyrupEthanolReport.css

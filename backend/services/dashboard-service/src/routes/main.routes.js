@@ -1,6 +1,6 @@
 const express = require('express');
 const controller = require('../controllers/main.controller');
-const { requireAuth } = require('../middleware/auth.middleware');
+const { requireAuth } = require('@bajaj/shared');
 
 const router = express.Router();
 
