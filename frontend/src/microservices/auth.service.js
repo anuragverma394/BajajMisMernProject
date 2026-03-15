@@ -9,11 +9,13 @@ export const authService = {
         };
         const response = await apiClient.post('/account/login', payload);
         const data = response.data || {};
+        const resultData = data.data || {};
+
         return {
             status: data.success ? 'success' : 'error',
             message: data.message || '',
-            token: data.token,
-            data: { user: data.user || null }
+            token: resultData.token || data.token,
+            data: { user: resultData.user || data.user || null }
         };
     },
 

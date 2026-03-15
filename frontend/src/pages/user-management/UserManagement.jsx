@@ -7,9 +7,9 @@ const UserManagement_Home = () => {
     const navigate = useNavigate();
 
     const menuItems = [
-        { name: 'Add User', path: '/UserManagement/AddUserView', icon: 'fa-user-plus', desc: 'Create and manage system user accounts' },
+        { name: 'Add User', path: '/UserManagement/AddUserViewRight', icon: 'fa-user-plus', desc: 'Create and manage system user accounts' },
         { name: 'Define Roles', path: '/UserManagement/AddRollView', icon: 'fa-user-tag', desc: 'Manage permissions via role-based access' },
-        { name: 'Assign Rights', path: '/UserManagement/AddUserViewRight', icon: 'fa-user-shield', desc: 'Assign specific roles and units to users' },
+        { name: 'Assign Rights', path: '/UserManagement/AddUserView', icon: 'fa-user-shield', desc: 'Assign specific roles and units to users' },
         { name: 'Lab Permissions', path: '/UserManagement/LabModulePermision', icon: 'fa-vials', desc: 'Manage lab-specific notification flags' },
         { name: 'Group Modes', path: '/UserManagement/AddModeGroupView', icon: 'fa-truck-moving', desc: 'Configure transportation mode groupings' },
     ];

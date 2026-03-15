@@ -1,31 +1,61 @@
 /**
- * api.service.js — Barrel re-export
+ * api.service.js - Barrel Export File
  *
- * This file re-exports every service from its own dedicated module.
- * All existing component imports continue to work without any changes:
+ * Centralized export of all microservices and HTTP client.
+ * NO DUPLICATION - all logic is in individual service files and http.client.js
  *
- *   import { reportService, masterService } from '../../microservices/api.service';  ✅
- *
- * To import directly from a specific service (optional, for new files):
- *
- *   import { reportService } from '../../microservices/report.service';  ✅
+ * This file re-exports:
+ * - HTTP client and utilities from http.client.js
+ * - All individual services (user-management, auth, report, etc.)
  */
 
-// ── Shared HTTP client (Axios instance + helpers) ─────────────────────────
-export { default as apiClient } from './http.client';
+// ──────────────────────────────────────────────────────────────────────────────
+// HTTP Client + Utilities (from centralized http.client.js)
+// ──────────────────────────────────────────────────────────────────────────────
+export {
+  apiClient,
+  isDev,
+  unwrap,
+  toLegacyDateRange,
+  massecuiteRouteMap,
+  normalizeMassecuiteType,
+  debugDuplicateRecords,
+  debugDuplicateIdsInPayload,
+  normalizeUnitsList,
+  buildDashboardPayload,
+  postDashboard
+} from './http.client';
 
-// ── Exports: one per domain service file ─────────────────────────────────
+// ──────────────────────────────────────────────────────────────────────────────
+// Individual Service Exports
+// ──────────────────────────────────────────────────────────────────────────────
+
+// Authentication & Account
 export { authService } from './auth.service';
-export { masterService } from './master.service';
-export { reportService } from './report.service';
-export { reportNewService } from './report-new.service';
-export { trackingService } from './tracking.service';
-export { surveyService } from './survey.service';
-export { dashboardService } from './dashboard.service';
-export { labService } from './lab.service';
+
+// User Management (roles, permissions, rights)
 export { userManagementService } from './user-management.service';
 
-// ── CRUD & domain services (grouped in crud.service.js) ──────────────────
+// Master Data (units, seasons, stoppages, modes, centers)
+export { masterService } from './master.service';
+
+// Reports & Analytics
+export { reportService } from './report.service';
+export { reportNewService } from './report-new.service';
+
+// Tracking & GPS
+export { trackingService } from './tracking.service';
+
+// Surveys
+export { surveyService } from './survey.service';
+
+// Lab Management
+export { labService } from './lab.service';
+
+// Dashboard & Home
+export { dashboardService } from './dashboard.service';
+
+// WhatsApp & Additional Services (various CRUD operations)
 export {
   whatsappService,
   accountReportsService,
@@ -38,8 +68,10 @@ export {
   addCanePlanService,
   monthlyEntryReportService,
   labModulePermissionService
-} from './crud.service';
+} from './additional-services';
 
-// Re-export the default (Axios instance) from http.client so that
-// `import apiClient from '../../microservices/api.service'` still works.
-export { default } from './http.client';
+// ──────────────────────────────────────────────────────────────────────────────
+// Default Export (API Client for backward compatibility)
+// ──────────────────────────────────────────────────────────────────────────────
+import { apiClient } from './http.client';
+export default apiClient;

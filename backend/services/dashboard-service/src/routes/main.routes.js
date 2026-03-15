@@ -1,0 +1,56 @@
+const express = require('express');
+const controller = require('../controllers/main.controller');
+const { requireAuth } = require('../middleware/auth.middleware');
+
+const router = express.Router();
+
+router.use(requireAuth);
+
+router.all('/index', controller.Index);
+router.all('/help-desk', controller.HelpDesk);
+router.all('/home', controller.Home);
+router.get('/units', controller.Units);
+router.all('/home-fact', controller.HomeFact);
+router.all('/over-shoot-for-centers', controller.OverShootForCenters);
+router.all('/token-gross-tare', controller.TokenGrossTare);
+router.get('/seasons', controller.AddSeasonView);
+router.get('/stoppages', controller.AddStopageView);
+router.all('/add-season-view', controller.AddSeasonView);
+router.all('/add-season-by-id', controller.AddSeasonByID);
+router.get('/add-season', controller.AddSeason);
+router.post('/add-season-2', controller.AddSeason_2);
+router.all('/add-mode-group-view', controller.AddModeGroupView);
+router.all('/add-mode-group-view-id', controller.AddModeGroupViewID);
+router.get('/add-mode-group', controller.AddModeGroup);
+router.post('/add-mode-group-2', controller.AddModeGroup_2);
+router.all('/mode-bind', controller.ModeBind);
+router.all('/add-stopage-view', controller.AddStopageView);
+router.get('/add-stopage', controller.AddStopage);
+router.all('/add-stopage-id', controller.AddStopageID);
+router.post('/add-stopage-2', controller.AddStopage_2);
+router.all('/sugar-whats-app-report-view', controller.SugarWhatsAppReportView);
+router.get('/sugar-whats-app-report', controller.SugarWhatsAppReport);
+router.post('/sugar-whats-app-report-2', controller.SugarWhatsAppReport_2);
+router.all('/sugar-whats-app-report-id', controller.SugarWhatsAppReportID);
+router.all('/sugar-whats-app-report-delete', controller.SugarWhatsAppReportDelete);
+router.all('/distillery-report-entry-view', controller.distilleryReportEntryView);
+router.get('/distillery-report-entry', controller.distilleryReportEntry);
+router.post('/distillery-report-entry-2', controller.distilleryReportEntry_2);
+router.all('/distillery-report-entry-id', controller.distilleryReportEntryID);
+router.all('/distillery-report-entry-delete', controller.DistilleryReportEntryDelete);
+router.all('/sugar-whats-app-report-new', controller.SugarWhatsAppReportNew);
+router.all('/sugar-whats-app-report-new-data', controller.SugarWhatsAppReportNewData);
+router.all('/sugar-whats-app-reports-data', controller.SugarWhatsAppReportsData);
+router.all('/swrd', controller.SWRD);
+router.all('/daily-rainfallview', controller.DailyRainfallview);
+router.all('/daily-rainfall-data', controller.DailyRainfallData);
+router.get('/daily-rainfall', controller.DailyRainfall);
+router.post('/daily-rainfall-2', controller.DailyRainfall_2);
+router.all('/daily-rainfall-id', controller.DailyRainfallId);
+router.all('/daily-rainfall-delete', controller.DailyRainfallDelete);
+router.all('/monthly-entry-report-view', controller.MonthlyEntryReportView);
+router.get('/monthly-entry-report', controller.MonthlyEntryReport);
+router.post('/monthly-entry-report-2', controller.MonthlyEntryReport_2);
+router.all('/target-entry', controller.TargetEntry);
+
+module.exports = router;

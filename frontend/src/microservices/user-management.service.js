@@ -31,6 +31,16 @@ export const userManagementService = {
         return unwrap(response.data);
     },
 
+    getRoleByCode: async (roleCode) => {
+        const response = await apiClient.get('/user-management/add-roll', { params: { sid: roleCode } });
+        return unwrap(response.data);
+    },
+
+    getRolePermissions: async (roleCode = '') => {
+        const response = await apiClient.get('/user-management/add-user-roll-data', { params: { R_Code: roleCode } });
+        return unwrap(response.data);
+    },
+
     getModeGroups: async () => {
         const response = await apiClient.get('/main/add-mode-group-view', { params: { Commmand: 'Search' } });
         return unwrap(response.data);
@@ -61,6 +71,13 @@ export const userManagementService = {
         const command = String(payload.Command || '').toLowerCase();
         const normalized = { ...payload, Command: command === 'update' || command === 'btupdate' ? 'btupdate' : 'btninsert' };
         const response = await apiClient.post('/user-management/add-user-right-insert', normalized);
+        return response.data;
+    },
+
+    saveRole: async (payload = {}) => {
+        const command = String(payload.Command || '').toLowerCase();
+        const normalized = { ...payload, Command: command === 'btupdate' ? 'btupdate' : 'btninsert' };
+        const response = await apiClient.post('/user-management/add-roll-2', normalized);
         return response.data;
     },
 

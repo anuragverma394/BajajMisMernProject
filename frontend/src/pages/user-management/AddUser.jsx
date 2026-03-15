@@ -2,9 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { userManagementService, masterService } from '../../microservices/api.service';
-import '../../styles/base.css';const __cx = (...vals) => vals.filter(Boolean).join(" ");
+import '../../styles/base.css';
+
+const __cx = (...vals) => vals.filter(Boolean).join(" ");
 
 const UserManagement_AddUser = () => {
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -19,7 +22,7 @@ const UserManagement_AddUser = () => {
     EmailID: '',
     DOB: '',
     Gender: '1',
-    Type: '0',
+    Type: 'Other',
     Status: '1',
     TimeFrom: '0600',
     TimeTo: '1800',
@@ -31,27 +34,51 @@ const UserManagement_AddUser = () => {
   const [userTypes, setUserTypes] = useState([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [changePassword, setChangePassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   useEffect(() => {
+
     const loadInitialData = async () => {
+
       try {
+
         const [unitsRes, seasonsRes, typesData] = await Promise.all([
-        masterService.getUnits(),
-        masterService.getSeasons(),
-        userManagementService.getUserTypes()]
-        );
+          masterService.getUnits(),
+          masterService.getSeasons(),
+          userManagementService.getUserTypes()
+        ]);
 
-        const unitsData = (Array.isArray(unitsRes) ? unitsRes : []).map((u, idx) => ({
-          code: u.F_Code || u.f_Code || u.id,
-          name: u.F_Name || u.name,
-          isSelected: false
-        }));
+        const unitsData = (Array.isArray(unitsRes) ? unitsRes : [])
+          .map((u) => {
+            const code = String(u.F_Code ?? u.f_Code ?? u.id ?? '').trim();
+            const name = String(u.F_Name ?? u.f_Name ?? u.name ?? '').trim();
+            return {
+              code,
+              name: name || code,
+              isSelected: false
+            };
+          })
+          .filter((u) => u.code);
 
-        const seasonsData = (Array.isArray(seasonsRes) ? seasonsRes : []).map((s, idx) => ({
-          id: s.sid || s.id,
-          name: s.season || s.name || s.Season,
-          isSelected: false
-        }));
+        const seasonRows = Array.isArray(seasonsRes) ? seasonsRes : [];
+        const seasonMap = new Map();
+        seasonRows.forEach((s) => {
+          const rawDate = String(
+            s.seasonStartDate || s.S_SEASONSTARTDATE || s.startDate || s.StartDate || ''
+          ).trim();
+          const yearMatch = rawDate.match(/(\d{4})$/) || rawDate.match(/^(\d{4})/);
+          const year = yearMatch ? Number(yearMatch[1]) : null;
+          if (!year || !Number.isFinite(year)) return;
+          const nextYear = year + 1;
+          const code = `${String(year).slice(-2)}${String(nextYear).slice(-2)}`;
+          const label = `${year}-${nextYear}`;
+          if (!seasonMap.has(code)) {
+            seasonMap.set(code, { id: code, name: label, isSelected: false });
+          }
+        });
+
+        const seasonsData = Array.from(seasonMap.values());
 
         setUnits(unitsData);
         setSeasons(seasonsData);
@@ -59,108 +86,212 @@ const UserManagement_AddUser = () => {
 
         const queryParams = new URLSearchParams(location.search);
         const id = queryParams.get('id');
-        if (id) {
+        const userid = queryParams.get('userid');
+
+        if (id || userid) {
           setIsEditMode(true);
-          loadUserData(id, unitsData, seasonsData);
+          setChangePassword(false);
+          setConfirmPassword('');
+          loadUserData(id, userid, unitsData, seasonsData);
         }
+
       } catch (error) {
+
         console.error("Data load error:", error);
+        toast.error("Failed to load initial data");
+
       }
+
     };
+
     loadInitialData();
+
   }, [location.search]);
 
-  const loadUserData = async (id, currentUnits, currentSeasons) => {
-    try {
-      const res = await userManagementService.getUsers({ id });
-      const user = Array.isArray(res) ? res[0] : res;
-      if (user) {
-        setFormData({
-          ID: user.ID,
-          UTID: String(user.UTID || ''),
-          userid: user.userid || '',
-          SAPCode: user.SAPCode || '',
-          Password: user.Password || '',
-          Name: user.Name || '',
-          Mobile: user.Mobile || '',
-          EmailID: user.EmailID || '',
-          DOB: user.DOB ? user.DOB.split('T')[0] : '',
-          Gender: String(user.Gender || '1'),
-          Type: String(user.Type || '0'),
-          Status: String(user.Status || '1'),
-          TimeFrom: user.TimeFrom || '0600',
-          TimeTo: user.TimeTo || '1800',
-          GPS_Notification: !!user.GPS_Notification
-        });
 
-        // Map assigned units and seasons if provided by API (hypothetical structure)
-        if (user.assignedUnits) {
-          setUnits(currentUnits.map((u, idx) => ({
-            ...u,
-            isSelected: user.assignedUnits.includes(String(u.code))
-          })));
-        }
-        if (user.assignedSeasons) {
-          setSeasons(currentSeasons.map((s, idx) => ({
-            ...s,
-            isSelected: user.assignedSeasons.includes(String(s.id))
-          })));
+  const loadUserData = async (id, userId, currentUnits, currentSeasons) => {
+
+    try {
+
+      let user;
+      const idValue = String(id || '').trim();
+      const userIdValue = String(userId || id || '').trim();
+      const isNumericId = idValue !== '' && /^[0-9]+$/.test(idValue);
+
+      const res = await userManagementService.getUsers(
+        isNumericId ? { id: idValue } : { userId: userIdValue }
+      );
+      user = Array.isArray(res) ? res[0] : res;
+
+      const hasValidPayload = user && (user.ID || user.Id || user.id || user.Userid || user.UserID);
+      if (!hasValidPayload && userIdValue) {
+        try {
+          user = await userManagementService.getUserByCode(userIdValue);
+        } catch (error) {
+          user = null;
         }
       }
+
+      if (!user) return;
+
+        setFormData({
+          ID: user.ID || user.Id || user.id || '',
+          UTID: String(user.UTID || user.UserTypeId || user.UserTypeID || ''),
+          userid: user.Userid || user.UserID || user.userid || '',
+          SAPCode: user.SAPCode || '',
+          Password: '', // do not expose password
+          Name: user.Name || user.UserName || '',
+          Mobile: user.Mobile || user.MobileNo || '',
+          EmailID: user.EmailID || user.Email || '',
+        DOB: user.DOB ? String(user.DOB).split('T')[0] : '',
+        Gender: String(user.Gender || '1'),
+        Type: String(user.Type || 'Other'),
+        Status: String(user.Status || '1'),
+        TimeFrom: user.TimeFrom || '0600',
+        TimeTo: user.TimeTo || '1800',
+        GPS_Notification: !!user.GPS_Notification
+      });
+
+      const rawUnits = user.assignedUnits || user.factories || user.Factories || user.units || [];
+      if (rawUnits && rawUnits.length) {
+        const unitSet = new Set(rawUnits.map(String));
+
+        setUnits(
+          currentUnits.map((u) => ({
+            ...u,
+            isSelected: unitSet.has(String(u.code))
+          }))
+        );
+
+      }
+
+      const rawSeasons = user.assignedSeasons || user.seasons || user.Seasons || [];
+      if (rawSeasons && rawSeasons.length) {
+        const seasonSet = new Set(rawSeasons.map(String));
+
+        setSeasons(
+          currentSeasons.map((s) => ({
+            ...s,
+            isSelected: seasonSet.has(String(s.id))
+          }))
+        );
+
+      }
+
     } catch (error) {
+
+      console.error(error);
       toast.error("Failed to load user data");
+
     }
+
   };
 
+
   const handleInputChange = (e) => {
+
     const { name, value, type, checked } = e.target;
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+
   };
+
 
   const handleUnitToggle = (code) => {
+
     setUnits((prev) =>
-    prev.map((u, idx) => u.code === code ? { ...u, isSelected: !u.isSelected } : u)
+      prev.map((u) =>
+        u.code === code ? { ...u, isSelected: !u.isSelected } : u
+      )
     );
+
   };
+
 
   const handleSeasonToggle = (id) => {
+
     setSeasons((prev) =>
-    prev.map((s, idx) => s.id === id ? { ...s, isSelected: !s.isSelected } : s)
+      prev.map((s) =>
+        s.id === id ? { ...s, isSelected: !s.isSelected } : s
+      )
     );
+
   };
 
+
   const handleSave = async (e) => {
+
     e.preventDefault();
-    if (!formData.userid || !formData.Name) {
+
+    const trimmedUserId = String(formData.userid || '').trim();
+    const trimmedName = String(formData.Name || '').trim();
+    const utidValue = Number(formData.UTID);
+
+    if (!trimmedUserId || !trimmedName) {
       toast.error('User ID and Full Name are required');
       return;
     }
 
+    if (!Number.isFinite(utidValue) || utidValue <= 0) {
+      toast.error('User Type is required');
+      return;
+    }
+
+      if (!isEditMode && !String(formData.Password || '').trim()) {
+        toast.error('Password is required for new user');
+        return;
+      }
+      if (isEditMode && changePassword && !String(formData.Password || '').trim()) {
+        toast.error('Password is required to change it');
+        return;
+      }
+      if ((!isEditMode || changePassword) && String(formData.Password || '') !== String(confirmPassword || '')) {
+        toast.error('Password and Confirm Password must match');
+        return;
+      }
+
     setIsLoading(true);
+
     try {
+
+      const { userid, ...rest } = formData;
       const payload = {
-        ...formData,
+        ...rest,
+        Userid: trimmedUserId,
+        UTID: utidValue,
         units: units.filter((u) => u.isSelected).map((u) => u.code),
         seasons: seasons.filter((s) => s.isSelected).map((s) => s.id)
       };
 
       if (isEditMode) {
-        // Hypothetical update call
+
         await userManagementService.createUser(payload);
         toast.success('User updated successfully!');
+
       } else {
+
         await userManagementService.createUser(payload);
         toast.success('User registered successfully!');
+
       }
-      navigate('/UserManagement/AddUserView');
+
+      navigate('/UserManagement/AddUserViewRight');
+
     } catch (error) {
-      toast.error('Error saving user data');
+
+      console.error(error);
+      const message = error?.response?.data?.message || 'Error saving user data';
+      toast.error(message);
+
     } finally {
+
       setIsLoading(false);
+
     }
+
   };
 
   return (
@@ -179,11 +310,15 @@ const UserManagement_AddUser = () => {
                                 <label className="font-bold">User Type</label>
                                 <select name="UTID" className="form-control" value={formData.UTID} onChange={handleInputChange}>
                                     <option value="">--Please Select--</option>
-                                    {userTypes.map((t, idx) =>
-                  <option key={`${t.id || t.UTID || t.UTName}-${idx}`} value={t.id || t.UTID || t.UTName}>
-                                            {t.name || t.Type || t.TypeName || t.UserType || t.UTName}
+                                    {userTypes.map((t, idx) => {
+                                      const value = t.id ?? t.UTID ?? t.TypeId ?? t.TypeID ?? '';
+                                      const label = t.name || t.Type || t.TypeName || t.UserType || t.UTName || `Type ${value}`;
+                                      return (
+                                        <option key={`${value}-${idx}`} value={value}>
+                                          {label}
                                         </option>
-                  )}
+                                      );
+                                    })}
                                 </select>
                             </div>
                             <div className="form-group">
@@ -196,7 +331,31 @@ const UserManagement_AddUser = () => {
                             </div>
                             <div className="form-group">
                                 <label className="font-bold">Password</label>
-                                <input type="password" name="Password" className="form-control" value={formData.Password} onChange={handleInputChange} />
+                                <input
+                                    type="password"
+                                    name="Password"
+                                    className="form-control"
+                                    value={formData.Password}
+                                    onChange={handleInputChange}
+                                    disabled={isEditMode && !changePassword}
+                                    placeholder={isEditMode && !changePassword ? 'Use Change Password to update' : ''}
+                                />
+                                {isEditMode && (
+                                  <label className="text-[13px] flex items-center gap-[8px] mt-[6px] cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={changePassword}
+                                      onChange={(e) => {
+                                        setChangePassword(e.target.checked);
+                                        if (!e.target.checked) {
+                                          setFormData((prev) => ({ ...prev, Password: '' }));
+                                          setConfirmPassword('');
+                                        }
+                                      }}
+                                    />
+                                    Change Password
+                                  </label>
+                                )}
                             </div>
                         </div>
 
@@ -204,6 +363,17 @@ const UserManagement_AddUser = () => {
                             <div className="form-group">
                                 <label className="font-bold">Full Name</label>
                                 <input type="text" name="Name" className="form-control" value={formData.Name} onChange={handleInputChange} />
+                            </div>
+                            <div className="form-group">
+                                <label className="font-bold">Confirm Password</label>
+                                <input
+                                    type="password"
+                                    className="form-control"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    disabled={isEditMode && !changePassword}
+                                    placeholder={isEditMode && !changePassword ? 'Use Change Password to update' : ''}
+                                />
                             </div>
                             <div className="form-group">
                                 <label className="font-bold">Mobile</label>
@@ -291,7 +461,7 @@ const UserManagement_AddUser = () => {
                             <button type="submit" className="btn btn-primary" disabled={isLoading}>
                                 {isLoading ? 'Saving...' : 'Save'}
                             </button>
-                            <button type="button" className="btn btn-primary" onClick={() => navigate('/UserManagement/AddUserView')}>
+                            <button type="button" className="btn btn-primary" onClick={() => navigate('/UserManagement/AddUserViewRight')}>
                                 View
                             </button>
                             <button type="button" className="btn btn-primary" onClick={() => navigate(-1)}>

@@ -23,24 +23,31 @@ const Login = () => {
     try {
       const result = await authService.login({ username, password, season });
 
-      if (result.status === 'success') {
-        const user = result.data?.user || null;
-        localStorage.setItem('token', result.token || '');
+      if (result.status === 'success' && result.token) {
+        const user = result.data?.user || {};
+        
+        // Store authentication data
+        localStorage.setItem('token', result.token);
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('season', season);
+        localStorage.setItem('userId', user?.userId || username);
+        localStorage.setItem('userName', user?.name || username);
+        localStorage.setItem('utid', user?.utid || '');
+        localStorage.setItem('factId', user?.factId || '');
+        localStorage.setItem('connectionSeason', user?.connectionSeason || '');
 
         toast.success(`Welcome back, ${user?.name || user?.Name || username}!`);
 
-        // Small delay for toast visibility
+        // Navigate to dashboard after brief delay for toast visibility
         setTimeout(() => {
-          navigate('/dashboard');
-        }, 800);
+          navigate('/dashboard', { replace: true });
+        }, 500);
       } else {
         toast.error(result.message || "Login failed");
       }
     } catch (error) {
       console.error("Login error:", error);
-      const message = error.response?.data?.message || "Invalid username or password";
+      const message = error.response?.data?.message || error.message || "Invalid username or password";
       toast.error(message);
     } finally {
       setLoading(false);

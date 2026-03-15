@@ -1,0 +1,441 @@
+BAJAJMIS ENTERPRISE ARCHITECTURE AUDIT + REFACTOR BLUEPRINT
+Date: 2026-03-07
+Project: BajajMIS
+Stack: Node.js (Express), React (Vite), MSSQL
+
+====================================================================
+A. EXECUTIVE SUMMARY
+====================================================================
+
+Current state:
+- Architecture is a modular monolith with strong domain grouping already present.
+- Significant progress exists, but there is still high controller-SQL coupling and partial legacy fallback dependence.
+- Frontend is feature-rich with many route modules and now route-level lazy loading.
+
+This refactor introduced:
+1) Module-first backend routing registry (/src/modules/*).
+2) Core architecture primitives for standardized responses/errors/DB execution.
+3) Auth domain moved to explicit Controller -> Service -> Repository layering.
+4) Generated migration map artifact (ported vs fallback endpoints).
+
+Non-breaking principle was preserved:
+- Existing API paths remained unchanged.
+- Existing frontend integration remained functional.
+
+====================================================================
+B. PHASE 1 - ARCHITECTURE AUDIT FINDINGS
+====================================================================
+
+B1. Backend findings
+- Tight coupling:
+  - Many controllers include SQL and business decisions directly.
+  - ~276 inline res.status(...).json(...) responses in controllers.
+- Shared dependencies:
+  - sql.service is used directly in many controllers.
+  - Legacy fallback helper is imported across multiple modules.
+- Controller-heavy business logic:
+  - Large controllers (especially dashboard/main, distillery/lab, tracking, user).
+- Repeated SQL logic:
+  - Similar CRUD and lookup patterns repeated in multiple controllers.
+- Legacy dependency scope:
+  - Multiple endpoints still routed via createNotImplementedHandler.
+- Error handling inconsistency:
+  - Different response shapes across endpoints.
+
+B2. Legacy migration status (generated)
+- Source: backend/scripts/generate-migration-map.js
+- Output file:
+  - backend/reports/migration_map_2026-03-07T08-08-25-802Z.json
+  - backend/reports/migration_map_2026-03-07T08-08-25-802Z.txt
+- Counts:
+  - Total endpoints analyzed: 333
+  - Ported in Node: 151
+  - Legacy fallback dependent: 182
+
+B3. HTML in backend
+- No server-side HTML rendering pattern detected in backend source.
+- Backend is API-oriented JSON response style.
+
+B4. Frontend findings
+- API usage:
+  - Centralized API client in frontend/src/microservices/api.service.js (good).
+- Hardcoded backend URLs:
+  - No hardcoded backend host dependency for core API paths (env/proxy based).
+- Large route surface:
+  - App route config is very large; maintainability risk.
+- Performance:
+  - Route-level lazy loading is already active.
+  - Vendor chunking retained, and circular page-chunk warnings were removed earlier.
+
+====================================================================
+C. PHASE 2 - CLEAN MODULAR MONOLITH REFACTOR (IMPLEMENTED)
+====================================================================
+
+C1. New backend architecture primitives
+Added:
+- backend/src/core/http/response.js
+- backend/src/core/http/errors.js
+- backend/src/core/db/query-executor.js
+- backend/src/middleware/validate.middleware.js
+
+Purpose:
+- Standard response helpers
+- App-level error object patterns
+- Repository-friendly DB wrapper
+- Reusable request validation middleware
+
+C2. Module registry introduced
+Added:
+- backend/src/modules/index.js
+- backend/src/modules/{auth,user,dashboard,reports,lab,survey,tracking,distillery,whatsapp}/
+  - routes.js
+  - controller.js
+  - service.js
+  - repository.js
+  - validation.js
+  - index.js
+
+Wiring update:
+- app.js now uses registerModuleRoutes(app)
+- app.js attaches response helper middleware
+- app.js uses standardized notFoundHandler middleware
+
+C3. Response standardization base
+Implemented in global notFound/error middleware:
+- { success, message, data, error }
+
+Notes:
+- Success response contracts for existing business endpoints were preserved.
+- Error/404 responses are now consistent globally.
+
+C4. Auth domain layered refactor (completed)
+Added and wired:
+- backend/src/modules/auth/controller.js
+- backend/src/modules/auth/service.js
+- backend/src/modules/auth/repository.js
+- backend/src/modules/auth/validation.js
+
+Legacy file compatibility maintained:
+- backend/src/microservices/auth/controllers/account.controller.js now delegates to module controller.
+
+Outcome:
+- Auth now follows controller -> service -> repository separation.
+- SQL moved from auth controller into auth repository.
+
+====================================================================
+D. PHASE 3 - LEGACY MIGRATION FIX (IMPLEMENTED BASELINE)
+====================================================================
+
+D1. Legacy dependency control
+- Fallback remains available only where endpoints still call createNotImplementedHandler.
+- Migration map provides explicit endpoint-level visibility.
+
+D2. Migration map generated
+- Machine-generated endpoint classification (ported-node vs legacy-fallback).
+- Enables controlled deprecation planning per endpoint.
+
+D3. What is still pending
+- Endpoint-by-endpoint removal of fallback wrappers in modules as they are fully ported.
+
+====================================================================
+E. PHASE 4 - MICROSERVICES PREPARATION (IMPLEMENTED STRUCTURE)
+====================================================================
+
+E1. Target-ready module structure
+Implemented path:
+- /src/modules
+  - /auth
+  - /user
+  - /dashboard
+  - /reports
+  - /lab
+  - /survey
+  - /tracking
+  - /distillery
+  - /whatsapp
+
+Each module contains:
+- routes.js
+- controller.js
+- service.js
+- repository.js
+- validation.js
+
+E2. Extraction readiness benefits
+- Clear bounded contexts by business domain.
+- Route mounting centralized and explicit.
+- Future service extraction can start from module folders with minimal API churn.
+
+====================================================================
+F. PHASE 5 - API STANDARDIZATION (PARTIALLY IMPLEMENTED)
+====================================================================
+
+Implemented:
+- Global notFound and error responses standardized.
+- Validation middleware introduced.
+
+Remaining (recommended next sprint):
+- Migrate success responses of all controllers to common response helper where contract permits.
+- Create DTO mappers where legacy contract is inconsistent.
+
+====================================================================
+G. PHASE 6 - PERFORMANCE & CLEANUP STATUS
+====================================================================
+
+Implemented/verified:
+- Frontend lazy loading present.
+- Frontend build/lint passing.
+- Vendor chunk strategy stable.
+- DB helpers prepared for repository reuse.
+
+Pending:
+- Deduplicate repeated SQL across dashboard/tracking/user/lab/report controllers.
+- Introduce shared repository utility methods per domain.
+- Add targeted indexes/query-plan tuning for heavy reporting queries.
+- Add endpoint-level performance telemetry.
+
+====================================================================
+H. PHASE 7 - SAFE MICROSERVICE ROADMAP
+====================================================================
+
+H1. First module to extract
+Recommended first extraction: Auth
+Why:
+- Smaller and bounded domain.
+- Limited external dependencies.
+- Already layered in this refactor.
+- High operational impact with lower migration risk.
+
+H2. Step-by-step extraction strategy
+1) Freeze auth API contract and test cases.
+2) Extract auth module into separate service repo/package.
+3) Introduce internal gateway routing for /api/account.
+4) Move token/session config and envs into service-specific config.
+5) Deploy side-by-side with monolith and shadow traffic.
+6) Switch traffic gradually (canary).
+7) Remove auth routes from monolith after stabilization.
+
+H3. API Gateway plan
+- Keep single external entrypoint.
+- Route by prefix:
+  - /api/account -> auth-service
+  - other /api/* -> modular monolith initially
+- Add correlation IDs and standardized error envelope at gateway.
+
+H4. Dockerization plan
+- One Dockerfile for backend monolith.
+- One Dockerfile for frontend.
+- Future: one Dockerfile per extracted service.
+- Use docker-compose for local dev:
+  - frontend
+  - backend
+  - optional auth-service (after extraction)
+  - mssql (if local allowed)
+
+H5. Deployment plan (non-cloud assumption)
+- Stage 1: on-prem VM/container host, blue-green backend monolith deploy.
+- Stage 2: gateway + auth service split with mirrored traffic.
+- Stage 3: progressive extraction by domain based on fallback ratio and traffic.
+
+H6. Risk analysis
+- Contract drift risk between monolith and extracted services.
+- Data consistency risk if write endpoints split without transaction strategy.
+- Authentication/session coupling risk across services.
+- Legacy fallback hidden dependencies may surface late.
+
+H7. Rollback strategy
+- Keep monolith routes active behind feature flags.
+- Gateway supports instant route rollback to monolith.
+- Versioned API contract tests as deployment gate.
+- Database schema backward compatible during split phases.
+
+====================================================================
+I. REFACTORED FOLDER STRUCTURE (CURRENT)
+====================================================================
+
+Backend (key):
+- src/app.js
+- src/core/http/{response.js,errors.js}
+- src/core/db/query-executor.js
+- src/middleware/{error.middleware.js,validate.middleware.js,auth.middleware.js}
+- src/modules/
+  - auth/{routes.js,controller.js,service.js,repository.js,validation.js,index.js}
+  - user/{...}
+  - dashboard/{...}
+  - reports/{...}
+  - lab/{...}
+  - survey/{...}
+  - tracking/{...}
+  - distillery/{...}
+  - whatsapp/{...}
+- src/microservices/ (existing route/controller implementation retained for compatibility)
+
+Frontend (key):
+- src/App.jsx (lazy routes)
+- src/microservices/api.service.js
+- vite.config.js (vendor chunking + API proxy)
+
+====================================================================
+J. CRITICAL ISSUES LIST (PRIORITIZED)
+====================================================================
+
+1) High legacy fallback dependency
+- 182/333 endpoints still fallback-bound.
+
+2) Controller-to-SQL coupling
+- Large controllers with mixed concerns impede extraction and testing.
+
+3) Inconsistent response contracts
+- Partial standardization now; full rollout still needed.
+
+4) Repeated query logic
+- Similar SQL operations repeated across domains.
+
+5) Very large dashboard/lab/tracking controllers
+- Maintainability and defect-risk hotspot.
+
+====================================================================
+K. MIGRATION CHECKLIST
+====================================================================
+
+Completed in this refactor:
+- [x] Module registry introduced
+- [x] Domain folders prepared for all target modules
+- [x] Core response/error/validation primitives introduced
+- [x] Auth converted to controller-service-repository
+- [x] Legacy migration map generated
+- [x] Frontend build/lint validated
+
+Next recommended actions:
+- [ ] Convert user-management to layered module
+- [ ] Convert tracking to layered module
+- [ ] Convert report/account-reports to layered module
+- [ ] Convert dashboard/main to layered module in slices
+- [ ] Remove createNotImplementedHandler per endpoint after native port
+- [ ] Add integration tests for critical business flows
+
+====================================================================
+L. VALIDATION STATUS AFTER CHANGES
+====================================================================
+
+- Backend syntax checks for modified files: PASS
+- Frontend lint: PASS
+- Frontend build: PASS
+- Backend smoke start with SKIP_DB_CONNECT=true: boots successfully
+
+END OF REPORT
+
+====================================================================
+M. CONTINUATION UPDATE (2026-03-07)
+====================================================================
+
+Additional refactor completed after initial blueprint:
+
+1) Reports / Account Reports layered extraction
+- Implemented module files:
+  - src/modules/reports/account-reports.controller.js
+  - src/modules/reports/account-reports.service.js
+  - src/modules/reports/account-reports.repository.js
+  - src/modules/reports/account-reports.validation.js
+- Existing microservice controller now delegates to module controller.
+- Transfer-and-received-unit APIs now run through clean controller->service->repository flow.
+
+2) User Management layered extraction (core API surface)
+- Implemented module files:
+  - src/modules/user/user-management.controller.js
+  - src/modules/user/user-management.service.js
+  - src/modules/user/user-management.repository.js
+  - src/modules/user/user-management.validation.js
+- Routed these endpoints to modern module controller:
+  - GET /api/user-management/user-types
+  - GET /api/user-management/users
+  - POST /api/user-management/users
+  - GET /api/user-management/roles
+  - ALL /api/user-management/user-code-changed
+- Kept long-tail endpoints on existing controller to avoid regression while migration continues.
+
+3) Migration-map tooling improved
+- Updated backend/scripts/generate-migration-map.js to correctly parse routes using multiple controller variables and middleware signatures.
+
+Updated migration summary:
+- Total endpoints: 333
+- Ported in Node: 170
+- Legacy fallback: 163
+- Latest artifact:
+  - backend/reports/migration_map_2026-03-07T09-04-13-914Z.txt
+
+Validation:
+- Backend syntax checks: pass
+- Frontend lint/build: pass
+- Backend smoke start with SKIP_DB_CONNECT=true: pass
+
+Tracking continuation update:
+- Added module layer files:
+  - src/modules/tracking/tracking.controller.js
+  - src/modules/tracking/tracking.service.js
+  - src/modules/tracking/tracking.repository.js
+  - src/modules/tracking/tracking.validation.js
+- Migrated routes to module controller (non-breaking):
+  - /api/tracking/unit-wise-officer
+  - /api/tracking/unit-zone
+  - /api/tracking/unit-zone-block
+- Kept remaining tracking endpoints on existing controller for safe incremental migration.
+- Latest migration map:
+  - backend/reports/migration_map_2026-03-07T09-06-25-440Z.txt
+
+============================================================
+TRACKING MODERNIZATION UPDATE - 2026-03-07
+============================================================
+Completed endpoint extraction to module layer (controller -> service -> repository) without API contract changes:
+- GET /target-entry
+- POST /target-entry-2
+- ALL /tracking-report-data
+- ALL /grower-meeting-report
+
+Implementation notes:
+- SQL moved from legacy tracking controller to tracking.repository.js.
+- Business parsing/transform logic moved to tracking.service.js.
+- Route bindings updated to modern module controller for the four endpoints only.
+- Response shapes remain backward-compatible with existing frontend usage.
+
+Validation:
+- node -c passed for:
+  - src/modules/tracking/tracking.repository.js
+  - src/modules/tracking/tracking.service.js
+  - src/modules/tracking/tracking.controller.js
+  - src/microservices/tracking/routes/tracking.routes.js
+- Migration map regenerated:
+  - backend/reports/migration_map_2026-03-07T09-13-55-355Z.txt
+  - backend/reports/migration_map_2026-03-07T09-13-55-355Z.json
+
+Current migration summary:
+- Total endpoints: 333
+- Ported in Node: 170
+- Legacy fallback: 163
+
+
+============================================================
+TRACKING MODERNIZATION UPDATE - 2026-03-07 (BATCH 2)
+============================================================
+Moved legacy tracking endpoints into module layer:
+- ALL /live-location-rpt
+- ALL /live-location-rpt-data
+- GET /view-map-live
+- ALL /tracking-map-live
+- ALL /target-rpt
+- ALL /tracking-report
+
+Implementation notes:
+- SQL moved to src/modules/tracking/tracking.repository.js.
+- Business/transform logic moved to src/modules/tracking/tracking.service.js.
+- Routes wired to modernController in src/microservices/tracking/routes/tracking.routes.js.
+- Response shapes preserved (arrays vs {success,data}).
+
+Validation:
+- node -c passed for:
+  - src/modules/tracking/tracking.repository.js
+  - src/modules/tracking/tracking.service.js
+  - src/modules/tracking/tracking.controller.js
+  - src/microservices/tracking/routes/tracking.routes.js
+- Migration map regenerated: backend/reports/migration_map_2026-03-07T09-37-24-590Z.txt
+

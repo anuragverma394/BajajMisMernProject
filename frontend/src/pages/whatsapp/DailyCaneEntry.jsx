@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { masterService, dailyCaneEntryService } from '../../microservices/api.service';
 import '../../styles/base.css';const __cx = (...vals) => vals.filter(Boolean).join(" ");
+import '../../styles/DailyCaneEntry.css';
 
 function toDDMMYYYY(input) {
   const d = input instanceof Date ? input : new Date(input);
@@ -124,9 +125,9 @@ export default function DailyCaneEntry() {
             <button className="btn btn-primary" onClick={() => navigate(-1)}>Exit</button>
           </div>
 
-          <div className="overflow-x-auto border border-[#cfd8dc] rounded bg-white">
-            <table className={__cx("table table-bordered", "min-w-[1700px] mb-[0px]")}>
-              <thead className="bg-[#d9ead3]">
+          <div className="overflow-x-auto border border-[#cfd8dc] rounded bg-white daily-cane-table-wrap">
+            <table className={__cx("table table-bordered", "min-w-[1700px] mb-[0px]", "daily-cane-table")}>
+              <thead className="bg-[#d9ead3] daily-cane-table-head">
                 <tr>
                   <th>Units</th>
                   <th>Date</th>

@@ -231,8 +231,8 @@ function App() {
             <Route path="/UserManagement/AddRollView" element={<UserManagement_AddRollView />} />
             <Route path="/UserManagement/AddUser" element={<UserManagement_AddUser />} />
             <Route path="/UserManagement/AddUserRight" element={<UserManagement_AddUserRight />} />
-            <Route path="/UserManagement/AddUserView" element={<UserManagement_AddUserViewRight />} />
-            <Route path="/UserManagement/AddUserViewRight" element={<UserManagement_AddUserView />} />
+            <Route path="/UserManagement/AddUserView" element={<UserManagement_AddUserView />} />
+            <Route path="/UserManagement/AddUserViewRight" element={<UserManagement_AddUserViewRight />} />
             <Route path="/UserManagement/LabModulePermision" element={<UserManagement_LabModulePermision />} />
 
             {/* Lab Routes */}

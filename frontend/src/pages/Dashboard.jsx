@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useDeferredValue, startTransition, useRef } from "react";
 import {
   LineChart,
   Line,
@@ -52,6 +52,12 @@ export default function Dashboard() {
   const [p3, setP3] = useState(0);
   const [p4, setP4] = useState(0);
   const [openMenuKey, setOpenMenuKey] = useState("");
+  const initialFetchDoneRef = useRef(false);
+
+  const deferredCaneCrushData = useDeferredValue(caneCrushData);
+  const deferredYeastOvershoots = useDeferredValue(yeastOvershoots);
+  const deferredTokenGrossTare = useDeferredValue(tokenGrossTare);
+  const deferredPurchaseOvershoots = useDeferredValue(purchaseOvershoots);
 
   const paginate = (data, page) => {
     if (!data || !Array.isArray(data)) return [];
@@ -109,6 +115,19 @@ export default function Dashboard() {
     };
   };
 
+  const buildFactoryCodeList = (items = []) => {
+    const codes = items
+      .map((row) => String(row?.F_Code ?? row?.f_Code ?? row?.id ?? "").trim())
+      .filter(Boolean);
+    return codes.join(",");
+  };
+
+  const allFactoryCodes = useMemo(() => buildFactoryCodeList(factoriesList), [factoriesList]);
+  const resolveFactoryCode = (selected) => {
+    if (!selected || selected === "0") return allFactoryCodes || "";
+    return selected;
+  };
+
   const loadDashboardData = useCallback(async ({ dateFrom, dateTo, factoryCode, type }) => {
     const params = { dateFrom, dateTo, factoryCode, type };
     const crushCall =
@@ -124,45 +143,47 @@ export default function Dashboard() {
 
     let msg = "";
 
-    if (crush.status === "fulfilled") {
-      setCaneCrushData(normalizeCrushPayload(crush.value));
-    } else {
-      setCaneCrushData({ MyList: [], DateList: [] });
-      msg =
-        crush.reason?.response?.data?.message ||
-        crush.reason?.message ||
-        "Failed to load cane crush data";
-    }
+    startTransition(() => {
+      if (crush.status === "fulfilled") {
+        setCaneCrushData(normalizeCrushPayload(crush.value));
+      } else {
+        setCaneCrushData({ MyList: [], DateList: [] });
+        msg =
+          crush.reason?.response?.data?.message ||
+          crush.reason?.message ||
+          "Failed to load cane crush data";
+      }
 
-    if (yeast.status === "fulfilled") {
-      setYeastOvershoots(normalizeChartRows(yeast.value));
-    } else {
-      setYeastOvershoots([]);
-      msg =
-        msg ||
-        yeast.reason?.response?.data?.message ||
-        yeast.reason?.message ||
-        "Failed to load overshoot data";
-    }
+      if (yeast.status === "fulfilled") {
+        setYeastOvershoots(normalizeChartRows(yeast.value));
+      } else {
+        setYeastOvershoots([]);
+        msg =
+          msg ||
+          yeast.reason?.response?.data?.message ||
+          yeast.reason?.message ||
+          "Failed to load overshoot data";
+      }
 
-    if (token.status === "fulfilled") {
-      setTokenGrossTare(normalizeChartRows(token.value));
-    } else {
-      setTokenGrossTare([]);
-      msg =
-        msg ||
-        token.reason?.response?.data?.message ||
-        token.reason?.message ||
-        "Failed to load token/gross/tare data";
-    }
+      if (token.status === "fulfilled") {
+        setTokenGrossTare(normalizeChartRows(token.value));
+      } else {
+        setTokenGrossTare([]);
+        msg =
+          msg ||
+          token.reason?.response?.data?.message ||
+          token.reason?.message ||
+          "Failed to load token/gross/tare data";
+      }
 
-    if (yeast.status === "fulfilled") {
-      setPurchaseOvershoots(normalizeChartRows(yeast.value));
-    } else {
-      setPurchaseOvershoots([]);
-    }
+      if (yeast.status === "fulfilled") {
+        setPurchaseOvershoots(normalizeChartRows(yeast.value));
+      } else {
+        setPurchaseOvershoots([]);
+      }
 
-    setErrorMessage(msg);
+      setErrorMessage(msg);
+    });
   }, []);
 
   useEffect(() => {
@@ -173,7 +194,9 @@ export default function Dashboard() {
         : Array.isArray(data)
         ? data
         : [];
-      setFactoriesList(dedupeFactories(unitsArray));
+      const cleaned = dedupeFactories(unitsArray);
+      setFactoriesList(cleaned);
+      return cleaned;
     };
 
     const today = new Date();
@@ -192,18 +215,19 @@ export default function Dashboard() {
     setFilterDateFrom(dFrom);
     setFilterDateTo(dTo);
 
-    loadFactories();
-
     const doInitialFetch = async () => {
       setIsLoading(true);
       setErrorMessage("");
       try {
+        const units = await loadFactories();
+        const factoryCode = buildFactoryCodeList(units);
         await loadDashboardData({
           dateFrom: dFrom,
           dateTo: dTo,
-          factoryCode: "",
+          factoryCode,
           type: "marketing"
         });
+        initialFetchDoneRef.current = true;
       } catch (err) {
         console.error(err);
       }
@@ -227,12 +251,12 @@ export default function Dashboard() {
     }
 
     try {
-      await loadDashboardData({
-        dateFrom: filterDateFrom,
-        dateTo: filterDateTo,
-        factoryCode: filterFactory === "0" ? "" : filterFactory,
-        type: currentType
-      });
+        await loadDashboardData({
+          dateFrom: filterDateFrom,
+          dateTo: filterDateTo,
+          factoryCode: resolveFactoryCode(filterFactory),
+          type: currentType
+        });
     } catch (err) {
       console.error(err);
       setErrorMessage(err?.response?.data?.message || err?.message || "Failed to load dashboard");
@@ -246,64 +270,94 @@ export default function Dashboard() {
     fetchData(type);
   };
 
+  useEffect(() => {
+    if (!initialFetchDoneRef.current) return;
+    if (!filterDateFrom || !filterDateTo) return;
+    if (filterFactory !== "0") return;
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [filterFactory, filterDateFrom, filterDateTo, filterType]);
+
   const caneCrushRows = useMemo(() => {
-    return (caneCrushData.DateList || []).map((date, i) => {
+    return (deferredCaneCrushData.DateList || []).map((date, i) => {
       const row = { label: date, categoryKey: `${date}-${i}` };
-      (caneCrushData.MyList || []).forEach((f) => {
+      (deferredCaneCrushData.MyList || []).forEach((f) => {
         row[f.name] = f.data[i];
       });
       return row;
     });
-  }, [caneCrushData]);
+  }, [deferredCaneCrushData]);
 
-  const yeastBarData = yeastOvershoots.map((d, idx) => ({
-    categoryKey: `${d.F_Name || d.Factory || d.c_name || "Factory"}-${idx}`,
-    name: d.F_Name || d.Factory || d.c_name || `Factory ${idx + 1}`,
-    Normal: d.ctogateMinute || 0,
-    Overshoot: d.diff || 0
-  }));
+  const yeastBarData = useMemo(
+    () =>
+      deferredYeastOvershoots.map((d, idx) => ({
+        categoryKey: `${d.F_Name || d.Factory || d.c_name || "Factory"}-${idx}`,
+        name: d.F_Name || d.Factory || d.c_name || `Factory ${idx + 1}`,
+        Normal: d.ctogateMinute || 0,
+        Overshoot: d.diff || 0
+      })),
+    [deferredYeastOvershoots]
+  );
 
-  const tokenBarData = tokenGrossTare.map((d, idx) => ({
-    categoryKey: `${d.F_Name || d.F_name || d.c_name || "Factory"}-${idx}`,
-    name: d.F_Name || d.F_name || d.c_name || `Factory ${idx + 1}`,
-    TokenToGross: d.TGM || 0,
-    TokenToGrossOS: d.TGOvs || 0,
-    GrossToTare: d.GTrM || 0,
-    GrossToTareOS: d.GTOvs || 0,
-    TokenToTare: d.TTM || 0,
-    TokenToTareOS: d.TTOvs || 0
-  }));
+  const tokenBarData = useMemo(
+    () =>
+      deferredTokenGrossTare.map((d, idx) => ({
+        categoryKey: `${d.F_Name || d.F_name || d.c_name || "Factory"}-${idx}`,
+        name: d.F_Name || d.F_name || d.c_name || `Factory ${idx + 1}`,
+        TokenToGross: d.TGM || 0,
+        TokenToGrossOS: d.TGOvs || 0,
+        GrossToTare: d.GTrM || 0,
+        GrossToTareOS: d.GTOvs || 0,
+        TokenToTare: d.TTM || 0,
+        TokenToTareOS: d.TTOvs || 0
+      })),
+    [deferredTokenGrossTare]
+  );
 
   const purchaseBarData = useMemo(() => {
-    return (purchaseOvershoots || []).map((d, idx) => ({
+    return (deferredPurchaseOvershoots || []).map((d, idx) => ({
       categoryKey: `${d.F_Name || d.Factory || d.name || "Factory"}-${idx}`,
       name: d.F_Name || d.Factory || d.name || `Factory ${idx + 1}`,
       TargetLimit: d.TargetLimit ?? d.ctogateMinute ?? 0,
       ActualValue: d.ActualValue ?? d.AvgMint ?? d.avgmint ?? 0
     }));
-  }, [purchaseOvershoots]);
+  }, [deferredPurchaseOvershoots]);
 
-  const centreGateRatioData = yeastOvershoots.map((d, idx) => ({
-    categoryKey: `${d.F_Name || d.Factory || d.c_name || "Factory"}-${idx}`,
-    name: d.F_Name || d.Factory || d.c_name || `Factory ${idx + 1}`,
-    Ratio: d.ctogateMinute
-      ? parseFloat(((d.AvgMint || d.avgmint || 0) / d.ctogateMinute).toFixed(2))
-      : 0,
-    Target: 1
-  }));
+  const centreGateRatioData = useMemo(
+    () =>
+      deferredYeastOvershoots.map((d, idx) => ({
+        categoryKey: `${d.F_Name || d.Factory || d.c_name || "Factory"}-${idx}`,
+        name: d.F_Name || d.Factory || d.c_name || `Factory ${idx + 1}`,
+        Ratio: d.ctogateMinute
+          ? parseFloat(((d.AvgMint || d.avgmint || 0) / d.ctogateMinute).toFixed(2))
+          : 0,
+        Target: 1
+      })),
+    [deferredYeastOvershoots]
+  );
 
-  const avgTravelHoursData = yeastBarData.map((item) => ({
-    ...item,
-    NormalHours: Number(item.Normal || 0) / 60,
-    OvershootHours: Number(item.Overshoot || 0) / 60
-  }));
+  const avgTravelHoursData = useMemo(
+    () =>
+      yeastBarData.map((item) => ({
+        ...item,
+        NormalHours: Number(item.Normal || 0) / 60,
+        OvershootHours: Number(item.Overshoot || 0) / 60
+      })),
+    [yeastBarData]
+  );
 
-  const tokenTrendData = tokenBarData.map((item) => ({
-    ...item,
-    Token: item.TokenToGross,
-    Gross: item.GrossToTare,
-    Tare: item.TokenToTare
-  }));
+  const tokenTrendData = useMemo(
+    () =>
+      tokenBarData.map((item) => ({
+        ...item,
+        Token: item.TokenToGross,
+        Gross: item.GrossToTare,
+        Tare: item.TokenToTare
+      })),
+    [tokenBarData]
+  );
 
   const renderPager = (setPage, totalItems) => (
     <div className="dashboard-pager">
@@ -481,7 +535,11 @@ export default function Dashboard() {
             />
           </div>
 
-          <button onClick={() => fetchData()} disabled={isLoading} className="dashboard-search-btn">
+          <button
+            onClick={() => fetchData()}
+            disabled={isLoading || filterFactory === "0"}
+            className="dashboard-search-btn"
+          >
             {isLoading ? "..." : "Search"}
           </button>
         </div>
@@ -710,9 +768,10 @@ export default function Dashboard() {
       </div>
 
       <footer className="dashboard-footer">
-        {CURRENT_YEAR} © Bajaj Hindusthan Sugar Ltd. All Rights Reserved. Designed & Developed By {" "}
+        {CURRENT_YEAR} Â© Bajaj Hindusthan Sugar Ltd. All Rights Reserved. Designed & Developed By {" "}
         <span>Vibrant IT Solutions Pvt. Ltd.</span>
       </footer>
     </div>
   );
 }
+

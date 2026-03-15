@@ -6,12 +6,16 @@ import { userManagementService } from '../../microservices/api.service';const Us
   const handleSearch = async () => {
     setIsSearching(true);
     try {
-      const params = { rollCode, rollName };
+      const code = String(rollCode || '').trim();
+      const name = String(rollName || '').trim();
+      const params = { rollCode: code, rollName: name };
+      setResults([]);
       const data = await userManagementService.getRoles(params);
       const formatted = (Array.isArray(data) ? data : []).map((r) => ({
         R_Code: r.R_Code?.toString() || r.id?.toString() || '',
         R_Name: r.R_Name || r.role_name || '',
         Modualname: r.Modualname || r.page_name || '',
+        MID: r.MID || r.mid || '',
         RADD: r.RADD || 'No',
         RUPDATE: r.RUPDATE || 'No',
         RDELETE: r.RDELETE || 'No',
@@ -163,7 +167,7 @@ import { userManagementService } from '../../microservices/api.service';const Us
             </thead>
             <tbody>
               {results.map((item, idx) =>
-            <tr key={item.R_Code} className={idx % 2 === 0 ? "bg-white border-b border-b-[#eee]" : "bg-[#fcfcfc] border-b border-b-[#eee]"}>
+            <tr key={`${item.R_Code || 'r'}-${item.MID || item.Modualname || idx}`} className={idx % 2 === 0 ? "bg-white border-b border-b-[#eee]" : "bg-[#fcfcfc] border-b border-b-[#eee]"}>
                   <td onClick={() => handleEdit(item.R_Code)} className="p-[12px] text-[13px] font-bold text-[#008080] cursor-pointer">{item.R_Code}</td>
                   <td onClick={() => handleEdit(item.R_Code)} className="p-[12px] text-[13px] cursor-pointer">{item.R_Name}</td>
                   <td className="p-[12px] text-[13px]">{item.Modualname}</td>

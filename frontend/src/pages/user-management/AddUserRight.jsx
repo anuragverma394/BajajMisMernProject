@@ -124,7 +124,7 @@ import { userManagementService } from '../../microservices/api.service';const __
       setLoading(true);
       await userManagementService.saveUserRights(payload);
       toast.success(`User rights ${isEditMode ? 'updated' : 'assigned'} successfully!`);
-      navigate('/UserManagement/AddUserViewRight');
+      navigate('/UserManagement/AddUserView');
     } catch (error) {
       toast.error("Failed to save user rights");
     } finally {
@@ -138,7 +138,7 @@ import { userManagementService } from '../../microservices/api.service';const __
         setLoading(true);
         await userManagementService.deleteUserRights(internalId, userId);
         toast.success("Record Deleted Successfully!");
-        navigate('/UserManagement/AddUserViewRight');
+        navigate('/UserManagement/AddUserView');
       } catch (error) {
         toast.error("Delete failed");
       } finally {
@@ -274,7 +274,7 @@ import { userManagementService } from '../../microservices/api.service';const __
                                     <Trash2 size={18} /> Revoke All Access
                                 </button>
               }
-                            <button onClick={() => navigate('/UserManagement/AddUserViewRight')} className="px-5 py-2 rounded text-[13px] font-medium cursor-pointer border-0 text-white min-w-[90px] bg-[#008080]">
+                            <button onClick={() => navigate('/UserManagement/AddUserView')} className="px-5 py-2 rounded text-[13px] font-medium cursor-pointer border-0 text-white min-w-[90px] bg-[#008080]">
                                 <List size={18} /> Back to View
                             </button>
                         </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
-import { Save, List, LogOut, CheckSquare, Square } from 'lucide-react';
+import { userManagementService } from '../../microservices/api.service';
 
 const UserManagement_AddRoll = () => {
   const navigate = useNavigate();
@@ -14,27 +14,59 @@ const UserManagement_AddRoll = () => {
   const [checkAll, setCheckAll] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
 
-  // Mock modules data
-  const mockModules = [
-  { MID: 1, Modualname: 'Dashboard', RADD: 0, RUPDATE: 0, RDELETE: 0, RVIEW: 1, REXPORT: 0, RPRINT: 0, RSEARCH: 0, RNotification: 0 },
-  { MID: 2, Modualname: 'User Management', RADD: 0, RUPDATE: 0, RDELETE: 0, RVIEW: 0, REXPORT: 0, RPRINT: 0, RSEARCH: 0, RNotification: 0 },
-  { MID: 3, Modualname: 'Accounts', RADD: 0, RUPDATE: 0, RDELETE: 0, RVIEW: 0, REXPORT: 0, RPRINT: 0, RSEARCH: 0, RNotification: 0 },
-  { MID: 4, Modualname: 'Reports', RADD: 0, RUPDATE: 0, RDELETE: 0, RVIEW: 1, REXPORT: 1, RPRINT: 1, RSEARCH: 1, RNotification: 0 },
-  { MID: 5, Modualname: 'Main', RADD: 1, RUPDATE: 1, RDELETE: 0, RVIEW: 1, REXPORT: 0, RPRINT: 0, RSEARCH: 1, RNotification: 1 }];
-
-
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const code = queryParams.get('code');
 
-    if (code) {
-      setIsEditMode(true);
-      setRollCode(code);
-      setRollName('Administrator'); // Mock value
-      setModules(mockModules.map((m, idx) => ({ ...m, RADD: 1, RUPDATE: 1, RVIEW: 1 })));
-    } else {
-      setModules(mockModules);
-    }
+    const toNumberFlag = (value) => (String(value || '0') === '1' ? 1 : 0);
+    const mapModule = (m) => ({
+      MID: Number(m.MID),
+      Modualname: m.Modualname || m.ModualName || '',
+      RADD: toNumberFlag(m.RADD),
+      RUPDATE: toNumberFlag(m.RUPDATE),
+      RDELETE: toNumberFlag(m.RDELETE),
+      RVIEW: toNumberFlag(m.RVIEW),
+      REXPORT: toNumberFlag(m.REXPORT),
+      RPRINT: toNumberFlag(m.RPRINT),
+      RSEARCH: toNumberFlag(m.RSEARCH),
+      RNotification: toNumberFlag(m.RNotification),
+      isRowSelected: [
+        'RADD',
+        'RUPDATE',
+        'RDELETE',
+        'RVIEW',
+        'REXPORT',
+        'RPRINT',
+        'RSEARCH',
+        'RNotification'
+      ].some((key) => String(m[key] || '0') === '1')
+    });
+
+    const loadRole = async () => {
+      try {
+        if (code) {
+          setIsEditMode(true);
+          setRollCode(code);
+          const role = await userManagementService.getRoleByCode(code);
+          if (role?.R_Name) setRollName(role.R_Name);
+        } else {
+          setIsEditMode(false);
+          setRollCode('');
+          setRollName('');
+        }
+
+        const permissions = await userManagementService.getRolePermissions(code || '');
+        const list = Array.isArray(permissions) ? permissions.map(mapModule) : [];
+        setModules(list);
+        setCheckAll(list.length > 0 && list.every((m) => m.isRowSelected));
+      } catch (error) {
+        console.error('AddRoll: failed to load role data', error);
+        toast.error('Failed to load role data');
+        setModules([]);
+      }
+    };
+
+    loadRole();
   }, [location.search]);
 
   const handleCheckAll = (e) => {
@@ -55,50 +87,91 @@ const UserManagement_AddRoll = () => {
   };
 
   const handleRowCheckbox = (mid, checked) => {
-    setModules((prevModules) => prevModules.map((m) => {
-      if (m.MID === mid) {
-        return {
-          ...m,
-          RADD: checked ? 1 : 0,
-          RUPDATE: checked ? 1 : 0,
-          RDELETE: checked ? 1 : 0,
-          RVIEW: checked ? 1 : 0,
-          REXPORT: checked ? 1 : 0,
-          RPRINT: checked ? 1 : 0,
-          RSEARCH: checked ? 1 : 0,
-          RNotification: checked ? 1 : 0,
-          isRowSelected: checked
-        };
-      }
-      return m;
-    }));
+    setModules((prevModules) => {
+      const next = prevModules.map((m) => {
+        if (m.MID === mid) {
+          return {
+            ...m,
+            RADD: checked ? 1 : 0,
+            RUPDATE: checked ? 1 : 0,
+            RDELETE: checked ? 1 : 0,
+            RVIEW: checked ? 1 : 0,
+            REXPORT: checked ? 1 : 0,
+            RPRINT: checked ? 1 : 0,
+            RSEARCH: checked ? 1 : 0,
+            RNotification: checked ? 1 : 0,
+            isRowSelected: checked
+          };
+        }
+        return m;
+      });
+      setCheckAll(next.length > 0 && next.every((m) => m.isRowSelected));
+      return next;
+    });
   };
 
   const handleActionCheckbox = (mid, field, checked) => {
-    setModules((prevModules) => prevModules.map((m) => {
-      if (m.MID === mid) {
-        return { ...m, [field]: checked ? 1 : 0 };
-      }
-      return m;
-    }));
+    setModules((prevModules) => {
+      const next = prevModules.map((m) => {
+        if (m.MID === mid) {
+          const updated = { ...m, [field]: checked ? 1 : 0 };
+          const isSelected = [
+            'RADD',
+            'RUPDATE',
+            'RDELETE',
+            'RVIEW',
+            'REXPORT',
+            'RPRINT',
+            'RSEARCH',
+            'RNotification'
+          ].some((key) => Number(updated[key] || 0) === 1);
+          return { ...updated, isRowSelected: isSelected };
+        }
+        return m;
+      });
+      setCheckAll(next.length > 0 && next.every((m) => m.isRowSelected));
+      return next;
+    });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!rollCode || !rollName) {
       toast.error("Please fill in Roll Code and Roll Name");
       return;
     }
 
-    toast.promise(
-      new Promise((resolve) => setTimeout(resolve, 1000)),
-      {
-        loading: 'Processing Role Data...',
-        success: `Role ${isEditMode ? 'updated' : 'created'} successfully!`,
-        error: 'System error occurred'
-      }
-    ).then(() => {
+    try {
+      const payloadRows = (modules || []).map((m) => ({
+        MID: String(m.MID || ''),
+        RADD: String(m.RADD ? 1 : 0),
+        RUPDATE: String(m.RUPDATE ? 1 : 0),
+        RDELETE: String(m.RDELETE ? 1 : 0),
+        RVIEW: String(m.RVIEW ? 1 : 0),
+        REXPORT: String(m.REXPORT ? 1 : 0),
+        RPRINT: String(m.RPRINT ? 1 : 0),
+        RSEARCH: String(m.RSEARCH ? 1 : 0),
+        RNotification: String(m.RNotification ? 1 : 0)
+      }));
+
+      const payload = {
+        Command: isEditMode ? 'btupdate' : 'btninsert',
+        R_Code: rollCode,
+        R_Name: rollName,
+        TableDataGuest: JSON.stringify(payloadRows)
+      };
+
+      await toast.promise(
+        userManagementService.saveRole(payload),
+        {
+          loading: 'Processing Role Data...',
+          success: `Role ${isEditMode ? 'updated' : 'created'} successfully!`,
+          error: 'System error occurred'
+        }
+      );
       navigate('/UserManagement/AddRollView');
-    });
+    } catch (error) {
+      toast.error(error?.response?.data?.message || 'Failed to save role');
+    }
   };
 
   const headerStyle = "bg-[#008080] text-white py-[12px] px-[20px] text-[18px] font-medium rounded-[8px 8px 0 0] mb-[1px]";

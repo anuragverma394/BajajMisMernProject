@@ -1,8 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
-import { Save, LogOut } from 'lucide-react';
-import { labService, masterService } from '../../microservices/api.service';const __cx = (...vals) => vals.filter(Boolean).join(" ");const DailyLabAnalysisAdd = () => {const navigate = useNavigate();const [searchParams] = useSearchParams();const [units, setUnits] = useState([]);const [loading, setLoading] = useState(false);const [isEditMode, setIsEditMode] = useState(false);
+import { labService, masterService } from '../../microservices/api.service';
+import '../../styles/base.css';
+
+const __cx = (...vals) => vals.filter(Boolean).join(" ");
+
+const DailyLabAnalysisAdd = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [units, setUnits] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+
   const initialFormState = {
     factory: '',
     DDATE: new Date().toISOString().split('T')[0],
@@ -35,7 +45,7 @@ import { labService, masterService } from '../../microservices/api.service';cons
       setIsEditMode(true);
       setLoading(true);
       labService.getDailyAnalysis({ DDATE: ddate, MILL_NO: millNo, FACTORY: factoryId, TIME1: time1 }).
-      then((data) => {if (data && data.length > 0) setForm(data[0]);}).
+      then((data) => { if (data && data.length > 0) setForm(data[0]); }).
       catch(() => toast.error("Failed to load record")).
       finally(() => setLoading(false));
     }
@@ -74,177 +84,133 @@ import { labService, masterService } from '../../microservices/api.service';cons
     }
   };
 
-  const headerStyle = "bg-[#008080] text-white py-[12px] px-[20px] text-[18px] font-medium rounded-[8px 8px 0 0] mb-[1px]";
-
-
-
-
-
-
-
-
-
-  const cardStyle = "p-[30px] border border-[#e0e0e0] rounded-[0 0 8px 8px] bg-white shadow-[0 2px 4px rgba(0,0,0,0.05)] mb-[20px]";
-
-
-
-
-
-
-
-
-  const sectionHeaderStyle = "text-[13px] text-[#666] border-b border-b-[#ddd] pb-[10px] mb-[30px] font-medium";
-
-
-
-
-
-
-
-
-  const labelStyle = "block mb-[8px] text-[13px] font-semibold text-[#333]";
-
-
-
-
-
-
-
-  const inputStyle = "w-[100%] py-[10px] px-[12px] border border-[#ccc] rounded text-[13px] bg-white  ";
-
-
-
-
-
-
-
-
-
-
-  const btnStyle = (bg = '#16a085') => ({
-    padding: '12px 30px',
-    borderRadius: '4px',
-    fontSize: '14px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    border: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    color: 'white',
-    backgroundColor: bg,
-    transition: 'background-color 0.2s'
-  });
-
   const METRICS = [
-  { label: 'Primary Juice', prefix: 'PJ' },
-  { label: 'Mixed Juice', prefix: 'MJ' },
-  { label: 'Last Mill Juice', prefix: 'LMJ' },
-  { label: 'Filtered Juice (U)', prefix: 'FPJU' },
-  { label: 'Filtered Juice (T)', prefix: 'FPJT' },
-  { label: 'Clear Juice', prefix: 'CJ' },
-  { label: 'Unsulph. Syrup', prefix: 'US' },
-  { label: 'Unsulph. Syrup (T)', prefix: 'UST' },
-  { label: 'Sulph. Syrup', prefix: 'SS' }];
-
+    { label: 'Primary Juice', prefix: 'PJ' },
+    { label: 'Mixed Juice', prefix: 'MJ' },
+    { label: 'Last Mill Juice', prefix: 'LMJ' },
+    { label: 'Filtered Juice (U)', prefix: 'FPJU' },
+    { label: 'Filtered Juice (T)', prefix: 'FPJT' },
+    { label: 'Clear Juice', prefix: 'CJ' },
+    { label: 'Unsulph. Syrup', prefix: 'US' },
+    { label: 'Unsulph. Syrup (T)', prefix: 'UST' },
+    { label: 'Sulph. Syrup', prefix: 'SS' }
+  ];
 
   return (
-    <div className="p-[20px] bg-white min-h-[100vh] font-['Inter', sans-serif]">
+    <div className="p-[20px] bg-white min-h-[100vh] font-['Poppins', Arial, sans-serif]">
       <Toaster position="top-right" />
 
-      <div className={headerStyle}>
-        Daily Lab Analysis Entry
-      </div>
+      <div className={__cx("page-card", "rounded-lg")}>
+        <div className={__cx("page-card-header", "text-center text-[15px]")}>
+          {isEditMode ? 'Edit Daily Lab Analysis' : 'Daily Lab Analysis Entry'}
+        </div>
 
-      <div className={cardStyle}>
-        <form onSubmit={handleSubmit}>
-          <div className={sectionHeaderStyle}>General Info & Process Params</div>
-          <div className="grid gap-[20px] mb-[40px]">
-            <div>
-              <label className={labelStyle}>Factory Unit</label>
-              <select name="factory" value={form.factory} onChange={handleInputChange} required className={inputStyle}>
-                <option value="">Select Unit</option>
-                {units.map((u, idx) =>
-                <option key={`${u.f_Code || u.F_CODE || u.id}-${idx}`} value={u.f_Code || u.F_CODE || u.id}>
-                    {u.F_Name || u.F_NAME || u.name}
-                  </option>
-                )}
-              </select>
-            </div>
-            <div>
-              <label className={labelStyle}>Entry Date</label>
-              <input type="date" name="DDATE" value={form.DDATE} onChange={handleInputChange} required className={inputStyle} />
-            </div>
-            <div>
-              <label className={labelStyle}>Entry Time</label>
-              <input type="time" name="TIME1" value={form.TIME1} onChange={handleInputChange} required className={inputStyle} />
-            </div>
-            <div>
-              <label className={labelStyle}>Shift</label>
-              <select name="Shift1" value={form.Shift1} onChange={handleInputChange} className={inputStyle}>
-                <option value="">Select Shift</option>
-                <option value="A">Shift A</option>
-                <option value="B">Shift B</option>
-                <option value="C">Shift C</option>
-              </select>
-            </div>
-            <div>
-              <label className={labelStyle}>Mill No</label>
-              <select name="MILL_NO" value={form.MILL_NO} onChange={handleInputChange} className={inputStyle}>
-                <option value="1">Mill 01</option>
-                <option value="2">Mill 02</option>
-                <option value="3">Mill 03</option>
-              </select>
-            </div>
-          </div>
-
-          <div className={__cx(sectionHeaderStyle, "text-[#008080] ")}>Juice & Syrup Analysis</div>
-          <div className="mb-[15px] bg-[#f9f9f9] py-[10px] px-[15px] rounded font-bold text-[13px] grid gap-[15px]">
-            <div>Metric Source</div>
-            <div className="text-center">Brix %</div>
-            <div className="text-center">Pol %</div>
-            <div className="text-center">Purity %</div>
-          </div>
-
-          {METRICS.map((m, idx) =>
-          <div key={m.prefix} className="grid gap-[15px] mb-[12px] items-center">
-              <div className="text-[13px] font-medium text-[#555]">{m.label}</div>
-              <input type="number" step="0.01" name={`${m.prefix}_BX`} value={form[`${m.prefix}_BX`]} onChange={handleInputChange} className={__cx(inputStyle, "text-center")} />
-              <input type="number" step="0.01" name={`${m.prefix}_POL`} value={form[`${m.prefix}_POL`]} onChange={handleInputChange} className={__cx(inputStyle, "text-center")} />
-              <div className={__cx(inputStyle, "text-center bg-[#f0fdf4] border border-[#bbf7d0] text-[#166534] font-bold")}>
-                {form[`${m.prefix}_PY`]}
+        <div className={__cx("page-card-body", "bg-[#f5f5e8]")}>
+          <form onSubmit={handleSubmit}>
+            
+            <div className={__cx("section-panel", "border border-[#ddd] p-[15px] rounded mb-[20px] bg-white")}>
+              <div className="text-[#d9534f] text-[13px] font-bold mb-[15px] border-b border-b-[#eee] pb-[5px]">
+                General Info & Process Params
+              </div>
+              <div className="form-grid-4">
+                <div className="form-group">
+                  <label>Factory Unit</label>
+                  <select name="factory" value={form.factory} onChange={handleInputChange} required className="form-control">
+                    <option value="">Select Unit</option>
+                    {units.map((u, idx) =>
+                      <option key={`${u.f_Code || u.F_CODE || u.id}-${idx}`} value={u.f_Code || u.F_CODE || u.id}>
+                        {u.F_Name || u.F_NAME || u.name}
+                      </option>
+                    )}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Entry Date</label>
+                  <input type="date" name="DDATE" value={form.DDATE} onChange={handleInputChange} required className="form-control" />
+                </div>
+                <div className="form-group">
+                  <label>Entry Time</label>
+                  <input type="time" name="TIME1" value={form.TIME1} onChange={handleInputChange} required className="form-control" />
+                </div>
+                <div className="form-group">
+                  <label>Shift</label>
+                  <select name="Shift1" value={form.Shift1} onChange={handleInputChange} className="form-control">
+                    <option value="">Select Shift</option>
+                    <option value="A">Shift A</option>
+                    <option value="B">Shift B</option>
+                    <option value="C">Shift C</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Mill No</label>
+                  <select name="MILL_NO" value={form.MILL_NO} onChange={handleInputChange} className="form-control">
+                    <option value="1">Mill 01</option>
+                    <option value="2">Mill 02</option>
+                    <option value="3">Mill 03</option>
+                  </select>
+                </div>
               </div>
             </div>
-          )}
 
-          <div className={__cx(sectionHeaderStyle, "mt-[30px]")}>Other Metrics</div>
-          <div className="grid gap-[20px] mb-[40px]">
-            <div>
-              <label className={labelStyle}>Bagasse Pol %</label>
-              <input type="number" step="0.01" name="B_POL" value={form.B_POL} onChange={handleInputChange} className={inputStyle} />
-            </div>
-            <div>
-              <label className={labelStyle}>Bagasse Moist %</label>
-              <input type="number" step="0.01" name="B_MOIS" value={form.B_MOIS} onChange={handleInputChange} className={inputStyle} />
-            </div>
-            <div>
-              <label className={labelStyle}>Preparatory Index (PC)</label>
-              <input type="number" step="0.01" name="PC" value={form.PC} onChange={handleInputChange} className={inputStyle} />
-            </div>
-          </div>
+            <div className={__cx("section-panel", "border border-[#ddd] p-[15px] rounded mb-[20px] bg-white")}>
+              <div className="text-[#d9534f] text-[13px] font-bold mb-[15px] border-b border-b-[#eee] pb-[5px]">
+                Juice & Syrup Analysis
+              </div>
+              <div className="form-grid-4 mb-[15px] bg-[#f9f9f9] py-[10px] px-[15px] rounded font-bold text-[13px]">
+                <div>Metric Source</div>
+                <div className="text-center">Brix %</div>
+                <div className="text-center">Pol %</div>
+                <div className="text-center">Purity %</div>
+              </div>
 
-          <div className="flex gap-[15px] border-t border-t-[#eee] pt-[30px]">
-            <button type="submit" disabled={loading} className="px-5 py-2 rounded text-[13px] font-medium cursor-pointer border-0 text-white min-w-[90px] bg-[#16a085]">
-              <Save size={18} /> {loading ? 'Saving...' : isEditMode ? 'Update Analysis' : 'Save Analysis'}
-            </button>
-            <button type="button" onClick={() => navigate('/Lab/DailyLabAnalysisView')} className="px-5 py-2 rounded text-[13px] font-medium cursor-pointer border-0 text-white min-w-[90px] bg-[#95a5a6]">
-              <LogOut size={18} /> Exit
-            </button>
-          </div>
-        </form>
+              {METRICS.map((m) =>
+                <div key={m.prefix} className="form-grid-4 mb-[12px] items-center">
+                  <div className="text-[13px] font-medium text-[#555]">{m.label}</div>
+                  <input type="number" step="0.01" name={`${m.prefix}_BX`} value={form[`${m.prefix}_BX`]} onChange={handleInputChange} className="form-control text-center" />
+                  <input type="number" step="0.01" name={`${m.prefix}_POL`} value={form[`${m.prefix}_POL`]} onChange={handleInputChange} className="form-control text-center" />
+                  <div className="form-control text-center bg-[#f0fdf4] border-[#bbf7d0] text-[#166534] font-bold">
+                    {form[`${m.prefix}_PY`]}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className={__cx("section-panel", "border border-[#ddd] p-[15px] rounded mb-[20px] bg-white")}>
+              <div className="text-[#d9534f] text-[13px] font-bold mb-[15px] border-b border-b-[#eee] pb-[5px]">
+                Other Metrics
+              </div>
+              <div className="form-grid-4">
+                <div className="form-group">
+                  <label>Bagasse Pol %</label>
+                  <input type="number" step="0.01" name="B_POL" value={form.B_POL} onChange={handleInputChange} className="form-control" />
+                </div>
+                <div className="form-group">
+                  <label>Bagasse Moist %</label>
+                  <input type="number" step="0.01" name="B_MOIS" value={form.B_MOIS} onChange={handleInputChange} className="form-control" />
+                </div>
+                <div className="form-group">
+                  <label>Preparatory Index (PC)</label>
+                  <input type="number" step="0.01" name="PC" value={form.PC} onChange={handleInputChange} className="form-control" />
+                </div>
+              </div>
+            </div>
+
+            <div className={__cx("form-actions", "border-t-0 mt-[0] pt-[0]")}>
+              <button type="submit" className="btn btn-primary" disabled={loading}>
+                {loading ? 'Saving...' : 'Save'}
+              </button>
+              <button type="button" className="btn btn-primary" onClick={() => navigate('/Lab/DailyLabAnalysisView')}>
+                View
+              </button>
+              <button type="button" className="btn btn-primary" onClick={() => navigate(-1)}>
+                Exit
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>);
-
+    </div>
+  );
 };
 
 export default DailyLabAnalysisAdd;

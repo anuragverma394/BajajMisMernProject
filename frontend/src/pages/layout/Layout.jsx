@@ -105,9 +105,9 @@ export default function Layout() {
                         User Management <span className="caret-icon">▼</span>
                     </button>
                     <div className="dn-dropdown-content">
-                        <Link to="/UserManagement/AddUserView">Add/View User</Link>
+                        <Link to="/UserManagement/AddUserViewRight">Add/View User</Link>
                         <Link to="/UserManagement/AddRollView">Add/View Role</Link>
-                        <Link to="/UserManagement/AddUserViewRight">Add/View User Role Assign</Link>
+                        <Link to="/UserManagement/AddUserView">Add/View User Role Assign</Link>
                         <Link to="/Account/ManageTblControl">Manage Table Controls</Link>
                     </div>
                 </div>

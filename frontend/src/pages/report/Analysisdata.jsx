@@ -93,12 +93,28 @@ const Report_Analysisdata = () => {
     date: formatDdMmYyyy(new Date())
   });
 
+  // Check authentication on component mount
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Session expired. Please login again.');
+      navigate('/login', { replace: true });
+      return;
+    }
+
+    // Load units
     masterService
       .getUnits()
       .then((data) => setUnits(Array.isArray(data) ? data.map(normalizeUnit).filter((u) => u.code) : []))
-      .catch(() => { });
-  }, []);
+      .catch((error) => {
+        console.error('Failed to load units:', error);
+        if (error.response?.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          navigate('/login', { replace: true });
+        }
+      });
+  }, [navigate]);
 
   const parsePayload = (payload) => {
     const recordsets = extractRecordsets(payload);
@@ -114,6 +130,16 @@ const Report_Analysisdata = () => {
   };
 
   const handleSearch = async () => {
+    // Validate inputs
+    if (!filters.unit || filters.unit === '0') {
+      toast.error('Please select a factory/unit');
+      return;
+    }
+    if (!filters.date) {
+      toast.error('Please select a date');
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await reportService.getAnalysisData({
@@ -121,9 +147,27 @@ const Report_Analysisdata = () => {
         Date: filters.date
       });
       parsePayload(response || {});
-      toast.success('Data loaded');
+      toast.success('Data loaded successfully');
     } catch (error) {
-      toast.error('Failed to load analysis data');
+      console.error('Analysis data fetch error:', error);
+      
+      // Handle 401 Unauthorized - redirect to login
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        toast.error('Session expired. Please login again.');
+        navigate('/login', { replace: true });
+        return;
+      }
+
+      // Handle other errors
+      const errorMessage = error.response?.data?.message 
+        || error.response?.data?.error 
+        || error.message 
+        || 'Failed to load analysis data';
+      toast.error(errorMessage);
+      
+      // Clear data on error
       setMainRows([]);
       setAnalysisRows([]);
       setBagasseRows([]);
@@ -137,12 +181,12 @@ const Report_Analysisdata = () => {
   const totals = useMemo(() => ({
     caneCrush: sumRows(mainRows, 'caneCrush'),
     juiceInTon: sumRows(mainRows, 'juiceInTon'),
-    juicePct: sumRows(mainRows, 'juicePct'),
+    juicePct: '',
     waterInTon: sumRows(mainRows, 'waterInTon'),
-    waterPct: sumRows(mainRows, 'waterPct'),
-    dmf: sumRows(mainRows, 'dmf'),
+    waterPct: '',
+    dmf: '',
     sugarBags: sumRows(mainRows, 'sugarBags'),
-    baggingRecoveryPct: sumRows(mainRows, 'baggingRecoveryPct')
+    baggingRecoveryPct: ''
   }), [mainRows]);
 
   return (

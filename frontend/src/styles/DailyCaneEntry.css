@@ -1,0 +1,65 @@
+/* DailyCaneEntry table styling - visual polish only */
+.daily-cane-table-wrap {
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+
+.daily-cane-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 12px;
+}
+
+.daily-cane-table th,
+.daily-cane-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #eef2f7;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.daily-cane-table-head th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.03em;
+    color: #245c4e;
+    background: #d9ead3;
+    border-bottom: 1px solid #c6d9c0;
+}
+
+.daily-cane-table tbody tr:nth-child(even) td {
+    background: #fbfcfd;
+}
+
+.daily-cane-table tbody tr:hover td {
+    background: #f1f7f4;
+}
+
+.daily-cane-table td {
+    color: #334155;
+}
+
+.daily-cane-table td:nth-child(n + 3) {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.daily-cane-table td:nth-child(2) .btn-link {
+    font-weight: 600;
+    color: #0d9488;
+}
+
+.daily-cane-table td:nth-child(2) .btn-link:hover {
+    color: #0f766e;
+    text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+    .daily-cane-table th,
+    .daily-cane-table td {
+        padding: 8px 10px;
+        font-size: 11px;
+    }
+}

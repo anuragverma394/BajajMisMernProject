@@ -45,6 +45,10 @@ const Tracking_TrackingReport = () => {
       setFilters((prev) => ({ ...prev, unit: value, zone: '0', block: '0' }));
       setRows([]);
       setBlocks([]);
+      if (!value || value === '0') {
+        setZones([]);
+        return;
+      }
       try {
         const zoneData = await trackingService.getZones({ unit: value || '0', factCode: value || '0' });
         setZones(Array.isArray(zoneData) ? zoneData : []);
@@ -91,7 +95,7 @@ const Tracking_TrackingReport = () => {
   };
 
   const handleSearch = async () => {
-    if (!filters.unit) {
+    if (!filters.unit || filters.unit === '0') {
       toast.error('Please select a unit');
       return;
     }
@@ -100,6 +104,7 @@ const Tracking_TrackingReport = () => {
     try {
       const data = await trackingService.getPerformanceReport({
         unit: filters.unit,
+        factoryCode: filters.unit,
         zone: filters.zone,
         block: filters.block,
         date: filters.fromDate,
@@ -179,11 +184,15 @@ const Tracking_TrackingReport = () => {
                 className="h-11 w-full rounded-md border border-[#cfd5e3] bg-white px-4 text-[15px] text-[#4a5671] outline-none"
               >
                 <option value="0">-Please Select-</option>
-                {zones.map((z, idx) => (
-                  <option key={`${z.z_code || 'z'}-${idx}`} value={z.z_code}>
-                    {z.z_name}
-                  </option>
-                ))}
+                {zones.map((z, idx) => {
+                  const code = z.z_code || z.zCode || z.ZoneCode || z.code || '';
+                  const name = z.z_name || z.zName || z.ZoneName || z.name || code;
+                  return (
+                    <option key={`${code || 'z'}-${idx}`} value={code}>
+                      {name}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
@@ -195,11 +204,15 @@ const Tracking_TrackingReport = () => {
                 className="h-11 w-full rounded-md border border-[#cfd5e3] bg-white px-4 text-[15px] text-[#4a5671] outline-none"
               >
                 <option value="0">-Please Select-</option>
-                {blocks.map((b, idx) => (
-                  <option key={`${b.bl_code || 'b'}-${idx}`} value={b.bl_code}>
-                    {b.bl_name}
-                  </option>
-                ))}
+                {blocks.map((b, idx) => {
+                  const code = b.bl_code || b.blCode || b.BlockCode || b.code || '';
+                  const name = b.bl_name || b.blName || b.BlockName || b.name || code;
+                  return (
+                    <option key={`${code || 'b'}-${idx}`} value={code}>
+                      {name}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 

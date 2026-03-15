@@ -143,7 +143,7 @@ const UserManagement_AddUserViewRight = () => {
               {isSearching ? 'Searching...' : 'Search'}
             </button>
             <button
-              onClick={() => navigate('/UserManagement/AddUserRight')}
+              onClick={() => navigate('/UserManagement/AddUser')}
               className="h-[46px] px-[16px] min-w-[100px] rounded-[8px] bg-[#169f8e] text-white text-[13px] font-medium border border-transparent cursor-pointer"
             >
               Add New
@@ -181,12 +181,28 @@ const UserManagement_AddUserViewRight = () => {
               <tbody>
                 {rows.length ? rows.map((item, idx) => {
                   const utId = String(item.UTID ?? item.userType ?? item.UserType ?? '').trim();
+                  const handleEditUser = () => {
+                    const id = item.ID || item.Id || item.id || '';
+                    const userid = item.Userid || item.UserId || item.userid || '';
+                    if (id) {
+                      navigate(`/UserManagement/AddUser?id=${encodeURIComponent(id)}`);
+                      return;
+                    }
+                    if (userid) {
+                      navigate(`/UserManagement/AddUser?userid=${encodeURIComponent(userid)}`);
+                    }
+                  };
                   return (
                     <tr key={`${item.ID || item.Userid || 'u'}-${idx}`} className="bg-[#ecd6d8]">
                       <td className="text-[13px] text-[#4d68ff] p-[12px] border border-[#a9c7a3]">{item.F_Name || item.Unit || '-'}</td>
                       <td className="text-[13px] text-[#4d68ff] p-[12px] border border-[#a9c7a3]">{item.UserTypeName || userTypeNameMap.get(utId) || `Type ${utId || '-'}`}</td>
                       <td className="text-[13px] text-[#4d68ff] p-[12px] border border-[#a9c7a3]">{item.Userid || item.UserId || '-'}</td>
-                      <td className="text-[13px] text-[#4d68ff] p-[12px] border border-[#a9c7a3]">{item.Name || item.UserName || '-'}</td>
+                      <td
+                        onClick={handleEditUser}
+                        className="text-[13px] text-[#4d68ff] p-[12px] border border-[#a9c7a3] cursor-pointer hover:bg-[#d4c4c6] hover:font-semibold transition-all duration-200"
+                      >
+                        {item.Name || item.UserName || '-'}
+                      </td>
                       <td className="text-[13px] text-[#4d68ff] p-[12px] border border-[#a9c7a3]">{normalizeStatus(item.Status)}</td>
                       <td className="text-[13px] text-[#111] p-[12px] border border-[#a9c7a3]">{item.mobileOTP || item.MobileOTP || item.OTP || item.Otp || '-'}</td>
                     </tr>

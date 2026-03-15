@@ -269,9 +269,11 @@ export default function SugarWhatsAppReportView() {
           </div>
 
           <div className="swrv__actions">
-            <button className="swrv__btn" onClick={handleSearch} disabled={isLoading}>{isLoading ? 'Searching...' : 'Search'}</button>
-            <button className="swrv__btn" onClick={handleExport}>Export</button>
-            <button className="swrv__btn" onClick={handlePrint}>Print</button>
+            <button className="swrv__btn swrv__btn--primary" onClick={handleSearch} disabled={isLoading}>
+              {isLoading ? 'Searching...' : 'Search'}
+            </button>
+            <button className="swrv__btn swrv__btn--ghost" onClick={handleExport}>Export</button>
+            <button className="swrv__btn swrv__btn--ghost" onClick={handlePrint}>Print</button>
           </div>
 
           <div className="swrv__report-panel">
