@@ -1,4 +1,4 @@
-const { executeQuery, executeScalar } = require('../core/db/query-executor');
+﻿const { executeQuery, executeScalar } = require('../core/db/query-executor');
 
 async function findActiveUserByLogin(userId, season) {
   return executeQuery(
@@ -15,6 +15,26 @@ async function findActiveUserByLogin(userId, season) {
        AND (u.userid = @userId OR u.Name = @userId)
      ORDER BY CASE WHEN u.userid = @userId THEN 0 ELSE 1 END, u.id`,
     { userId },
+    season
+  );
+}
+
+async function findActiveUserByLoginAndPassword(userId, password, season) {
+  return executeQuery(
+    `SELECT TOP 1
+      u.id,
+      u.userid,
+      u.UTID,
+      u.Name,
+      u.Password,
+      ISNULL(f.FactID, 0) AS FactID
+     FROM MI_User u
+     LEFT JOIN MI_UserFact f ON u.Userid = f.UserID
+     WHERE u.status = 1
+       AND (u.userid = @userId OR u.Name = @userId)
+       AND u.Password = @password
+     ORDER BY CASE WHEN u.userid = @userId THEN 0 ELSE 1 END, u.id`,
+    { userId, password },
     season
   );
 }
@@ -118,6 +138,7 @@ async function updateTableControlDate(code, isoDate, season) {
 
 module.exports = {
   findActiveUserByLogin,
+  findActiveUserByLoginAndPassword,
   updatePassword,
   getAllModules,
   getUserModulePermissions,

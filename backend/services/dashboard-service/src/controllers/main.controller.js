@@ -594,13 +594,34 @@ exports.Home = async (req, res) => {
 exports.Units = async (req, res, next) => {
   try {
     const season = req.user?.season;
-    const rows = await executeQuery(
-      `SELECT f_Code, f_Name + ' (' + F_Short + ')' AS F_Name, f_Name, F_Short
-       FROM MI_Factory
-       ORDER BY SN ASC`,
-      {},
-      season
-    );
+    let rows = [];
+    try {
+      rows = await executeQuery(
+        `SELECT f_Code, f_Name + ' (' + F_Short + ')' AS F_Name, f_Name, F_Short
+         FROM MI_Factory
+         ORDER BY SN ASC`,
+        {},
+        season
+      );
+    } catch (primaryError) {
+      const msg = String(primaryError?.message || '');
+      const invalidObject = /invalid object name/i.test(msg) && /mi_factory/i.test(msg);
+      const canFallback = invalidObject
+        || /invalid column name\s+'?f_short'?/i.test(msg)
+        || /invalid column name\s+'?sn'?/i.test(msg);
+      if (!canFallback) throw primaryError;
+
+      rows = await executeQuery(
+        `SELECT f_code AS f_Code,
+                f_name + CASE WHEN f_short IS NULL OR f_short = '' THEN '' ELSE ' (' + f_short + ')' END AS F_Name,
+                f_name AS f_Name,
+                f_short AS F_Short
+         FROM Factory
+         ORDER BY f_name ASC`,
+        {},
+        season
+      );
+    }
     return res.status(200).json(rows);
   } catch (error) {
     return next(error);

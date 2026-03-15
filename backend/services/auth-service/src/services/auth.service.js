@@ -1,4 +1,4 @@
-const bcrypt = require('bcryptjs');
+﻿const bcrypt = require('bcryptjs');
 const repository = require('../repositories/auth.repository');
 const { signAuthToken } = require('../middleware/auth.middleware');
 const { parseDDMMYYYY } = require('../utils/date');
@@ -38,7 +38,7 @@ function isHash(value) {
   return typeof value === 'string' && value.startsWith('$2');
 }
 
-async function verifyAndMigratePassword({ user, password, season }) {
+async function verifyAndMigratePassword({ user, userId, password, season }) {
   const stored = String(user.Password || '');
   if (!stored) return false;
 
@@ -46,7 +46,10 @@ async function verifyAndMigratePassword({ user, password, season }) {
     return bcrypt.compare(password, stored);
   }
 
-  if (password !== stored) return false;
+  if (password !== stored) {
+    const match = await repository.findActiveUserByLoginAndPassword(userId || user.userid, password, season);
+    if (!match.length) return false;
+  }
 
   const hashed = await bcrypt.hash(password, BCRYPT_ROUNDS);
   await repository.updatePassword(user.userid, hashed, season);
@@ -60,7 +63,7 @@ async function login({ userId, password, season }) {
   }
 
   const user = users[0];
-  const valid = await verifyAndMigratePassword({ user, password, season });
+  const valid = await verifyAndMigratePassword({ user, userId, password, season });
   if (!valid) {
     throw createServiceError('Invalid credentials', 401);
   }
@@ -88,7 +91,7 @@ async function changePassword({ userId, oldPassword, newPassword, season }) {
   }
 
   const user = users[0];
-  const valid = await verifyAndMigratePassword({ user, password: oldPassword, season });
+  const valid = await verifyAndMigratePassword({ user, userId, password: oldPassword, season });
   if (!valid) {
     throw createServiceError('Invalid current password', 400);
   }
@@ -200,3 +203,6 @@ module.exports = {
   updateDate,
   migratePasswords
 };
+
+
+
