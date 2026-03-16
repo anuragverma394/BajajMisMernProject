@@ -99,7 +99,7 @@ exports.TargetEntry = async (req, res, next) => {
 
     if (officer > 0) {
       rows = await executeQuery(
-        `SELECT
+          `SELECT
             v.v_code AS v_code,
             ISNULL(v.v_name, '') AS v_name,
             @officer AS cdo_code,
@@ -242,13 +242,11 @@ exports.TargetEntry_2 = async (req, res, next) => {
         ) || 0
       );
       const targetPercent = Number(row.target_percent ?? row.targetPercent ?? row.target ?? 0);
-      const hasVillage = Number.isFinite(villageCode) && villageCode > 0;
 
-      if (!Number.isFinite(officer) || officer <= 0 || !Number.isFinite(targetPercent) || targetPercent <= 0) {
+      if (!Number.isFinite(officer) || officer <= 0 || !Number.isFinite(villageCode) || villageCode <= 0 || !Number.isFinite(targetPercent) || targetPercent <= 0) {
         continue;
       }
 
-      const villageClause = hasVillage ? 'AND g.g_vill = @villageCode' : '';
       const inserted = await executeQuery(
         `;WITH candidates AS (
             SELECT
@@ -265,7 +263,7 @@ exports.TargetEntry_2 = async (req, res, next) => {
               ON b.bl_code = v.v_block
              AND b.bl_factcode = v.v_factory
             WHERE g.g_factory = @unit
-              ${villageClause}
+              AND g.g_vill = @villageCode
               AND b.bl_inchargecode = @officer
               ${areaClause}
               ${supplierClause}
