@@ -33,6 +33,30 @@ function formatDDMMYYYY(date) {
   return `${dd}-${mm}-${yyyy}`;
 }
 
+function normalizeDateToIso(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const ddmmyyyy = raw.match(/^(\d{2})[-\/](\d{2})[-\/](\d{4})$/);
+  if (ddmmyyyy) return `${ddmmyyyy[3]}-${ddmmyyyy[2]}-${ddmmyyyy[1]}`;
+  const ymd = raw.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+  if (ymd) return `${ymd[1]}-${ymd[2]}-${ymd[3]}`;
+  const dt = new Date(raw);
+  if (!Number.isNaN(dt.getTime())) {
+    const yyyy = dt.getFullYear();
+    const mm = String(dt.getMonth() + 1).padStart(2, '0');
+    const dd = String(dt.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  return raw;
+}
+
+function getYesterday() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return d;
+}
+
 export default function DistilleryEntryView() {
   const navigate = useNavigate();
   const [units, setUnits] = useState([]);
@@ -43,15 +67,15 @@ export default function DistilleryEntryView() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const today = formatDDMMYYYY(new Date());
-    setFromDate(today);
-    setToDate(today);
-    masterService.getUnits().then((d) => setUnits(Array.isArray(d) ? d : [])).catch(() => setUnits([]));
+    const yesterday = formatDDMMYYYY(getYesterday());
+    setFromDate(yesterday);
+    setToDate(yesterday);
+    masterService.getDistilleryUnits().then((d) => setUnits(Array.isArray(d) ? d : [])).catch(() => setUnits([]));
   }, []);
 
   const handleSearch = async () => {
-    const today = formatDDMMYYYY(new Date());
-    const safeFrom = (fromDate || '').trim() || today;
+    const fallbackDate = formatDDMMYYYY(getYesterday());
+    const safeFrom = (fromDate || '').trim() || fallbackDate;
     const safeTo = (toDate || '').trim() || safeFrom;
     if (!fromDate) setFromDate(safeFrom);
     if (!toDate) setToDate(safeTo);
@@ -59,8 +83,8 @@ export default function DistilleryEntryView() {
       setIsLoading(true);
       const data = await distilleryEntryService.getList({
         factoryCode: unitCode,
-        fromDate: safeFrom,
-        toDate: safeTo
+        fromDate: normalizeDateToIso(safeFrom),
+        toDate: normalizeDateToIso(safeTo)
       });
       const list = Array.isArray(data) ? data : [];
       setRows(list);

@@ -100,12 +100,13 @@ exports.TargetEntry = async (req, res, next) => {
     if (officer > 0) {
       rows = await executeQuery(
         `SELECT
-            v.v_code AS officer_code,
-            ISNULL(v.v_name, '') AS officer_name,
+            v.v_code AS v_code,
+            ISNULL(v.v_name, '') AS v_name,
             @officer AS cdo_code,
-            COUNT(DISTINCT CONCAT(CAST(g.g_vill AS varchar(20)), '-', CAST(g.g_code AS varchar(20)))) AS total_grower,
-            CAST(0 AS int) AS target_grower,
-            CAST(0 AS decimal(10,2)) AS target_percent
+            ISNULL(cdo.cdo_name, '') AS cdo_name,
+            COUNT(DISTINCT CONCAT(CAST(g.g_vill AS varchar(20)), '-', CAST(g.g_code AS varchar(20)))) AS totalgrower,
+            CAST(0 AS int) AS totaltargetgrower,
+            CAST(0 AS decimal(10,2)) AS target
          FROM cdo_mst cdo
          JOIN block b
            ON b.bl_inchargecode = cdo.cdo_code
@@ -120,29 +121,29 @@ exports.TargetEntry = async (req, res, next) => {
            AND cdo.cdo_code = @officer
            ${areaClause}
            ${supplierClause}
-         GROUP BY v.v_code, v.v_name
+         GROUP BY v.v_code, v.v_name, cdo.cdo_name
          ORDER BY v.v_name`,
         { unit, officer },
         season
       );
 
       data = rows.map((r) => ({
-        officer_code: Number(r.officer_code || 0),
-        officer_name: String(r.officer_name || ''),
+        v_code: Number(r.v_code || 0),
+        v_name: String(r.v_name || ''),
         cdo_code: Number(r.cdo_code || 0),
-        village_code: Number(r.officer_code || 0),
-        total_grower: Number(r.total_grower || 0),
-        target_grower: Number(r.target_grower || 0),
-        target_percent: Number(r.target_percent || 0)
+        cdo_name: String(r.cdo_name || ''),
+        totalgrower: Number(r.totalgrower || 0),
+        totaltargetgrower: Number(r.totaltargetgrower || 0),
+        target: Number(r.target || 0)
       }));
     } else {
       rows = await executeQuery(
         `SELECT
-            cdo.cdo_code AS officer_code,
-            ISNULL(cdo.cdo_name, '') AS officer_name,
-            COUNT(DISTINCT CONCAT(CAST(g.g_vill AS varchar(20)), '-', CAST(g.g_code AS varchar(20)))) AS total_grower,
-            CAST(0 AS int) AS target_grower,
-            CAST(0 AS decimal(10,2)) AS target_percent
+            cdo.cdo_code AS cdo_code,
+            ISNULL(cdo.cdo_name, '') AS cdo_name,
+            COUNT(DISTINCT CONCAT(CAST(g.g_vill AS varchar(20)), '-', CAST(g.g_code AS varchar(20)))) AS totalgrower,
+            CAST(0 AS int) AS totaltargetgrower,
+            CAST(0 AS decimal(10,2)) AS target
          FROM cdo_mst cdo
          JOIN block b
            ON b.bl_inchargecode = cdo.cdo_code
@@ -163,13 +164,13 @@ exports.TargetEntry = async (req, res, next) => {
       );
 
       data = rows.map((r) => ({
-        officer_code: Number(r.officer_code || 0),
-        officer_name: String(r.officer_name || ''),
-        cdo_code: Number(r.officer_code || 0),
-        village_code: 0,
-        total_grower: Number(r.total_grower || 0),
-        target_grower: Number(r.target_grower || 0),
-        target_percent: Number(r.target_percent || 0)
+        v_code: 0,
+        v_name: '',
+        cdo_code: Number(r.cdo_code || 0),
+        cdo_name: String(r.cdo_name || ''),
+        totalgrower: Number(r.totalgrower || 0),
+        totaltargetgrower: Number(r.totaltargetgrower || 0),
+        target: Number(r.target || 0)
       }));
     }
 
@@ -233,14 +234,21 @@ exports.TargetEntry_2 = async (req, res, next) => {
 
     let totalInserted = 0;
     for (const row of entries) {
-      const officer = Number(row.officer_code || row.cdo_code || 0);
-      const villageCode = Number(row.village_code || row.v_code || row.officer_code || 0);
-      const targetPercent = Number(row.target_percent ?? row.targetPercent ?? 0);
+      const villageCode = Number(row.village_code || row.v_code || 0);
+      const officer = Number(
+        (villageCode > 0
+          ? (row.cdo_code || row.officer_code)
+          : (row.officer_code || row.cdo_code)
+        ) || 0
+      );
+      const targetPercent = Number(row.target_percent ?? row.targetPercent ?? row.target ?? 0);
+      const hasVillage = Number.isFinite(villageCode) && villageCode > 0;
 
-      if (!Number.isFinite(officer) || officer <= 0 || !Number.isFinite(villageCode) || villageCode <= 0 || !Number.isFinite(targetPercent) || targetPercent <= 0) {
+      if (!Number.isFinite(officer) || officer <= 0 || !Number.isFinite(targetPercent) || targetPercent <= 0) {
         continue;
       }
 
+      const villageClause = hasVillage ? 'AND g.g_vill = @villageCode' : '';
       const inserted = await executeQuery(
         `;WITH candidates AS (
             SELECT
@@ -257,7 +265,7 @@ exports.TargetEntry_2 = async (req, res, next) => {
               ON b.bl_code = v.v_block
              AND b.bl_factcode = v.v_factory
             WHERE g.g_factory = @unit
-              AND g.g_vill = @villageCode
+              ${villageClause}
               AND b.bl_inchargecode = @officer
               ${areaClause}
               ${supplierClause}
@@ -1043,44 +1051,53 @@ exports.GrowerMeetingReport = async (req, res, next) => {
 
     const rows = await executeQuery(
       `SELECT
-          ROW_NUMBER() OVER (ORDER BY ISNULL(t.trg_updt, t.trg_crdate) DESC) AS srnno,
+          z.z_code,
+          ISNULL(z.z_name, '') AS z_name,
+          b.bl_code,
+          '0' AS nos,
+          ISNULL(b.bl_name, '') AS bl_name,
           v.v_code,
           ISNULL(v.v_name, '') AS v_name,
           g.g_code,
           ISNULL(g.g_name, '') AS g_name,
-          ISNULL(g.g_father, '') AS g_father,
+          ISNULL(mu.name, '') AS name,
           ISNULL(t.trg_rem, '') AS TRG_REM,
           CASE
             WHEN ISNULL(t.trg_img, '') = '' THEN ''
             ELSE '../../Meeting/' + t.trg_img
-          END AS TRG_IMG,
-          CONVERT(varchar(17), ISNULL(t.trg_updt, t.trg_crdate), 103) + ' ' + CONVERT(varchar(8), ISNULL(t.trg_updt, t.trg_crdate), 108) AS MeetingTime
+          END AS TRG_IMG
        FROM target_tran t
+       JOIN Factory f ON f.F_CODE = t.trg_factory
        JOIN village v ON v.v_factory = t.trg_factory AND v.v_code = t.trg_vill
        JOIN grower g ON g.g_factory = t.trg_factory AND g.g_vill = t.trg_vill AND g.g_code = t.trg_grow
        JOIN circle c ON c.factory = v.v_factory AND c.cr_code = v.v_circle
        JOIN block b ON b.bl_factcode = c.factory AND b.bl_code = c.cr_bl_code AND ISNULL(b.b_type, 1) = 1
        JOIN zone z ON z.z_factory = b.bl_factcode AND z.z_code = b.bl_zonecode AND ISNULL(z.z_type, 1) = 1
+       JOIN mi_user mu ON mu.userid = t.trg_sup
+       JOIN mi_userfact uf ON uf.userid = mu.userid AND uf.FactID = t.trg_factory
        WHERE t.trg_factory = @unit
          AND (@zone = '0' OR @zone = '' OR z.z_code = @zone)
          AND (@block = '0' OR @block = '' OR b.bl_code = @block)
          AND (@fromDate = '' OR CAST(ISNULL(t.trg_updt, t.trg_crdate) AS date) >= @fromDate)
          AND (@toDate = '' OR CAST(ISNULL(t.trg_updt, t.trg_crdate) AS date) <= @toDate)
-       ORDER BY ISNULL(t.trg_updt, t.trg_crdate) DESC`,
+       ORDER BY z.z_code, b.bl_code`,
       { unit, zone, block, fromDate, toDate },
       season
     );
 
     return res.status(200).json(rows.map((r) => ({
-      srnno: String(r.srnno || ''),
+      z_code: String(r.z_code || ''),
+      z_name: String(r.z_name || ''),
+      bl_code: String(r.bl_code || ''),
+      bl_name: String(r.bl_name || ''),
+      nos: String(r.nos || '0'),
       v_code: String(r.v_code || ''),
       v_name: String(r.v_name || ''),
       g_code: String(r.g_code || ''),
       g_name: String(r.g_name || ''),
-      g_father: String(r.g_father || ''),
+      name: String(r.name || ''),
       TRG_REM: String(r.TRG_REM || ''),
-      TRG_IMG: String(r.TRG_IMG || ''),
-      MeetingTime: String(r.MeetingTime || '')
+      TRG_IMG: String(r.TRG_IMG || '')
     })));
   } catch (error) {
     return next(error);

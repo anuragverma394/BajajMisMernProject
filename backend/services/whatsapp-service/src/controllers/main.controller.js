@@ -234,10 +234,22 @@ function isTimeoutError(error) {
 function parseFlexibleDateToIso(value) {
   const raw = String(value || '').trim();
   if (!raw) return null;
+  if (/^\d{8}$/.test(raw)) {
+    return `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}`;
+  }
   const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
   const ddmmyyyy = raw.match(/^(\d{2})[-\/](\d{2})[-\/](\d{4})$/);
   if (ddmmyyyy) return `${ddmmyyyy[3]}-${ddmmyyyy[2]}-${ddmmyyyy[1]}`;
+  const ymd = raw.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+  if (ymd) return `${ymd[1]}-${ymd[2]}-${ymd[3]}`;
+  const dt = new Date(raw);
+  if (!Number.isNaN(dt.getTime())) {
+    const yyyy = dt.getFullYear();
+    const mm = String(dt.getMonth() + 1).padStart(2, '0');
+    const dd = String(dt.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
   return null;
 }
 
@@ -359,6 +371,23 @@ async function getTableColumns(season, tableName) {
   return new Set(rows.map((r) => String(r.columnName || '').trim().toLowerCase()).filter(Boolean));
 }
 
+async function getTableColumnTypes(season, tableName) {
+  const rows = await executeQuery(
+    `SELECT c.name AS columnName, t.name AS typeName
+     FROM sys.columns c
+     JOIN sys.types t ON c.user_type_id = t.user_type_id
+     WHERE c.object_id = OBJECT_ID(@tableName)`,
+    { tableName },
+    season
+  );
+  const map = new Map();
+  rows.forEach((r) => {
+    const name = String(r.columnName || '').trim().toLowerCase();
+    const typeName = String(r.typeName || '').trim().toLowerCase();
+    if (name) map.set(name, typeName);
+  });
+  return map;
+}
 async function getTableColumnList(season, tableName) {
   const rows = await executeQuery(
     `SELECT c.name AS columnName
@@ -1635,8 +1664,9 @@ exports.distilleryReportEntryView = async (req, res, next) => {
 
     const tableName = await resolveDistilleryTable(season);
     const tableSql = quoteSqlObjectName(tableName);
-    const tableColumns = await getTableColumns(season, tableName);
-    const tableColumnList = await getTableColumnList(season, tableName);
+      const tableColumns = await getTableColumns(season, tableName);
+      const tableColumnTypes = await getTableColumnTypes(season, tableName);
+      const tableColumnList = await getTableColumnList(season, tableName);
     const c = {
       id: pickExistingColumnFromList(tableColumnList, ['ID', 'Id']) || pickColumnByPattern(tableColumnList, [/(^|_)id$/]),
       unit: pickExistingColumnFromList(tableColumnList, ['Dist_Unit', 'D_Factory', 'F_Code', 'Unit']) || pickColumnByPattern(tableColumnList, [/unit/, /factory/, /f_code/]),
@@ -1666,11 +1696,24 @@ exports.distilleryReportEntryView = async (req, res, next) => {
       date: c.date ? quoteSqlIdentifier(c.date) : null
     };
 
-    const whereFactory = qc.unit ? `AND (@factoryCode IS NULL OR d.${qc.unit} = @factoryCode)` : '';
-    const whereDate = qc.date ? `WHERE CAST(d.${qc.date} AS date) BETWEEN @fromDate AND @toDate` : 'WHERE 1=1';
-    const orderBy = qc.date
-      ? `ORDER BY d.${qc.date} DESC${qc.id ? `, d.${qc.id} DESC` : ''}`
-      : (qc.id ? `ORDER BY d.${qc.id} DESC` : '');
+      const whereFactory = qc.unit ? `AND (@factoryCode IS NULL OR d.${qc.unit} = @factoryCode)` : '';
+      const dateType = c.date ? tableColumnTypes.get(String(c.date).toLowerCase()) : '';
+      const isNativeDate = ['date', 'datetime', 'smalldatetime', 'datetime2', 'datetimeoffset', 'time'].includes(dateType);
+      const dateExpr = qc.date
+        ? (isNativeDate
+          ? `CAST(d.${qc.date} AS date)`
+          : `COALESCE(
+              TRY_CONVERT(date, NULLIF(d.${qc.date}, ''), 103),
+              TRY_CONVERT(date, NULLIF(d.${qc.date}, ''), 105),
+              TRY_CONVERT(date, NULLIF(d.${qc.date}, ''), 120),
+              TRY_CONVERT(date, NULLIF(d.${qc.date}, '')),
+              TRY_CONVERT(date, LEFT(NULLIF(d.${qc.date}, ''), 10), 120)
+            )`)
+        : null;
+      const whereDate = dateExpr ? `WHERE ${dateExpr} BETWEEN @fromDate AND @toDate` : 'WHERE 1=1';
+      const orderBy = dateExpr
+        ? `ORDER BY ${dateExpr} DESC${qc.id ? `, d.${qc.id} DESC` : ''}`
+        : (qc.id ? `ORDER BY d.${qc.id} DESC` : '');
 
     if (!c.date) {
       console.warn(`[${CONTROLLER}] distilleryReportEntryView: no date column found on ${tableName}. Continuing without date filter.`, {

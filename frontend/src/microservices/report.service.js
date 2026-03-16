@@ -76,5 +76,10 @@ export const reportService = {
     getEffectedCaneAreaReport: async (params) => {
         const response = await apiClient.get('/report/effected-cane-area-report', { params });
         return response.data;
+    },
+
+    getSummaryReportUnitWise: async (params) => {
+        const response = await apiClient.get('/report/summary-report-unit-wise', { params });
+        return response.data;
     }
 };

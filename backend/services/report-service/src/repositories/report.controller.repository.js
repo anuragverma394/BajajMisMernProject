@@ -192,6 +192,31 @@ if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
 return '';
 }
 
+const tokenDateColumnCache = new Map();
+
+async function resolveTokenDateColumn(season) {
+if (tokenDateColumnCache.has(season)) return tokenDateColumnCache.get(season);
+const rows = await executeQuery(
+`SELECT COLUMN_NAME
+ FROM INFORMATION_SCHEMA.COLUMNS
+ WHERE TABLE_NAME = 'T_TOKEN'
+   AND COLUMN_NAME IN (
+     'tt_TokDatetime', 'TT_TokDatetime',
+     'tt_TokDateTime', 'TT_TokDateTime',
+     'tt_TokDate', 'TT_TokDate',
+     'TT_DATE', 'tt_date',
+     'TT_CRDATE', 'tt_crdate',
+     'TT_DPDATE', 'tt_dpdate'
+   )`,
+{},
+season
+).catch(() => []);
+
+const col = rows?.[0]?.COLUMN_NAME ? String(rows[0].COLUMN_NAME) : null;
+tokenDateColumnCache.set(season, col);
+return col;
+}
+
 /**
 * Fetches all 4 analysis datasets by running direct SQL queries
 * (mirroring the .NET sugarReportDataAccess.cs methods).
@@ -479,6 +504,7 @@ return async (req, res, next) => {
 try {
 const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
 const p = { ...(req.query || {}), ...(req.body || {}) };
+const userId = String(req.user?.userId || p.Userid || p.userid || '').trim();
 
 const fcode = String(
 p.F_code ?? p.F_Code ?? p.factcode ?? p.FACTCODE ?? p.unit ?? p.factory ?? p.FACTORY ?? ''
@@ -491,10 +517,110 @@ if (!sqlDate || !fcode || fcode === '0' || fcode === 'All') {
 return res.status(200).json({ success: true, message: 'CentrePurchase: missing params', data: [], recordsets: [[]] });
 }
 
+const buildInClause = (column, values, params, prefix = 'b') => {
+  if (!values.length) return '';
+  const keys = [];
+  values.forEach((val, idx) => {
+    const key = `${prefix}${idx}`;
+    params[key] = val;
+    keys.push(`@${key}`);
+  });
+  return ` AND ${column} IN (${keys.join(', ')})`;
+};
+
+let blockFilter = '';
+if (userId) {
+  const cdoRows = await executeQuery(
+    `SELECT TOP 1 CDO_MOBILENO, CDO_GRP_CODE
+     FROM cdo_mst
+     WHERE CDO_Factcode = @factory
+       AND CDO_MOBILENO IN (
+         SELECT Mobile FROM MI_User WHERE Type = 1 AND Userid = @userId
+       )`,
+    { factory: fcode, userId },
+    season
+  ).catch(() => []);
+
+  if (cdoRows?.length) {
+    const cdo = cdoRows[0];
+    const mobile = String(cdo.CDO_MOBILENO || '').trim();
+    const grp = String(cdo.CDO_GRP_CODE || '').trim();
+    let blockRows = [];
+
+    if (grp === 'BI') {
+      blockRows = await executeQuery(
+        `SELECT bl_code
+         FROM block
+         WHERE bl_factcode = @factory
+           AND bl_inchargecode IN (
+             SELECT CDO_CODE
+             FROM cdo_mst
+             WHERE CDO_Factcode = @factory
+               AND CDO_MOBILENO IN (
+                 SELECT Mobile FROM MI_User WHERE Type = 1 AND Userid = @userId AND Mobile = @mobile
+               )
+           )`,
+        { factory: fcode, userId, mobile },
+        season
+      ).catch(() => []);
+    } else if (grp === 'DI') {
+      blockRows = await executeQuery(
+        `SELECT bl_code
+         FROM block
+         WHERE bl_factcode = @factory
+           AND bl_Zonecode IN (
+             SELECT Z_CODE
+             FROM ZONE
+             WHERE z_factory = @factory
+               AND z_div_code IN (
+                 SELECT Div_Code
+                 FROM Division
+                 WHERE factory = @factory
+                   AND Div_OfficerCode IN (
+                     SELECT CDO_CODE
+                     FROM cdo_mst
+                     WHERE CDO_Factcode = @factory
+                       AND CDO_MOBILENO IN (
+                         SELECT Mobile FROM MI_User WHERE Type = 1 AND Userid = @userId AND Mobile = @mobile
+                       )
+                   )
+               )
+           )`,
+        { factory: fcode, userId, mobile },
+        season
+      ).catch(() => []);
+    } else if (grp === 'ZI') {
+      blockRows = await executeQuery(
+        `SELECT bl_code
+         FROM block
+         WHERE bl_factcode = @factory
+           AND bl_Zonecode IN (
+             SELECT Z_CODE
+             FROM ZONE
+             WHERE z_factory = @factory
+               AND Z_ZoneOfficerCode IN (
+                 SELECT CDO_CODE
+                 FROM cdo_mst
+                 WHERE CDO_Factcode = @factory
+                   AND CDO_MOBILENO IN (
+                     SELECT Mobile FROM MI_User WHERE Type = 1 AND Userid = @userId AND Mobile = @mobile
+                   )
+               )
+           )`,
+        { factory: fcode, userId, mobile },
+        season
+      ).catch(() => []);
+    }
+
+    const blocks = blockRows.map((r) => String(r.bl_code || r.BL_CODE || r.bl_Code || '').trim()).filter(Boolean);
+    blockFilter = blocks.length ? buildInClause('cn.C_block', blocks, p, 'bl') : ' AND 1=0';
+  }
+}
+
 // Direct SQL – mirrors the .NET DAL (CenterPurchase.cs) – no CDO filter applied
 // (CDO-based block restriction only applies in the .NET mobile app flow)
 const sql = `
-WITH cet AS (
+WITH cet_base AS (
 SELECT m_Centre, M_Factory,
 CASE WHEN CAST(MIN(M_GROS_DT) AS DATE) = @Date
 THEN CASE WHEN CONVERT(varchar(5), ISNULL(MIN(M_GROS_DT), 0), 8) = '0'
@@ -507,9 +633,36 @@ COUNT(m_Number) AS PurchyNos,
 SUM(ISNULL((M_GROSS - M_TARE - M_JOONA), 0)) AS PurQty
 FROM Purchase
 WHERE M_TARE_DT != '1900-01-01'
-AND CAST(M_TARE_DT AS DATE) = @Date
-AND M_FACTORY = @Factory
+  AND CAST(M_TARE_DT AS DATE) = @Date
+  AND M_FACTORY = @Factory
 GROUP BY m_Centre, M_Factory
+),
+/* Fallback when tare-dated rows are missing for the day */
+cet_fallback AS (
+SELECT m_Centre, M_Factory,
+CASE WHEN CAST(MIN(M_GROS_DT) AS DATE) = @Date
+THEN CASE WHEN CONVERT(varchar(5), ISNULL(MIN(M_GROS_DT), 0), 8) = '0'
+THEN CONVERT(varchar(5), ISNULL(MIN(M_TARE_DT), 0), 8)
+ELSE CONVERT(varchar(5), ISNULL(MIN(M_GROS_DT), 0), 8) END
+ELSE CONVERT(varchar(5), ISNULL(MIN(M_TARE_DT), 0), 8)
+END AS [1stwmtTime],
+CONVERT(varchar(5), ISNULL(MAX(M_TARE_DT), 0), 8) AS LastWmtTime,
+COUNT(m_Number) AS PurchyNos,
+SUM(ISNULL((M_GROSS - M_TARE - M_JOONA), 0)) AS PurQty
+FROM Purchase
+WHERE CAST(COALESCE(
+  NULLIF(M_TARE_DT, '1900-01-01'),
+  NULLIF(M_GROS_DT, '1900-01-01'),
+  M_DATE
+) AS DATE) = @Date
+  AND M_FACTORY = @Factory
+GROUP BY m_Centre, M_Factory
+),
+cet AS (
+  SELECT * FROM cet_base
+  UNION ALL
+  SELECT * FROM cet_fallback
+  WHERE NOT EXISTS (SELECT 1 FROM cet_base)
 ),
 etc AS (
 SELECT CH_Centre, ch_Factory,
@@ -519,17 +672,27 @@ CONVERT(varchar(5), ISNULL(MAX(Ch_dep_date), 0), 8) AS LastDisptchAt,
 SUM(CASE WHEN CH_status > 0 THEN 1 ELSE 0 END) AS Recieved
 FROM challan_Final
 WHERE Ch_Cancel = 0
-AND CAST(Ch_dep_date AS DATE) = @Date
-AND Ch_dep_date != '1900-01-01'
-AND CH_Factory = @Factory
+  AND CAST(Ch_dep_date AS DATE) = @Date
+  AND Ch_dep_date != '1900-01-01'
+  AND CH_Factory = @Factory
 GROUP BY CH_Centre, ch_Factory
 )
 SELECT
 ROW_NUMBER() OVER (ORDER BY cn.c_code) AS SN,
 cn.c_code  AS m_Centre,
 cn.C_Name,
-ISNULL(c.[1stwmtTime],  0) AS [1stwmtTime],
-ISNULL(c.LastWmtTime,   0) AS LastWmtTime,
+ISNULL(
+  CASE
+    WHEN c.MinGross IS NOT NULL AND CAST(c.MinGross AS DATE) = @Date
+      THEN CASE
+        WHEN CONVERT(varchar(5), c.MinGross, 8) IN ('00:00', '0')
+          THEN CONVERT(varchar(5), ISNULL(c.MinTare, c.MinGross), 8)
+        ELSE CONVERT(varchar(5), c.MinGross, 8)
+      END
+    ELSE CONVERT(varchar(5), ISNULL(c.MinTare, c.MinGross), 8)
+  END, 0
+) AS [1stwmtTime],
+ISNULL(CONVERT(varchar(5), ISNULL(c.MaxTare, c.MaxGross), 8), 0) AS LastWmtTime,
 ISNULL(c.PurchyNos,     0) AS PurchyNos,
 ISNULL(c.PurQty,        0) AS PurQty,
 ISNULL(e.VehDispatchNos,0) AS VehDispatchNos,
@@ -540,10 +703,47 @@ ISNULL((e.VehDispatchNos - e.Recieved), 0) AS Balance
 FROM Centre cn
 LEFT JOIN cet c ON c.M_CENTRE = cn.c_code AND c.M_FACTORY = cn.c_factory
 LEFT JOIN etc e ON e.CH_Centre = cn.c_code
-WHERE cn.c_factory = @Factory AND cn.C_HHC_Centre > 0
+WHERE cn.c_factory = @Factory AND cn.C_HHC_Centre > 0${blockFilter}
 ORDER BY c_code`;
 
-const rows = await executeQuery(sql, { Date: sqlDate, Factory: fcode }, season).catch(() => []);
+const rows = await executeQuery(sql, { Date: sqlDate, Factory: fcode, ...p }, season).catch((err) => {
+  console.error('[CentrePurchase] SQL Error:', err.message);
+  return [];
+});
+
+try {
+  const debugSql = `
+    WITH cet_base AS (
+      SELECT 1 AS ok
+      FROM Purchase
+      WHERE M_TARE_DT != '1900-01-01'
+        AND CAST(M_TARE_DT AS DATE) = @Date
+        AND M_FACTORY = @Factory
+    ),
+    cet_fallback AS (
+      SELECT 1 AS ok
+      FROM Purchase
+      WHERE CAST(COALESCE(
+        NULLIF(M_TARE_DT, '1900-01-01'),
+        NULLIF(M_GROS_DT, '1900-01-01'),
+        M_DATE
+      ) AS DATE) = @Date
+        AND M_FACTORY = @Factory
+    )
+    SELECT
+      (SELECT COUNT(1) FROM cet_base) AS baseCount,
+      (SELECT COUNT(1) FROM cet_fallback) AS fallbackCount`;
+  const debugRows = await executeQuery(debugSql, { Date: sqlDate, Factory: fcode }, season);
+  const debug = debugRows?.[0] || {};
+  console.log('[CentrePurchase] Debug counts', {
+    factory: fcode,
+    date: sqlDate,
+    baseCount: Number(debug.baseCount || 0),
+    fallbackCount: Number(debug.fallbackCount || 0)
+  });
+} catch (debugErr) {
+  console.warn('[CentrePurchase] Debug count failed:', debugErr?.message || debugErr);
+}
 
 return res.status(200).json({
 success: true,
@@ -588,6 +788,11 @@ console.log(`[TruckDispatchWeighed] Missing parameters - Factory: '${fcode}', Da
 return res.status(200).json({ success: true, message: 'TruckDispatchWeighed: missing params', data: [], recordsets: [[]] });
 }
 
+const tokenDateColumn = await resolveTokenDateColumn(season);
+const tokenDateExpr = tokenDateColumn ? `TK.[${tokenDateColumn}]` : 'r.tt_Date';
+const tokenDateColumnBare = tokenDateColumn ? `[${tokenDateColumn}]` : '';
+const tokenDateFilter = tokenDateColumnBare ? ` AND CAST(${tokenDateColumnBare} AS DATE) <= @Date` : '';
+
 // ── Shared SELECT & FROM ──────────────────────────────────────────────────
 // Identical column set in all 4 .NET methods
 const BASE_SELECT = `
@@ -603,13 +808,13 @@ CONVERT(varchar, ISNULL(cf.Ch_dep_date, '01/01/1900'), 103)
 + ' ' + CONVERT(varchar, ISNULL(cf.Ch_dep_date, '01/01/1900'), 8)
 AS DepartureTime,
 CONVERT(varchar,
-CASE WHEN ISNULL(TK.tt_TokDatetime, '01/01/1900') = '01/01/1900'
+CASE WHEN ISNULL(${tokenDateExpr}, '01/01/1900') = '01/01/1900'
 THEN ISNULL(r.tt_Date, '01/01/1900')
-ELSE ISNULL(TK.tt_TokDatetime, '01/01/1900') END, 103)
+ELSE ISNULL(${tokenDateExpr}, '01/01/1900') END, 103)
 + ' ' + CONVERT(varchar,
-CASE WHEN ISNULL(TK.tt_TokDatetime, '01/01/1900') = '01/01/1900'
+CASE WHEN ISNULL(${tokenDateExpr}, '01/01/1900') = '01/01/1900'
 THEN ISNULL(r.tt_Date, '01/01/1900')
-ELSE ISNULL(TK.tt_TokDatetime, '01/01/1900') END, 8)
+ELSE ISNULL(${tokenDateExpr}, '01/01/1900') END, 8)
 AS ArrivalTime,
 CONVERT(varchar, ISNULL(r.tt_TARE_DT, '01/01/1900'), 103)
 + ' ' + CONVERT(varchar, ISNULL(r.tt_TARE_DT, '01/01/1900'), 8)
@@ -618,19 +823,19 @@ CONVERT(varchar(5),
 DATEADD(minute, DATEDIFF(minute,
 CONVERT(varchar, ISNULL(cf.Ch_dep_date, '01/01/1900'), 8),
 CONVERT(varchar,
-CASE WHEN ISNULL(TK.tt_TokDatetime, '01/01/1900') = '01/01/1900'
+CASE WHEN ISNULL(${tokenDateExpr}, '01/01/1900') = '01/01/1900'
 THEN ISNULL(r.tt_Date, cf.Ch_dep_date)
-ELSE ISNULL(TK.tt_TokDatetime, '01/01/1900') END, 8)), 0), 114)
+ELSE ISNULL(${tokenDateExpr}, '01/01/1900') END, 8)), 0), 114)
 AS TravelTime,
 CONVERT(varchar(5),
 DATEADD(minute, DATEDIFF(minute,
 CONVERT(varchar,
-CASE WHEN ISNULL(TK.tt_TokDatetime, '01/01/1900') = '01/01/1900'
+CASE WHEN ISNULL(${tokenDateExpr}, '01/01/1900') = '01/01/1900'
 THEN ISNULL(r.tt_Date, '01/01/1900')
-ELSE ISNULL(TK.tt_TokDatetime, '01/01/1900') END, 8),
+ELSE ISNULL(${tokenDateExpr}, '01/01/1900') END, 8),
 CONVERT(varchar,
 CASE WHEN ISNULL(r.tt_TARE_DT, '1900-01-01') = '1900-01-01'
-THEN ISNULL(r.tt_Date, ISNULL(TK.tt_TokDatetime, '01/01/1900'))
+THEN ISNULL(r.tt_Date, ISNULL(${tokenDateExpr}, '01/01/1900'))
 ELSE ISNULL(r.tt_TARE_DT, '1900-01-01') END, 8)), 0), 114)
 AS WailtTime
 FROM challan_final cf
@@ -662,7 +867,7 @@ break;
 case 'at-yard':
 // Has a token (arrived at yard) but not yet weighed
 extraWhere = ` AND CAST(cf.Ch_dep_date AS DATE) = @Date
-AND cf.ch_challan IN (SELECT TT_CHLN FROM T_Token WHERE TT_FACTORY = @Factory AND CAST(TT_DATE AS DATE) <= @Date)`;
+AND cf.ch_challan IN (SELECT TT_CHLN FROM T_Token WHERE TT_FACTORY = @Factory${tokenDateFilter})`;
 break;
 case 'at-donga':
 // Arrived (has receipt) but tare weight = 0 (at donga – not weighed yet)
@@ -685,6 +890,7 @@ console.log(`[TruckDispatchWeighed] Executing SQL for filter: ${filterType}, wit
 
 const rows = await executeQuery(sql, { Date: sqlDate, Factory: fcode }, season).catch((err) => {
   console.error(`[TruckDispatchWeighed] SQL Error:`, err.message);
+  console.error(`[TruckDispatchWeighed] SQL Text:`, sql);
   return [];
 });
 
@@ -1911,3 +2117,5 @@ function createCrushingDataHandler() {
 }
 
 exports.CrushingReport = createCrushingDataHandler();
+
+

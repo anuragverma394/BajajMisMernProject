@@ -7,6 +7,12 @@ export const masterService = {
         return normalizeUnitsList(data);
     },
 
+    getDistilleryUnits: async () => {
+        const response = await apiClient.get('/main/distillery-units');
+        const data = unwrap(response.data);
+        return normalizeUnitsList(data);
+    },
+
     getSeasons: async (params) => {
         const response = await apiClient.get('/main/seasons', { params });
         return unwrap(response.data);
@@ -14,6 +20,16 @@ export const masterService = {
 
     getStoppages: async (params) => {
         const response = await apiClient.get('/main/stoppages', { params });
+        return unwrap(response.data);
+    },
+
+    getStopageById: async (sid) => {
+        const response = await apiClient.get('/main/add-stopage', { params: { sid } });
+        return unwrap(response.data);
+    },
+
+    saveStopage: async (payload) => {
+        const response = await apiClient.post('/main/add-stopage-2', payload);
         return unwrap(response.data);
     },
 

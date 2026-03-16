@@ -235,10 +235,22 @@ function isTimeoutError(error) {
 function parseFlexibleDateToIso(value) {
   const raw = String(value || '').trim();
   if (!raw) return null;
+  if (/^\d{8}$/.test(raw)) {
+    return `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}`;
+  }
   const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
   const ddmmyyyy = raw.match(/^(\d{2})[-\/](\d{2})[-\/](\d{4})$/);
   if (ddmmyyyy) return `${ddmmyyyy[3]}-${ddmmyyyy[2]}-${ddmmyyyy[1]}`;
+  const ymd = raw.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+  if (ymd) return `${ymd[1]}-${ymd[2]}-${ymd[3]}`;
+  const dt = new Date(raw);
+  if (!Number.isNaN(dt.getTime())) {
+    const yyyy = dt.getFullYear();
+    const mm = String(dt.getMonth() + 1).padStart(2, '0');
+    const dd = String(dt.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
   return null;
 }
 
@@ -360,6 +372,23 @@ async function getTableColumns(season, tableName) {
   return new Set(rows.map((r) => String(r.columnName || '').trim().toLowerCase()).filter(Boolean));
 }
 
+async function getTableColumnTypes(season, tableName) {
+  const rows = await executeQuery(
+    `SELECT c.name AS columnName, t.name AS typeName
+     FROM sys.columns c
+     JOIN sys.types t ON c.user_type_id = t.user_type_id
+     WHERE c.object_id = OBJECT_ID(@tableName)`,
+    { tableName },
+    season
+  );
+  const map = new Map();
+  rows.forEach((r) => {
+    const name = String(r.columnName || '').trim().toLowerCase();
+    const typeName = String(r.typeName || '').trim().toLowerCase();
+    if (name) map.set(name, typeName);
+  });
+  return map;
+}
 async function getTableColumnList(season, tableName) {
   const rows = await executeQuery(
     `SELECT c.name AS columnName
@@ -388,6 +417,47 @@ function pickExistingColumnFromList(columns = [], candidates = []) {
     if (found) return found;
   }
   return null;
+}
+
+function buildFactoryUnitsQuery({ tableName, columns, userId, onlyDistillery }) {
+  const fCode = pickExistingColumnFromList(columns, ['F_Code', 'f_code', 'F_CODE']);
+  const fName = pickExistingColumnFromList(columns, ['F_Name', 'f_name', 'FNAME']);
+  const fShort = pickExistingColumnFromList(columns, ['F_Short', 'f_short', 'FSHORT']);
+  const sn = pickExistingColumnFromList(columns, ['SN', 'sn']);
+  const isDist = pickExistingColumnFromList(columns, ['ISDist', 'isdist', 'IsDist']);
+
+  if (!fCode || !fName) {
+    return null;
+  }
+
+  const t = quoteSqlObjectName(tableName);
+  const qc = (col) => (col ? quoteSqlIdentifier(col) : null);
+  const fCodeCol = qc(fCode);
+  const fNameCol = qc(fName);
+  const fShortCol = qc(fShort);
+  const snCol = qc(sn);
+  const isDistCol = qc(isDist);
+
+  const nameExpr = fShortCol
+    ? `${fNameCol} + CASE WHEN ${fShortCol} IS NULL OR ${fShortCol} = '' THEN '' ELSE ' (' + ${fShortCol} + ')' END`
+    : `${fNameCol}`;
+
+  const where = [
+    onlyDistillery && isDistCol ? `${isDistCol} = 1` : null,
+    userId ? `EXISTS (SELECT 1 FROM MI_UserFact uf WHERE uf.UserID = @userId AND uf.FactID = f.${fCodeCol})` : null
+  ].filter(Boolean);
+
+  const orderBy = snCol ? `${snCol} ASC` : `${fNameCol} ASC`;
+
+  return `
+    SELECT
+      f.${fCodeCol} AS f_Code,
+      ${nameExpr} AS F_Name,
+      f.${fNameCol} AS f_Name,
+      ${fShortCol ? `f.${fShortCol} AS F_Short` : "'' AS F_Short"}
+    FROM ${t} f
+    ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
+    ORDER BY ${orderBy}`;
 }
 
 function pickColumnByPattern(columns = [], patterns = []) {
@@ -622,6 +692,34 @@ exports.Units = async (req, res, next) => {
         season
       );
     }
+    return res.status(200).json(rows);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+exports.DistilleryUnits = async (req, res, next) => {
+  try {
+    const season = req.user?.season;
+    const userIdRaw = String(req.user?.userId || '').trim();
+    const ufProbe = await executeQuery(`SELECT OBJECT_ID('MI_UserFact') AS obj`, {}, season);
+    const hasUserFact = !!ufProbe?.[0]?.obj;
+    const userId = hasUserFact ? userIdRaw : '';
+    const miColumns = await getTableColumnList(season, 'MI_Factory');
+    const factoryColumns = miColumns.length ? miColumns : await getTableColumnList(season, 'Factory');
+    const tableName = miColumns.length ? 'MI_Factory' : 'Factory';
+    const query = buildFactoryUnitsQuery({
+      tableName,
+      columns: factoryColumns,
+      userId: userId || '',
+      onlyDistillery: true
+    });
+
+    if (!query) {
+      return res.status(200).json([]);
+    }
+
+    const rows = await executeQuery(query, { userId }, season);
     return res.status(200).json(rows);
   } catch (error) {
     return next(error);
@@ -1674,8 +1772,9 @@ exports.distilleryReportEntryView = async (req, res, next) => {
 
     const tableName = await resolveDistilleryTable(season);
     const tableSql = quoteSqlObjectName(tableName);
-    const tableColumns = await getTableColumns(season, tableName);
-    const tableColumnList = await getTableColumnList(season, tableName);
+      const tableColumns = await getTableColumns(season, tableName);
+      const tableColumnTypes = await getTableColumnTypes(season, tableName);
+      const tableColumnList = await getTableColumnList(season, tableName);
     const c = {
       id: pickExistingColumnFromList(tableColumnList, ['ID', 'Id']) || pickColumnByPattern(tableColumnList, [/(^|_)id$/]),
       unit: pickExistingColumnFromList(tableColumnList, ['Dist_Unit', 'D_Factory', 'F_Code', 'Unit']) || pickColumnByPattern(tableColumnList, [/unit/, /factory/, /f_code/]),
@@ -1705,11 +1804,24 @@ exports.distilleryReportEntryView = async (req, res, next) => {
       date: c.date ? quoteSqlIdentifier(c.date) : null
     };
 
-    const whereFactory = qc.unit ? `AND (@factoryCode IS NULL OR d.${qc.unit} = @factoryCode)` : '';
-    const whereDate = qc.date ? `WHERE CAST(d.${qc.date} AS date) BETWEEN @fromDate AND @toDate` : 'WHERE 1=1';
-    const orderBy = qc.date
-      ? `ORDER BY d.${qc.date} DESC${qc.id ? `, d.${qc.id} DESC` : ''}`
-      : (qc.id ? `ORDER BY d.${qc.id} DESC` : '');
+      const whereFactory = qc.unit ? `AND (@factoryCode IS NULL OR d.${qc.unit} = @factoryCode)` : '';
+      const dateType = c.date ? tableColumnTypes.get(String(c.date).toLowerCase()) : '';
+      const isNativeDate = ['date', 'datetime', 'smalldatetime', 'datetime2', 'datetimeoffset', 'time'].includes(dateType);
+      const dateExpr = qc.date
+        ? (isNativeDate
+          ? `CAST(d.${qc.date} AS date)`
+          : `COALESCE(
+              TRY_CONVERT(date, NULLIF(d.${qc.date}, ''), 103),
+              TRY_CONVERT(date, NULLIF(d.${qc.date}, ''), 105),
+              TRY_CONVERT(date, NULLIF(d.${qc.date}, ''), 120),
+              TRY_CONVERT(date, NULLIF(d.${qc.date}, '')),
+              TRY_CONVERT(date, LEFT(NULLIF(d.${qc.date}, ''), 10), 120)
+            )`)
+        : null;
+      const whereDate = dateExpr ? `WHERE ${dateExpr} BETWEEN @fromDate AND @toDate` : 'WHERE 1=1';
+      const orderBy = dateExpr
+        ? `ORDER BY ${dateExpr} DESC${qc.id ? `, d.${qc.id} DESC` : ''}`
+        : (qc.id ? `ORDER BY d.${qc.id} DESC` : '');
 
     if (!c.date) {
       console.warn(`[${CONTROLLER}] distilleryReportEntryView: no date column found on ${tableName}. Continuing without date filter.`, {

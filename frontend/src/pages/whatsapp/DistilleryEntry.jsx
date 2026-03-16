@@ -40,7 +40,7 @@ import '../../styles/base.css';const __cx = (...vals) => vals.filter(Boolean).jo
   const fetchInitialData = async () => {
     try {
       const [unitsData, typesData] = await Promise.all([
-      masterService.getUnits(),
+      masterService.getDistilleryUnits(),
       dailyCaneEntryService.getProdTypes()]
       );
       setUnits(unitsData || []);

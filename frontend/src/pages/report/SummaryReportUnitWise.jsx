@@ -54,22 +54,24 @@ const Report_SummaryReportUnitWise = () => {
         userCode
       });
 
-      const payload = res?.data;
-      if (payload && !Array.isArray(payload)) {
-        const nextSummary = Array.isArray(payload.summary) ? payload.summary : [];
-        const nextOffline = Array.isArray(payload.offlineUsers) ? payload.offlineUsers : [];
-        setSummaryRows(nextSummary);
-        setOfflineRows(nextOffline);
-        if (!nextSummary.length) {
-          toast.error('No tracking data found for selected filters');
-        }
-      } else {
-        const flat = Array.isArray(payload) ? payload : Array.isArray(res) ? res : [];
-        setSummaryRows(flat);
-        setOfflineRows([]);
-        if (!flat.length) {
-          toast.error('No tracking data found for selected filters');
-        }
+      const payload = res?.data !== undefined ? res.data : res;
+      const summary = Array.isArray(payload?.summary)
+        ? payload.summary
+        : Array.isArray(payload)
+          ? payload
+          : [];
+      const offline = Array.isArray(payload?.offlineUsers)
+        ? payload.offlineUsers
+        : Array.isArray(payload?.offline)
+          ? payload.offline
+          : Array.isArray(payload?.details)
+            ? payload.details.filter((row) => Number(row?.ActiveMinutes || 0) === 0)
+            : [];
+
+      setSummaryRows(summary);
+      setOfflineRows(offline);
+      if (!summary.length) {
+        toast.error('No tracking data found for selected filters');
       }
     } catch (error) {
       console.error('SummaryReportUnitWise search failed', error);

@@ -5,6 +5,17 @@ function toIsoDate(value) {
   if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
   const ddmmyyyyMatch = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (ddmmyyyyMatch) return `${ddmmyyyyMatch[3]}-${ddmmyyyyMatch[2]}-${ddmmyyyyMatch[1]}`;
+  const ddmmyyyyDash = raw.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  if (ddmmyyyyDash) return `${ddmmyyyyDash[3]}-${ddmmyyyyDash[2]}-${ddmmyyyyDash[1]}`;
+  const ymdSlash = raw.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+  if (ymdSlash) return `${ymdSlash[1]}-${ymdSlash[2]}-${ymdSlash[3]}`;
+  const dt = new Date(raw);
+  if (!Number.isNaN(dt.getTime())) {
+    const yyyy = dt.getFullYear();
+    const mm = String(dt.getMonth() + 1).padStart(2, '0');
+    const dd = String(dt.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
   return null;
 }
 

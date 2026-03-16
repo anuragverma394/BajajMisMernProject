@@ -105,8 +105,10 @@ async function getSummaryReportUnitWise(req) {
 // Crushing Report - Load Factory Data
 async function loadFactoryData(req) {
   const season = getSeason(req);
-  const factCode = getFactoryCode(req, 'FACTCODE', 'FactCode', 'factoryCode', 'F_code');
-  const date = normalizeDateInput(req.query.Date || req.query.date || req.body?.Date || req.body?.date);
+  const factCode = getFactoryCode(req, 'FACTCODE', 'FactCode', 'factoryCode', 'F_code', 'F_Code', 'fcode', 'unit');
+  const date = normalizeDateInput(
+    req.query.Date || req.query.DATE || req.query.date || req.body?.Date || req.body?.DATE || req.body?.date
+  );
 
   if (!factCode) throw new Error('Factory code is required');
   if (!date) throw new Error('Date is required');
@@ -123,8 +125,10 @@ async function loadFactoryData(req) {
 // Crushing Report - Load Mode-wise Data
 async function loadModeWiseData(req) {
   const season = getSeason(req);
-  const factCode = getFactoryCode(req, 'FACTCODE', 'FactCode', 'factoryCode', 'F_code');
-  const date = normalizeDateInput(req.query.Date || req.query.DATE || req.query.date || req.body?.Date || req.body?.date);
+  const factCode = getFactoryCode(req, 'FACTCODE', 'FactCode', 'factoryCode', 'F_code', 'F_Code', 'fcode', 'unit');
+  const date = normalizeDateInput(
+    req.query.Date || req.query.DATE || req.query.date || req.body?.Date || req.body?.DATE || req.body?.date
+  );
 
   if (!factCode) throw new Error('Factory code is required');
   if (!date) throw new Error('Date is required');

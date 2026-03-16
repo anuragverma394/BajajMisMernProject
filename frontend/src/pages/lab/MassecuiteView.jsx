@@ -124,6 +124,10 @@ const MassecuiteView = ({ type = 'A', title }) => {
       toast.error('Date is required');
       return;
     }
+    if (!selectedUnit) {
+      toast.error('Please select Factory');
+      return;
+    }
 
     try {
       setLoading(true);

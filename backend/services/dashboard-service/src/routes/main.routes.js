@@ -10,6 +10,7 @@ router.all('/index', controller.Index);
 router.all('/help-desk', controller.HelpDesk);
 router.all('/home', controller.Home);
 router.get('/units', controller.Units);
+router.get('/distillery-units', controller.DistilleryUnits);
 router.all('/home-fact', controller.HomeFact);
 router.all('/over-shoot-for-centers', controller.OverShootForCenters);
 router.all('/token-gross-tare', controller.TokenGrossTare);

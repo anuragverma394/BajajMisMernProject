@@ -27,6 +27,7 @@ const Tracking_TargetEntry = () => {
   const [saveLoading, setSaveLoading] = useState(false);
   const [targetPercent, setTargetPercent] = useState('0');
   const [applyAll, setApplyAll] = useState(false);
+  const showVillage = selectedOfficer && selectedOfficer !== '0';
 
   useEffect(() => {
     masterService.getUnits().then((d) => setUnits(Array.isArray(d) ? d : [])).catch(() => setUnits([]));
@@ -40,7 +41,7 @@ const Tracking_TargetEntry = () => {
     }
     try {
       const res = await trackingService.getUnitOfficers({ unit });
-      const list = Array.isArray(res?.data) ? res.data : [];
+      const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
       setOfficers(list);
       setSelectedOfficer('0');
     } catch {
@@ -112,12 +113,13 @@ const Tracking_TargetEntry = () => {
         area: areaConts,
         supplier: supplierConts
       });
-      const data = Array.isArray(res?.data) ? res.data : [];
+      const data = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
       const mapped = data.map((r) => ({
         officer_code: Number(r.officer_code || r.cdo_code || 0),
         officer_name: String(r.officer_name || r.cdo_name || ''),
-        cdo_code: Number(r.cdo_code || r.officer_code || 0),
+        cdo_code: Number(r.cdo_code || 0),
         village_code: Number(r.village_code || r.v_code || 0),
+        village_name: String(r.village_name || r.v_name || ''),
         total_grower: Number(r.total_grower || r.totalgrower || 0),
         target_grower: Number(r.target_grower || r.totaltargetgrower || 0),
         target_percent: Number(r.target_percent || r.target || 0)
@@ -280,8 +282,8 @@ const Tracking_TargetEntry = () => {
                   <table className={__cx("data-table", "min-w-[1100px]")}>
                     <thead>
                       <tr>
-                        <th>Officer Code</th>
-                        <th>Officer Name</th>
+                        <th>{showVillage ? 'Village Code' : 'Officer Code'}</th>
+                        <th>{showVillage ? 'Village Name' : 'Officer Name'}</th>
                         <th>Total Grower</th>
                         <th>Target Grower</th>
                         <th>Target %</th>
@@ -290,8 +292,8 @@ const Tracking_TargetEntry = () => {
                     <tbody>
                       {rows.map((r, index) =>
                     <tr key={`${r.officer_code}-${index}`}>
-                          <td>{r.officer_code}</td>
-                          <td>{r.officer_name}</td>
+                          <td>{showVillage ? r.village_code : r.officer_code}</td>
+                          <td>{showVillage ? r.village_name : r.officer_name}</td>
                           <td>{r.total_grower}</td>
                           <td>{r.target_grower}</td>
                           <td>

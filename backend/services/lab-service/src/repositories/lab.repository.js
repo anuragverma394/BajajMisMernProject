@@ -34,6 +34,25 @@ function parseFlexibleDateToIso(value) {
   return null;
 }
 
+async function resolveLabTable(season, baseName) {
+  const candidates = [
+    baseName,
+    `MI_${baseName}`,
+    `MI${baseName}`,
+    baseName.replace(/^LAB_/, 'MI_LAB_')
+  ].filter(Boolean);
+
+  for (const tableName of candidates) {
+    try {
+      const rows = await executeQuery('SELECT OBJECT_ID(@tableName) AS objectId', { tableName }, season);
+      if (rows[0]?.objectId) return tableName;
+    } catch (error) {
+      // try next
+    }
+  }
+  return baseName;
+}
+
 async function resolveCanePlanTable(season) {
   const candidates = ['MI_CanePlan', 'CanePlan'];
   for (const tableName of candidates) {
@@ -47,6 +66,7 @@ function createMassecuiteViewHandler({ tableName, includeLocationCode = false })
   return async (req, res, next) => {
     try {
       const season = req.user?.season;
+      const resolvedTable = await resolveLabTable(season, tableName);
       const factoryRaw = String(
         req.query.FACTORY || req.query.factory || req.body?.FACTORY || req.body?.factory || ''
       ).trim();
@@ -62,6 +82,13 @@ function createMassecuiteViewHandler({ tableName, includeLocationCode = false })
       if (!factoryCode) {
         return res.status(200).json({ success: true, data: [] });
       }
+
+      const dateExpr = `COALESCE(
+            TRY_CONVERT(date, m.DDATE),
+            TRY_CONVERT(date, m.DDATE, 112),
+            TRY_CONVERT(date, m.DDATE, 103),
+            TRY_CONVERT(date, m.DDATE, 105)
+         )`;
 
       const rows = await executeQuery(
         `SELECT
@@ -83,12 +110,12 @@ function createMassecuiteViewHandler({ tableName, includeLocationCode = false })
             ISNULL(m.ANAL_PY, 0) AS ANAL_PY,
             ISNULL(m.QTY, 0) AS QTY
             ${includeLocationCode ? ", ISNULL(m.LOCATION_CODE, '') AS LOCATION_CODE" : ''}
-         FROM ${tableName} m
+         FROM ${resolvedTable} m
          LEFT JOIN MI_Hours h ON h.LABSN = m.HOUR
          LEFT JOIN MI_Factory mf ON mf.F_Code = m.FACTORY
          LEFT JOIN Factory ff ON ff.F_Code = m.FACTORY
          WHERE m.FACTORY = @factoryCode
-           AND (@dateIso IS NULL OR CAST(m.DDATE AS date) = @dateIso)
+           AND (@dateIso IS NULL OR ${dateExpr} = @dateIso)
          ORDER BY m.DDATE DESC, m.HOUR DESC`,
         { factoryCode, dateIso: dateIso || null },
         season
@@ -105,6 +132,7 @@ function createMassecuiteByIdHandler({ tableName, includeLocationCode = false })
   return async (req, res, next) => {
     try {
       const season = req.user?.season;
+      const resolvedTable = await resolveLabTable(season, tableName);
       const slnoRaw = String(req.query.SLNO || req.query.Rid || req.query.id || req.body?.SLNO || req.body?.Rid || req.body?.id || '').trim();
       const factoryRaw = String(req.query.FACTORY || req.query.factory || req.query.FACT || req.body?.FACTORY || req.body?.factory || req.body?.FACT || '').trim();
       const dateRaw = req.query.DDATE || req.query.DATE || req.query.date || req.body?.DDATE || req.body?.DATE || req.body?.date || '';
@@ -128,6 +156,13 @@ function createMassecuiteByIdHandler({ tableName, includeLocationCode = false })
       }
 
       const dateIso = parseFlexibleDateToIso(dateRaw);
+      const dateExpr = `COALESCE(
+            TRY_CONVERT(date, m.DDATE),
+            TRY_CONVERT(date, m.DDATE, 112),
+            TRY_CONVERT(date, m.DDATE, 103),
+            TRY_CONVERT(date, m.DDATE, 105)
+         )`;
+
       const rows = await executeQuery(
         `SELECT
             m.FACTORY,
@@ -146,11 +181,11 @@ function createMassecuiteByIdHandler({ tableName, includeLocationCode = false })
             ISNULL(m.QTY, 0) AS QTY,
             ISNULL(h.DIS_HOU, '') AS DIS_HOU
             ${includeLocationCode ? ", ISNULL(m.LOCATION_CODE, '') AS LOCATION_CODE" : ''}
-         FROM ${tableName} m
+         FROM ${resolvedTable} m
          LEFT JOIN MI_Hours h ON h.LABSN = m.HOUR
          WHERE m.SLNO = @slno
            AND (@factoryCode IS NULL OR m.FACTORY = @factoryCode)
-           AND (@dateIso IS NULL OR CAST(m.DDATE AS date) = @dateIso)
+           AND (@dateIso IS NULL OR ${dateExpr} = @dateIso)
            ${includeLocationCode ? "AND (@locationCode = '' OR ISNULL(m.LOCATION_CODE, '') = @locationCode)" : ''}`,
         {
           slno,

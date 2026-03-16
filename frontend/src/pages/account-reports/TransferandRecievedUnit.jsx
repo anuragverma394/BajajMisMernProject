@@ -12,6 +12,17 @@ function parseAmount(value) {
   return Number.isFinite(n) ? n.toFixed(2) : '0.00';
 }
 
+function normalizeDateInput(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const ddmmyyyy = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (ddmmyyyy) return `${ddmmyyyy[3]}-${ddmmyyyy[2]}-${ddmmyyyy[1]}`;
+  const ddmmyyyyDash = raw.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  if (ddmmyyyyDash) return `${ddmmyyyyDash[3]}-${ddmmyyyyDash[2]}-${ddmmyyyyDash[1]}`;
+  return raw;
+}
+
 function normalizeRows(rows = []) {
   return rows.map((item) => ({
     id: item.id ?? null,
@@ -106,7 +117,7 @@ export default function AccountReports_TransferandRecievedUnit() {
     const payload = {
       t_Factory: formData.t_Factory,
       r_Factory: formData.r_Factory || formData.t_Factory,
-      r_TDate: formData.r_TDate,
+      r_TDate: normalizeDateInput(formData.r_TDate),
       transferInterUnit: formData.transferInterUnit,
       receivedfromInterUnit: formData.receivedfromInterUnit,
       lessDriage: formData.lessDriage
