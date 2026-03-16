@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
-import { Save, List, LogOut, ChevronRight, Factory, Truck, Box, ShieldCheck, Activity } from 'lucide-react';
 import { masterService } from '../../microservices/api.service';
 
 const Main_AddModeGroup = () => {
@@ -13,49 +12,73 @@ const Main_AddModeGroup = () => {
   const [groupMode, setGroupMode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [mockModes, setMockModes] = useState([]);
+  const [modes, setModes] = useState([]);
   const [factories, setFactories] = useState([]);
+
+  const loadModes = async (factoryCode) => {
+    if (!factoryCode) {
+      setModes([]);
+      return;
+    }
+    try {
+      const data = await masterService.getModeBind({ F_Name: factoryCode });
+      setModes(Array.isArray(data) ? data : []);
+    } catch {
+      setModes([]);
+    }
+  };
 
   function handleUnitChange(value) {
     setUnitCode(value);
-    if (value) {
-      setMockModes([
-      { code: 'Cart', name: 'Unmechanized Cart' },
-      { code: 'Trolly Small', name: 'Intermediate Trolley' },
-      { code: 'Trolly Large', name: 'Bulk Logistics Trolley' },
-      { code: 'Truck', name: 'Heavy Industrial Truck' }]
-      );
-    } else {
-      setMockModes([]);
-    }
+    setModeCode('');
+    loadModes(value);
   }
 
   useEffect(() => {
     masterService.getUnits().then((d) => setFactories(Array.isArray(d) ? d : [])).catch(() => {});
 
     const queryParams = new URLSearchParams(location.search);
-    const editId = queryParams.get('id');
-    if (editId) {
+    const sid = queryParams.get('sid') || queryParams.get('ID') || '';
+    const mcode = queryParams.get('Mcode') || queryParams.get('mcode') || '';
+    if (sid && mcode) {
       setIsEditMode(true);
-      setUnitCode('1');
-      setGroupMode('2');
-      handleUnitChange('1');
-      setTimeout(() => setModeCode('Trolly Small'), 100);
+      masterService.getAddModeGroup({ sid, Mcode: mcode })
+        .then((row) => {
+          if (!row) return;
+          const factory = String(row.md_factory || row.f_code || row.F_Code || sid);
+          const mode = String(row.md_code || row.modeCode || mcode);
+          const group = String(row.groupcode || row.md_groupcode || row.groupCode || '');
+          setUnitCode(factory);
+          setGroupMode(group);
+          loadModes(factory).then(() => setModeCode(mode));
+        })
+        .catch(() => {});
     }
   }, [location.search]);
 
   const handleSaveOrUpdate = (e) => {
     if (e) e.preventDefault();
-    if (!unitCode || !modeCode || !groupMode) {
-      toast.error('Industrial alert: Mandatory parameter omission detected. Protocol requires all marked fields.');
+    if (!unitCode || !modeCode || !groupMode || groupMode === '0') {
+      toast.error('Please select Unit, Mode, and Group Mode.');
       return;
     }
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success(isEditMode ? 'Logistical mapping updated in central vault.' : 'New logistical mode group sequence registered.');
-      navigate('/Main/AddModeGroupView');
-    }, 800);
+    const payload = {
+      id: isEditMode ? 'btupdate' : 'btninsert',
+      md_factory: unitCode,
+      md_code: modeCode,
+      groupcode: groupMode
+    };
+    masterService.saveAddModeGroup(payload)
+      .then((msg) => {
+        toast.success(typeof msg === 'string' ? msg : (isEditMode ? 'Updated successfully.' : 'Saved successfully.'));
+        navigate('/Main/AddModeGroupView');
+      })
+      .catch((error) => {
+        const message = error?.response?.data?.message || error?.message || 'Failed to save group mode.';
+        toast.error(message);
+      })
+      .finally(() => setIsLoading(false));
   };
 
   const headerStyle = "bg-[#008080] text-white py-[12px] px-[20px] text-[18px] font-medium rounded-[8px 8px 0 0] mb-[1px]";
@@ -159,8 +182,8 @@ const Main_AddModeGroup = () => {
                   disabled={!unitCode || isEditMode} className="w-[100%] py-[8px] px-[12px] text-[13px] border border-[#e2e8f0] rounded text-[#333] bg-white">
                   
                                     <option value="">All</option>
-                                    {mockModes.map((mode, idx) =>
-                  <option key={`${mode.code}-${idx}`} value={mode.code}>{mode.name}</option>
+                                    {modes.map((mode, idx) =>
+                  <option key={`${mode.md_code || mode.code || idx}`} value={mode.md_code || mode.code}>{mode.md_name || mode.name}</option>
                   )}
                                 </select>
                             </div>
@@ -171,11 +194,11 @@ const Main_AddModeGroup = () => {
                   value={groupMode}
                   onChange={(e) => setGroupMode(e.target.value)} className="w-[100%] py-[8px] px-[12px] text-[13px] border border-[#e2e8f0] rounded text-[#333] bg-white">
                   
-                                    <option value="">--Select--</option>
-                                    <option value="1">Unmechanized Transport Group</option>
-                                    <option value="2">Intermediate Trolley Matrix</option>
-                                    <option value="3">Bulk Logistic Sequence</option>
-                                    <option value="4">Heavy Industrial Fleet</option>
+                                    <option value="0">--Select--</option>
+                                    <option value="1">Cart</option>
+                                    <option value="2">Trolly Small</option>
+                                    <option value="3">Trolly Large</option>
+                                    <option value="4">Truck</option>
                                 </select>
                             </div>
                         </div>

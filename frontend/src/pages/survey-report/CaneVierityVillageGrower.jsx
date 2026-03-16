@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { surveyService, masterService } from '../../microservices/api.service';
 import '../../styles/SurveyReports.css';const __cx = (...vals) => vals.filter(Boolean).join(" ");
+import { openPrintWindow } from '../../utils/print';
 
 const SurveyReport_CaneVierityVillageGrower = () => {
   const navigate = useNavigate();
@@ -53,18 +54,11 @@ const SurveyReport_CaneVierityVillageGrower = () => {
 
   const handlePrint = () => {
     const content = document.getElementById('cv-report-print');
-    const win = window.open('', '', 'height=800,width=1400');
-    win.document.write('<html><head><title>Historical Audit Matrix</title>');
-    win.document.write('<style>table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 10px; } th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; } th { background: #f8fafc; color: #475569; font-weight: 800; text-transform: uppercase; } .line-through { text-decoration: line-through; color: #ef4444; } .font-black { font-weight: 900; } .text-emerald { color: #10b981; }</style>');
-    win.document.write('</head><body>');
-    win.document.write('<div style="text-align:center; padding: 30px;">');
-    win.document.write('<h1 style="margin:0; color:#1e293b text-transform:uppercase;">Bajaj Sugar - Modification Audit</h1>');
-    win.document.write(`<p style="color:#64748b;">System Audit Log | Unit: ${filters.F_code} | Range: ${filters.Fdate} to ${filters.Tdate}</p>`);
-    win.document.write('</div>');
-    win.document.write(content.innerHTML);
-    win.document.write('</body></html>');
-    win.document.close();
-    win.print();
+    openPrintWindow({
+      title: "Cane Variety Village Grower",
+      subtitle: `Unit: ${filters.F_code} | Range: ${filters.Fdate} to ${filters.Tdate}`,
+      contentHtml: content ? content.outerHTML : ""
+    });
   };
 
   const handleExport = () => {

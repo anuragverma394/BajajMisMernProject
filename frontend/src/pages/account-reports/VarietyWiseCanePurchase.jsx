@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { accountReportsService, masterService } from '../../microservices/api.service';
+import { openPrintWindow } from '../../utils/print';
 import '../../styles/VarietyWiseCanePurchase_1.css';const __cx = (...vals) => vals.filter(Boolean).join(" ");const AccountReports_VarietyWiseCanePurchase = () => {const navigate = useNavigate();const tableRef = useRef(null); // Form Search State
   const [unitCode, setUnitCode] = useState('');const [fromDate, setFromDate] = useState('');const [toDate, setToDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -67,37 +68,11 @@ import '../../styles/VarietyWiseCanePurchase_1.css';const __cx = (...vals) => va
       toast.error("No data to print!");
       return;
     }
-
-    const printContent = tableRef.current.outerHTML;
-    const printWindow = window.open('', '_blank', 'width=1000,height=1000');
-    printWindow.document.write(`
-            <html>
-                <head>
-                    <title>Variety Wise Cane Purchase Print</title>
-                    <style>
-                        body { font-family: sans-serif; }
-                        h2, h4 { text-align: center; }
-                        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
-                        th, td { border: 1px solid black; padding: 4px; text-align: left; }
-                        th { background-color: #dff0d8; text-align: center; }
-                        .text-right { text-align: right; }
-                        .bold td { font-weight: bold; }
-                    </style>
-                </head>
-                <body>
-                    <h2>Bajaj Group</h2>
-                    <h4>Variety Wise Cane Purchase</h4>
-                    <p>From: ${fromDate || 'N/A'} To: ${toDate || 'N/A'}</p>
-                    ${printContent}
-                </body>
-            </html>
-        `);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
+    openPrintWindow({
+      title: "Variety Wise Cane Purchase",
+      subtitle: `From: ${fromDate || 'N/A'} To: ${toDate || 'N/A'}`,
+      contentHtml: tableRef.current ? tableRef.current.outerHTML : ""
+    });
   };
 
   return (

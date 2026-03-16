@@ -20,9 +20,23 @@ export const isDev = Boolean(import.meta?.env?.DEV);
 export const unwrap = (payload) =>
     payload && payload.data !== undefined ? payload.data : payload;
 
+export const normalizeIsoDate = (value) => {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+    const ddmmyyyy = raw.match(/^(\d{2})[/-](\d{2})[/-](\d{4})$/);
+    if (ddmmyyyy) {
+        const [, dd, mm, yyyy] = ddmmyyyy;
+        return `${yyyy}-${mm}-${dd}`;
+    }
+    return '';
+};
+
 export const toLegacyDateRange = (params = {}) => {
-    const from = params.dateFrom || params.fromDate || params.DtFrom || '';
-    const to = params.dateTo || params.toDate || params.DtTo || '';
+    const fromRaw = params.dateFrom || params.fromDate || params.DtFrom || '';
+    const toRaw = params.dateTo || params.toDate || params.DtTo || '';
+    const from = normalizeIsoDate(fromRaw);
+    const to = normalizeIsoDate(toRaw);
     if (!from || !to) return '';
     return `${from} - ${to}`;
 };
@@ -102,12 +116,18 @@ export const normalizeUnitsList = (payload) => {
     });
 };
 
-export const buildDashboardPayload = (params = {}, defaultType) => ({
-    ...params,
-    F_Code: params.factoryCode || params.F_Code || '',
-    txtdaterange: params.txtdaterange || toLegacyDateRange(params),
-    ...(defaultType ? { Type: params.type || defaultType } : {})
-});
+export const buildDashboardPayload = (params = {}, defaultType) => {
+    const dateFrom = normalizeIsoDate(params.dateFrom || params.fromDate || params.DtFrom || '');
+    const dateTo = normalizeIsoDate(params.dateTo || params.toDate || params.DtTo || '');
+    return {
+        ...params,
+        dateFrom: dateFrom || params.dateFrom,
+        dateTo: dateTo || params.dateTo,
+        F_Code: params.factoryCode || params.F_Code || '',
+        txtdaterange: params.txtdaterange || (dateFrom && dateTo ? `${dateFrom} - ${dateTo}` : ''),
+        ...(defaultType ? { Type: params.type || defaultType } : {})
+    };
+};
 
 export const postDashboard = async (path, params = {}, defaultType) => {
     const payload = buildDashboardPayload(params, defaultType);

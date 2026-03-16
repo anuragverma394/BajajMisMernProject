@@ -4,6 +4,7 @@ import { toast, Toaster } from 'react-hot-toast';
 import { whatsappService, masterService } from '../../microservices/api.service';
 import '../../styles/WhatsApp.css';
 import '../../styles/ActualVarietyWiseArea.css';
+import { openPrintWindow } from '../../utils/print';
 
 const WhatsApp_ActualVarietyWiseArea = () => {
     const navigate = useNavigate();
@@ -47,33 +48,11 @@ const WhatsApp_ActualVarietyWiseArea = () => {
 
     const handlePrint = () => {
         const printContent = document.getElementById('report-table-section');
-        const WinPrint = window.open('', '', 'left=0,top=0,width=1000,height=900,toolbar=0,scrollbars=0,status=0');
-        WinPrint.document.write(`
-            <html>
-                <head>
-                    <title>Actual Variety Wise Area - ${reportDate}</title>
-                    <style>
-                        table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 11px; }
-                        th, td { border: 1px solid #333; padding: 5px; text-align: center; }
-                        th { background: #f8fafc; font-weight: bold; }
-                        .total-row { font-weight: bold; background: #f1f5f9; }
-                        .text-center { text-align: center; }
-                        h2, h4, p { margin: 5px 0; }
-                    </style>
-                </head>
-                <body>
-                    <div class="text-center">
-                        <h2>Bajaj Group</h2>
-                        <h4>Actual Variety Wise Area as on ${reportDate}</h4>
-                        <p>${caneAreaType === '1' ? 'As Per First Survey' : 'As Per Caneup Portal'}</p>
-                    </div>
-                    ${printContent.innerHTML}
-                </body>
-            </html>
-        `);
-        WinPrint.document.close();
-        WinPrint.focus();
-        WinPrint.print();
+        openPrintWindow({
+            title: `Actual Variety Wise Area - ${reportDate}`,
+            subtitle: caneAreaType === '1' ? 'As Per First Survey' : 'As Per Caneup Portal',
+            contentHtml: printContent ? printContent.outerHTML : ""
+        });
     };
 
     const handleExcelExport = () => {

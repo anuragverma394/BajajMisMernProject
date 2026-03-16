@@ -19,6 +19,7 @@ export {
   toLegacyDateRange,
   massecuiteRouteMap,
   normalizeMassecuiteType,
+  normalizeIsoDate,
   debugDuplicateRecords,
   debugDuplicateIdsInPayload,
   normalizeUnitsList,

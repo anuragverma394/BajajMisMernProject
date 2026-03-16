@@ -1,16 +1,18 @@
 .dashboard-screen {
-  background: #f0f0e8;
+  background: radial-gradient(circle at top left, #f2f8f7 0%, #eaf1f0 45%, #f9f7f1 100%);
   min-height: calc(100vh - 120px);
   display: flex;
   flex-direction: column;
+  font-family: "Poppins", "Segoe UI", sans-serif;
 }
 
 .dashboard-filter-shell {
-  background: #f2f4f5;
+  background: linear-gradient(135deg, #ffffff, #f6fbfa);
   padding: 14px;
-  border: 1px solid #dfe5ea;
-  border-radius: 4px;
+  border: 1px solid #d6e4e8;
+  border-radius: 10px;
   margin: 8px 14px 0;
+  box-shadow: 0 10px 20px rgba(31, 158, 138, 0.08);
 }
 
 .dashboard-filter-row {
@@ -32,8 +34,8 @@
 .dashboard-type-btn {
   height: 34px;
   padding: 0 14px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 1px solid #cfe0e3;
+  border-radius: 8px;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
@@ -41,19 +43,20 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  color: #555;
-  background: #f0f0f0;
+  color: #245a52;
+  background: #e7f3f1;
 }
 
 .dashboard-type-btn.active {
-  background: #1f9e8a;
+  background: linear-gradient(135deg, #1f9e8a, #27b39c);
   color: #fff;
+  box-shadow: 0 6px 12px rgba(31, 158, 138, 0.25);
 }
 
 .dashboard-input {
   height: 34px;
-  border: 1px solid #cfd7df;
-  border-radius: 3px;
+  border: 1px solid #cfdfe3;
+  border-radius: 8px;
   padding: 0 10px;
   font-size: 12px;
   box-sizing: border-box;
@@ -80,12 +83,13 @@
   height: 34px;
   padding: 0 16px;
   border: none;
-  border-radius: 3px;
-  background: #1f9e8a;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #1f9e8a, #27b39c);
   color: #fff;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 6px 12px rgba(31, 158, 138, 0.22);
 }
 
 .dashboard-search-btn:disabled {
@@ -123,11 +127,12 @@
 }
 
 .dashboard-panel {
-  border: 1px solid #d9e1ea;
-  border-radius: 4px;
+  border: 1px solid #d7e3e7;
+  border-radius: 12px;
   overflow: hidden;
   background-color: #fff;
   min-width: 0;
+  box-shadow: 0 10px 24px rgba(14, 116, 144, 0.08);
 }
 
 .dashboard-panel-main {
@@ -146,35 +151,35 @@
 }
 
 .dashboard-panel-head.teal {
-  background: #1f9e8a;
+  background: linear-gradient(135deg, #1f9e8a, #19b4a0);
 }
 
 .dashboard-panel-head.blue {
-  background: #0079ff;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
 }
 
 .dashboard-panel-head.darkteal {
-  background: #006778;
+  background: linear-gradient(135deg, #0f766e, #0ea5a4);
 }
 
 .dashboard-panel-head.red {
-  background: #ff0000;
+  background: linear-gradient(135deg, #dc2626, #f97316);
 }
 
 .dashboard-panel-head.pink {
-  background: #ff2171;
+  background: linear-gradient(135deg, #db2777, #f472b6);
 }
 
 .dashboard-panel-head.purple {
-  background: #626393;
+  background: linear-gradient(135deg, #6d28d9, #8b5cf6);
 }
 
 .dashboard-panel-head.green {
-  background: #367e18;
+  background: linear-gradient(135deg, #15803d, #22c55e);
 }
 
 .dashboard-chart-area {
-  padding: 8px 10px;
+  padding: 12px 14px 18px;
   position: relative;
 }
 
@@ -215,7 +220,7 @@
 .dashboard-menu-btn {
   background: #fff;
   border: 1px solid #d3dbe4;
-  border-radius: 3px;
+  border-radius: 8px;
   padding: 2px 10px;
   cursor: pointer;
   color: #666;

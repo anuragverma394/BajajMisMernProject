@@ -10,6 +10,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [season, setSeason] = useState('2526');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -90,17 +91,32 @@ const Login = () => {
               <div className="input-field">
                 <i className="fa fa-lock"></i>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   autoComplete="current-password"
                 />
+                <button
+                  type="button"
+                  className="toggle-password"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  <i className={`fa ${showPassword ? "fa-eye-slash" : "fa-eye"}`} />
+                </button>
               </div>
 
               <button type="submit" className="login-btn" disabled={loading}>
                 {loading ? 'Logging in...' : 'Log In'}
+              </button>
+              <button
+                type="button"
+                className="forgot-link"
+                onClick={() => navigate('/forgot-password')}
+              >
+                Forgot password?
               </button>
             </form>
           </div>

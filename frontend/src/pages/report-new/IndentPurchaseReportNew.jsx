@@ -25,12 +25,12 @@ import '../../styles/base.css';const IndentPurchaseReportNew = () => {const navi
     setLoading(true);
     try {
       const response = await reportNewService.getIndentPurchaseReport(filters);
-      if (response.status === 'success') {
+      if (response?.success === true || response?.status === 'success') {
         setReportData(response.data || []);
         setTotals(response.totals);
         toast.success("Indent data synchronized.");
       } else {
-        toast.error(response.message || "No data available.");
+        toast.error(response?.message || "No data available.");
       }
     } catch (error) {
       toast.error("Telemetry sync failure.");
@@ -184,47 +184,47 @@ import '../../styles/base.css';const IndentPurchaseReportNew = () => {const navi
           <div className="overflow-x-auto border border-[#e2e8f0] rounded">
                             <table className="w-[100%] text-[11px]">
                                 <thead>
-                                    <tr className="bg-[#e6f3e6]">
-                                        <th colSpan="2" className="p-[8px] border border-[#cbd5e1] text-left">Date : {filters.Fdate}</th>
-                                        <th colSpan="6" className="p-[8px] border border-[#cbd5e1] text-center">TODAY</th>
-                                        <th colSpan="5" className="p-[8px] border border-[#cbd5e1] text-center">TOMORROW</th>
+                                    <tr className="bg-[#129a81] text-black">
+                                        <th colSpan="2" className="p-[8px] border border-black text-left">Date : {filters.Fdate}</th>
+                                        <th colSpan="6" className="p-[8px] border border-black text-center">TODAY</th>
+                                        <th colSpan="5" className="p-[8px] border border-black text-center">TOMORROW</th>
                                     </tr>
-                                    <tr className="bg-[#e6f3e6] font-bold">
-                                        <th className="p-[8px] border border-[#cbd5e1]">Srno</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">ZONE</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">2</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">1</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">0</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">Total</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">PUR.</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">Mat %</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">2</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">1</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">0</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">Total</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">EXP PUR</th>
+                                    <tr className="bg-[#129a81] text-black font-bold">
+                                        <th className="p-[8px] border border-black">Srno</th>
+                                        <th className="p-[8px] border border-black">ZONE</th>
+                                        <th className="p-[8px] border border-black">2</th>
+                                        <th className="p-[8px] border border-black">1</th>
+                                        <th className="p-[8px] border border-black">0</th>
+                                        <th className="p-[8px] border border-black">Total</th>
+                                        <th className="p-[8px] border border-black">PUR.</th>
+                                        <th className="p-[8px] border border-black">Mat %</th>
+                                        <th className="p-[8px] border border-black">2</th>
+                                        <th className="p-[8px] border border-black">1</th>
+                                        <th className="p-[8px] border border-black">0</th>
+                                        <th className="p-[8px] border border-black">Total</th>
+                                        <th className="p-[8px] border border-black">EXP PUR</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {reportData.map((row, index) =>
-                <tr key={index} className="border-b border-b-[#f1f5f9]">
-                                            <td className="py-[8px] px-[12px] text-right">{index + 1}</td>
-                                            <td className="py-[8px] px-[12px] font-bold">
+                <tr key={index} className="border-b border-b-[#f1f5f9] bg-[#DBE5F1]">
+                                            <td className="py-[8px] px-[12px] text-right border border-black">{index + 1}</td>
+                                            <td className="py-[8px] px-[12px] font-bold border border-black">
                                                 <Link to={`/ReportNew/CenterIndentPurchaseReport?id=${row.blk_code}&DATE=${filters.Fdate}`} className="text-[#2563eb]">
                                                     {row.blk_name}
                                                 </Link>
                                             </td>
-                                            <td className="py-[8px] px-[12px] text-right">{row.onedaysbalnace}</td>
-                                            <td className="py-[8px] px-[12px] text-right">{row.twodaysdaysbalnace}</td>
-                                            <td className="py-[8px] px-[12px] text-right">{row.TodayIndent}</td>
-                                            <td className="py-[8px] px-[12px] text-right">{row.totalindenttoday}</td>
-                                            <td className="py-[8px] px-[12px] text-right">{row.purchase}</td>
-                                            <td className="py-[8px] px-[12px] text-right">{row.mature}</td>
-                                            <td className="py-[8px] px-[12px] text-right">{row.backonedaysbalnace}</td>
-                                            <td className="py-[8px] px-[12px] text-right">{row.backtwodaysdaysbalnace}</td>
-                                            <td className="py-[8px] px-[12px] text-right">{row.backTodayIndent}</td>
-                                            <td className="py-[8px] px-[12px] text-right">{row.backbalanceindent}</td>
-                                            <td className="py-[8px] px-[12px] text-right">{row.expur}</td>
+                                            <td className="py-[8px] px-[12px] text-right border border-black">{row.onedaysbalnace}</td>
+                                            <td className="py-[8px] px-[12px] text-right border border-black">{row.twodaysdaysbalnace}</td>
+                                            <td className="py-[8px] px-[12px] text-right border border-black">{row.TodayIndent}</td>
+                                            <td className="py-[8px] px-[12px] text-right border border-black">{row.totalindenttoday}</td>
+                                            <td className="py-[8px] px-[12px] text-right border border-black">{row.purchase}</td>
+                                            <td className="py-[8px] px-[12px] text-right border border-black">{row.mature}</td>
+                                            <td className="py-[8px] px-[12px] text-right border border-black">{row.backonedaysbalnace}</td>
+                                            <td className="py-[8px] px-[12px] text-right border border-black">{row.backtwodaysdaysbalnace}</td>
+                                            <td className="py-[8px] px-[12px] text-right border border-black">{row.backTodayIndent}</td>
+                                            <td className="py-[8px] px-[12px] text-right border border-black">{row.backbalanceindent}</td>
+                                            <td className="py-[8px] px-[12px] text-right border border-black">{row.expur}</td>
                                         </tr>
                 )}
                                 </tbody>

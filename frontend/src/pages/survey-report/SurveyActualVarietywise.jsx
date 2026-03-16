@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { surveyService, masterService } from '../../microservices/api.service';
 import '../../styles/SurveyActualVarietywise.css';const __cx = (...vals) => vals.filter(Boolean).join(" ");
+import { openPrintWindow } from '../../utils/print';
 
 const SurveyReport_SurveyActualVarietywise = () => {
   const navigate = useNavigate();
@@ -56,31 +57,11 @@ const SurveyReport_SurveyActualVarietywise = () => {
 
   const handlePrint = () => {
     if (!reportData) return;
-    const printContent = tableRef.current.outerHTML;
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-            <html>
-                <head>
-                    <title>Actual Variety Wise Area And Supply</title>
-                    <style>
-                        table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 11px; }
-                        th, td { border: 1px solid #e2e8f0; padding: 8px; text-align: center; }
-                        th { background: #f8fafc; font-weight: bold; }
-                        .text-right { text-align: right; }
-                        .font-bold { font-weight: bold; }
-                        h2, h4, p { margin: 5px 0; text-align: center; }
-                    </style>
-                </head>
-                <body>
-                    <h2>Bajaj Group</h2>
-                    <h4>Actual Variety Wise Area And Supply</h4>
-                    <p>As on: ${date}</p>
-                    ${printContent}
-                </body>
-            </html>
-        `);
-    printWindow.document.close();
-    printWindow.print();
+    openPrintWindow({
+      title: "Actual Variety Wise Area And Supply",
+      subtitle: `As on: ${date}`,
+      contentHtml: tableRef.current ? tableRef.current.outerHTML : ""
+    });
   };
 
   return (

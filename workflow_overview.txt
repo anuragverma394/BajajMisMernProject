@@ -1,0 +1,69 @@
+﻿BajajMisMernProject Workflow (Presentation/Interview Ready)
+=========================================================
+
+1) High-Level Flow (End-to-End)
+-------------------------------
+User Action (Browser)
+  -> React UI (Pages/Components)
+  -> Frontend API layer (services + http client)
+  -> API Gateway / Backend Express
+  -> Service Module (report-service / lab-service / etc.)
+  -> Controller -> Service -> Repository
+  -> SQL Server (stored procedures / queries)
+  <- Data back through same path
+  -> UI renders tables/charts
+
+Key idea:
+- Frontend is a single React app.
+- Backend is modular: multiple services grouped by domain.
+- All data ultimately comes from SQL Server.
+
+
+2) Backend Services Flow (Route to DB)
+--------------------------------------
+HTTP Request
+  -> backend/routes/*.routes.js
+  -> backend/controllers/* or backend/services/* controllers
+  -> backend/services/*/src/controllers/*.controller.js
+  -> backend/services/*/src/services/*.service.js
+  -> backend/services/*/src/repositories/*.repository.js
+  -> SQL Server (queries / stored procedures)
+  -> Response DTO/JSON
+
+Main backend domains (examples):
+- auth-service (auth & session)
+- user-service (users/roles)
+- report-service (reporting)
+- lab-service (lab-related reports)
+- tracking-service (tracking reports)
+- distillery-service (distillery data)
+- dashboard-service (dashboard charts)
+- whatsapp-service (whatsapp report data)
+
+Logging & middleware:
+- shared/lib/middleware (auth, error, logging)
+- common DB pool + season-based DB selection
+
+
+3) Frontend Flow (UI to API)
+----------------------------
+User Route
+  -> frontend/src/App.jsx (route map)
+  -> Page Component (frontend/src/pages/...)
+  -> Calls service method (frontend/src/microservices/*.service.js)
+  -> http client (frontend/src/microservices/http.client.js)
+  -> API endpoint (backend)
+  -> Response
+  -> State update (useState/useEffect)
+  -> UI render (tables, charts, forms)
+
+Frontend structure highlights:
+- pages/: screen-level UI
+- styles/: global & page styles
+- microservices/: API wrappers
+- utils/: helpers (e.g., print)
+
+
+Presentation Tip (short script)
+-------------------------------
+"The React frontend calls service wrappers which hit Express APIs. Each API is routed to a domain service (report/lab/tracking/etc). Controllers validate input, services handle logic, repositories run SQL queries or stored procedures, and data flows back for UI rendering. This keeps concerns separated and makes it easy to debug and extend."

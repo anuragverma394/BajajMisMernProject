@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { surveyService, masterService } from '../../microservices/api.service';
-import '../../styles/SurveyReports.css';const __cx = (...vals) => vals.filter(Boolean).join(" ");const SurveyReport_SurveyUnitWiseSurveyAreaSummary = () => {const navigate = useNavigate();const [factories, setFactories] = useState([]);const [loading, setLoading] = useState(false);const [reportData, setReportData] = useState([]);const [filters, setFilters] = useState({ F_code: '',
+import '../../styles/SurveyReports.css';
+import { openPrintWindow } from '../../utils/print';
+const __cx = (...vals) => vals.filter(Boolean).join(" ");const SurveyReport_SurveyUnitWiseSurveyAreaSummary = () => {const navigate = useNavigate();const [factories, setFactories] = useState([]);const [loading, setLoading] = useState(false);const [reportData, setReportData] = useState([]);const [filters, setFilters] = useState({ F_code: '',
       Date: new Date().toISOString().split('T')[0],
       CaneType: '1'
     });
@@ -44,29 +46,11 @@ import '../../styles/SurveyReports.css';const __cx = (...vals) => vals.filter(Bo
 
   const handlePrint = () => {
     const printContent = document.getElementById('survey-summary-print');
-    const WinPrint = window.open('', '', 'left=0,top=0,width=1000,height=900,toolbar=0,scrollbars=0,status=0');
-    WinPrint.document.write(`
-            <html>
-                <head>
-                    <title>Unit Wise Survey Area Summary Report</title>
-                    <style>
-                        table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 11px; }
-                        th, td { border: 1px solid #e2e8f0; padding: 8px; text-align: center; }
-                        th { background: #f8fafc; font-weight: bold; }
-                        h2, h4, p { margin: 5px 0; text-align: center; }
-                    </style>
-                </head>
-                <body>
-                    <h2>Bajaj Group</h2>
-                    
-                    <p>As on: ${filters.Date}</p>
-                    ${printContent.innerHTML}
-                </body>
-            </html>
-        `);
-    WinPrint.document.close();
-    WinPrint.focus();
-    WinPrint.print();
+    openPrintWindow({
+      title: "Unit Wise Survey Area Summary Report",
+      subtitle: `As on: ${filters.Date}`,
+      contentHtml: printContent ? printContent.outerHTML : ""
+    });
   };
 
   const handleExport = () => {

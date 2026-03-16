@@ -19,11 +19,11 @@ import '../../styles/base.css';const HourlyCaneArrivalWieght = () => {const navi
     setLoading(true);
     try {
       const response = await reportNewService.getHourlyCaneArrivalWeight(filters);
-      if (response.status === 'success') {
+      if (response?.success === true || response?.status === 'success') {
         setReportData(response.data || []);
         toast.success("Analysis synchronized.");
       } else {
-        toast.error(response.message || "No data available.");
+        toast.error(response?.message || "No data available.");
       }
     } catch (error) {
       toast.error("Inbound flux detection failure.");

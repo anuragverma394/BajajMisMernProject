@@ -4,6 +4,7 @@ import { toast, Toaster } from 'react-hot-toast';
 import { reportService, masterService } from '../../microservices/api.service';
 import '../../styles/Report.css';
 import '../../styles/HourlyCaneArrival.css'; // Reusing premium report layout styles
+import { openPrintWindow } from '../../utils/print';
 const __cx = (...vals) => vals.filter(Boolean).join(" ");
 const Report_EffectedCaneAreaReport = () => {
   const navigate = useNavigate();
@@ -52,15 +53,10 @@ const Report_EffectedCaneAreaReport = () => {
 
   const handlePrint = () => {
     const printContent = document.getElementById('effected-report-print');
-    const win = window.open('', '', 'height=700,width=1000');
-    win.document.write('<html><head><title>Effected Cane Area Report</title>');
-    win.document.write('<style>table { width: 100%; border-collapse: collapse; font-size: 12px; } th, td { border: 1px solid black; padding: 6px; text-align: left; } th { background: #f2f2f2; font-weight: bold; }</style>');
-    win.document.write('</head><body>');
-    win.document.write('<h2 style="text-align:center;">Bajaj Group - Effected Cane Area Report</h2>');
-    win.document.write(printContent.innerHTML);
-    win.document.write('</body></html>');
-    win.document.close();
-    win.print();
+    openPrintWindow({
+      title: "Effected Cane Area Report",
+      contentHtml: printContent ? printContent.outerHTML : ""
+    });
   };
 
   const handleExport = () => {

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { reportService, masterService } from '../microservices/api.service';
+import { openPrintWindow } from '../utils/print';
 import '../styles/base.css';const __cx = (...vals) => vals.filter(Boolean).join(" ");
 
 const CenterPurchasesReport = () => {
@@ -60,35 +61,12 @@ const CenterPurchasesReport = () => {
       toast.error("No data to print!");
       return;
     }
-    const printContent = tableRef.current.outerHTML;
-    const printWindow = window.open('', '_blank', 'width=1000,height=1000');
-    printWindow.document.write(`
-            <html>
-                <head>
-                    <title>Center Purchases Report</title>
-                    <style>
-                        body { font-family: sans-serif; }
-                        h2, h4 { text-align: center; }
-                        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
-                        th, td { border: 1px solid black; padding: 4px; text-align: left; }
-                        th { background-color: #dff0d8; text-align: center; }
-                        .text-right { text-align: right; }
-                    </style>
-                </head>
-                <body>
-                    <h2>Bajaj Group</h2>
-                    <h4>Center Purchases Report</h4>
-                    <p>Date: ${reportDate || 'N/A'}</p>
-                    ${printContent}
-                </body>
-            </html>
-        `);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
+    const printContent = tableRef.current;
+    openPrintWindow({
+      title: "Center Purchases Report",
+      subtitle: `Date: ${reportDate || 'N/A'}`,
+      contentHtml: printContent ? printContent.outerHTML : ""
+    });
   };
 
   return (

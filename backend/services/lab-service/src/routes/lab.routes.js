@@ -86,4 +86,10 @@ router.get('/add-budget-by-id', controller.AddBudgetById);
 router.get('/add-budget-delete', controller.AddBudgetDelete);
 router.post('/add-budget-2', controller.AddBudget_2);
 
+// Target vs Actual MIS
+router.get('/target-actual-misview', controller.TargetActualMISView);
+router.get('/target-actual-mis', controller.TargetActualMISView);
+router.get('/taregetvs-actual-mis', controller.TaregetvsActualMIS);
+router.post('/taregetvs-actual-mis-2', controller.TaregetvsActualMIS_2);
+
 module.exports = router;

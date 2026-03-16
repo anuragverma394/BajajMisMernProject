@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { surveyService, masterService } from '../../microservices/api.service';
-import '../../styles/SurveyReports.css';const __cx = (...vals) => vals.filter(Boolean).join(" ");
+import '../../styles/SurveyReports.css';
+import { openPrintWindow } from '../../utils/print';
+const __cx = (...vals) => vals.filter(Boolean).join(" ");
 
 const SurveyReport_PlotWiseDetails = () => {
   const navigate = useNavigate();
@@ -52,18 +54,11 @@ const SurveyReport_PlotWiseDetails = () => {
 
   const handlePrint = () => {
     const content = document.getElementById('plot-report-print');
-    const win = window.open('', '', 'height=800,width=1400');
-    win.document.write('<html><head><title>Geospatial Plot Audit</title>');
-    win.document.write('<style>table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 8px; } th, td { border: 1px solid #e2e8f0; padding: 4px; text-align: center; } th { background: #f1f5f9; color: #475569; font-weight: 800; text-transform: uppercase; } .text-left { text-align: left; } .bg-emerald { background: #ecfdf5; } .font-black { font-weight: 900; }</style>');
-    win.document.write('</head><body>');
-    win.document.write('<div style="text-align:center; padding: 20px;">');
-    win.document.write('<h1 style="margin:0; color:#064e3b;">Bajaj Sugar - Plot Intelligence</h1>');
-    win.document.write(`<p style="color:#64748b;">Plot Wise Audit Details | Unit: ${filters.F_code} | Date: ${filters.date}</p>`);
-    win.document.write('</div>');
-    win.document.write(content.innerHTML);
-    win.document.write('</body></html>');
-    win.document.close();
-    win.print();
+    openPrintWindow({
+      title: "Plot Wise Details Report",
+      subtitle: `Unit: ${filters.F_code} | Date: ${filters.date}`,
+      contentHtml: content ? content.outerHTML : ""
+    });
   };
 
   return (

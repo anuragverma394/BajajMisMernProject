@@ -1,7 +1,129 @@
-﻿@import './base.css';;
+@import './base.css';
 
-/* Styles for DriageCentreClerkDetail.jsx */
-.driagecentreclerkdetail-container {
-
+.driage-centre-clerk-page {
+  padding: 20px;
+  background: #ffffff;
+  min-height: 100vh;
+  font-family: var(--font);
 }
 
+.driage-centre-clerk-card {
+  max-width: 1600px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #d7e6d2;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.driage-centre-clerk-header {
+  background: #0b7d6b;
+  color: #ffffff;
+  padding: 12px 20px;
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.driage-centre-clerk-subheader {
+  background: #e2efda;
+  color: #2e7d32;
+  padding: 10px 20px;
+  font-weight: 700;
+  font-size: 13px;
+  border-bottom: 1px solid #c8e6c9;
+}
+
+.driage-centre-clerk-body {
+  padding: 20px;
+}
+
+.driage-centre-clerk-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  align-items: end;
+  margin-bottom: 12px;
+}
+
+.driage-centre-clerk-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #333333;
+}
+
+.driage-centre-clerk-field select,
+.driage-centre-clerk-field input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #cdd9d2;
+  border-radius: 6px;
+  font-size: 13px;
+  background: #ffffff;
+  color: #333333;
+}
+
+.driage-centre-clerk-actions {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0 18px;
+}
+
+.driage-centre-clerk-actions button {
+  padding: 8px 16px;
+  background: #1f9e8a;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  min-width: 90px;
+}
+
+.driage-centre-clerk-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.driage-centre-clerk-table-wrap {
+  border-top: 1px solid #e2e8f0;
+  padding: 0 20px 20px;
+}
+
+.driage-centre-clerk-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  border: 1px solid #bcd6b4;
+  background: #ffffff;
+}
+
+.driage-centre-clerk-table th {
+  background: #e2efda;
+  color: #2f3b2f;
+  text-align: left;
+  padding: 10px;
+  border: 1px solid #bcd6b4;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.driage-centre-clerk-table td {
+  padding: 10px;
+  border: 1px solid #bcd6b4;
+}
+
+.driage-centre-clerk-table td.right {
+  text-align: right;
+}
+
+.driage-centre-clerk-empty {
+  text-align: center;
+  padding: 20px;
+  color: #7a7a7a;
+  font-style: italic;
+}

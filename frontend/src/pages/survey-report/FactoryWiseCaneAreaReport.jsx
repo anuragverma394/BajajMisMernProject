@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { surveyService } from '../../microservices/api.service';
-import '../../styles/SurveyReports.css';const __cx = (...vals) => vals.filter(Boolean).join(" ");const SurveyReport_FactoryWiseCaneAreaReport = () => {const navigate = useNavigate();const [loading, setLoading] = useState(false);const [reportData, setReportData] = useState([]);const [filters, setFilters] = useState({ CaneArea: '1' });
+import '../../styles/SurveyReports.css';
+import { openPrintWindow } from '../../utils/print';
+const __cx = (...vals) => vals.filter(Boolean).join(" ");const SurveyReport_FactoryWiseCaneAreaReport = () => {const navigate = useNavigate();const [loading, setLoading] = useState(false);const [reportData, setReportData] = useState([]);const [filters, setFilters] = useState({ CaneArea: '1' });
 
   const handleSearch = async (e) => {
     if (e) e.preventDefault();
@@ -21,18 +23,11 @@ import '../../styles/SurveyReports.css';const __cx = (...vals) => vals.filter(Bo
 
   const handlePrint = () => {
     const content = document.getElementById('factory-report-print');
-    const win = window.open('', '', 'height=800,width=1400');
-    win.document.write('<html><head><title>Global Cane Area Summary</title>');
-    win.document.write('<style>table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 10px; } th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: center; } th { background: #f8fafc; color: #1e293b; font-weight: 800; text-transform: uppercase; } .text-left { text-align: left; } .font-black { font-weight: 900; } .text-blue { color: #2563eb; }</style>');
-    win.document.write('</head><body>');
-    win.document.write('<div style="text-align:center; padding: 30px;">');
-    win.document.write('<h1 style="margin:0; color:#0f172a; text-transform:uppercase;">Bajaj Sugar - Global Infrastructure Summary</h1>');
-    win.document.write(`<p style="color:#64748b;">Regional Aggregation | Area Type: ${filters.CaneArea === '1' ? 'First Survey' : 'Caneup Portal'}</p>`);
-    win.document.write('</div>');
-    win.document.write(content.innerHTML);
-    win.document.write('</body></html>');
-    win.document.close();
-    win.print();
+    openPrintWindow({
+      title: "Factory Wise Cane Area Report",
+      subtitle: `Area Type: ${filters.CaneArea === '1' ? 'First Survey' : 'Caneup Portal'}`,
+      contentHtml: content ? content.outerHTML : ""
+    });
   };
 
   const handleExport = () => {

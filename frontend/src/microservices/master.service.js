@@ -38,6 +38,21 @@ export const masterService = {
         return unwrap(response.data);
     },
 
+    getModeBind: async (params) => {
+        const response = await apiClient.get('/main/mode-bind', { params });
+        return unwrap(response.data);
+    },
+
+    getAddModeGroup: async (params) => {
+        const response = await apiClient.get('/main/add-mode-group', { params });
+        return unwrap(response.data);
+    },
+
+    saveAddModeGroup: async (payload) => {
+        const response = await apiClient.post('/main/add-mode-group-2', payload);
+        return unwrap(response.data);
+    },
+
     getCenters: async (params) => {
         const response = await apiClient.get('/report/centre-code', { params });
         return response.data;

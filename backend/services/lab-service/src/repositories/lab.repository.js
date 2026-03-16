@@ -1232,11 +1232,8 @@ exports.TargetActualMISView = async (req, res, next) => {
     const toDate = parseFlexibleDateToIso(toRaw);
 
     const factoryCode = Number(factoryRaw || 0);
-    if (!factoryCode) {
-      return res.status(200).json({ success: true, data: [] });
-    }
-    if (!Number.isFinite(factoryCode) || factoryCode <= 0) {
-      return res.status(400).json({ success: false, message: 'factoryCode/FACTORY must be a positive number' });
+    if (!Number.isFinite(factoryCode) || factoryCode < 0) {
+      return res.status(400).json({ success: false, message: 'factoryCode/FACTORY must be zero or a positive number' });
     }
 
     const rows = await executeQuery(
@@ -1285,7 +1282,7 @@ exports.TargetActualMISView = async (req, res, next) => {
           ISNULL(P_PEOnDate, 0) AS P_PEOnDate,
           ISNULL(P_PEToDate, 0) AS P_PEToDate
        FROM MI_CANETARGET
-       WHERE FACTORY = @factoryCode
+       WHERE (@factoryCode = 0 OR FACTORY = @factoryCode)
          AND (@fromDate IS NULL OR CAST(TM_DATE AS date) >= @fromDate)
          AND (@toDate IS NULL OR CAST(TM_DATE AS date) <= @toDate)
        ORDER BY CAST(TM_DATE AS date) DESC`,

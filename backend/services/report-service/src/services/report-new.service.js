@@ -15,10 +15,46 @@ async function getHourlyCaneArrivalWeight(season) {
 /**
  * GET: Indent Purchase Report New
  */
-async function getIndentPurchaseReportNew(season) {
+async function getIndentPurchaseReportNew(params, season) {
   try {
-    const data = await repository.getIndentPurchaseReportNew(season);
-    return data || [];
+    const data = await repository.getIndentPurchaseReportNew(params, season);
+    const rows = Array.isArray(data) ? data : [];
+
+    const withExp = rows.map((row) => {
+      const mature = Number(row.mature || 0);
+      const backbalanceindent = Number(row.backbalanceindent || 0);
+      const expur = mature > 0 ? Math.round((backbalanceindent * mature) / 100) : 0;
+      return { ...row, expur };
+    });
+
+    const totals = withExp.reduce((acc, row) => {
+      acc.onedaysbalnace += Number(row.onedaysbalnace || 0);
+      acc.twodaysdaysbalnace += Number(row.twodaysdaysbalnace || 0);
+      acc.TodayIndent += Number(row.TodayIndent || 0);
+      acc.totalindenttoday += Number(row.totalindenttoday || 0);
+      acc.purchase += Number(row.purchase || 0);
+      acc.mature += Number(row.mature || 0);
+      acc.backonedaysbalnace += Number(row.backonedaysbalnace || 0);
+      acc.backtwodaysdaysbalnace += Number(row.backtwodaysdaysbalnace || 0);
+      acc.backTodayIndent += Number(row.backTodayIndent || 0);
+      acc.backbalanceindent += Number(row.backbalanceindent || 0);
+      acc.expur += Number(row.expur || 0);
+      return acc;
+    }, {
+      onedaysbalnace: 0,
+      twodaysdaysbalnace: 0,
+      TodayIndent: 0,
+      totalindenttoday: 0,
+      purchase: 0,
+      mature: 0,
+      backonedaysbalnace: 0,
+      backtwodaysdaysbalnace: 0,
+      backTodayIndent: 0,
+      backbalanceindent: 0,
+      expur: 0
+    });
+
+    return { rows: withExp, totals };
   } catch (error) {
     throw new Error(`Failed to fetch indent purchase report: ${error.message}`);
   }

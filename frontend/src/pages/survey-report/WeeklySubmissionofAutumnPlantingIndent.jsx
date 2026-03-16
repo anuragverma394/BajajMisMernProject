@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { surveyService, masterService } from '../../microservices/api.service';
-import '../../styles/SurveyReports.css';const __cx = (...vals) => vals.filter(Boolean).join(" ");
+import '../../styles/SurveyReports.css';
+import { openPrintWindow } from '../../utils/print';
+const __cx = (...vals) => vals.filter(Boolean).join(" ");
 
 const SurveyReport_WeeklySubmissionofAutumnPlantingIndent = () => {
   const navigate = useNavigate();
@@ -58,18 +60,11 @@ const SurveyReport_WeeklySubmissionofAutumnPlantingIndent = () => {
 
   const handlePrint = () => {
     const content = document.getElementById('planting-print-area');
-    const win = window.open('', '', 'height=800,width=1400');
-    win.document.write('<html><head><title>Planting Audit Matrix</title>');
-    win.document.write('<style>table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 8px; } th, td { border: 1px solid #e2e8f0; padding: 4px; text-align: center; } th { background: #f8fafc; color: #475569; font-weight: 800; text-transform: uppercase; } .text-left { text-align: left; } .font-black { font-weight: 900; } .text-teal { color: #0d9488; }</style>');
-    win.document.write('</head><body>');
-    win.document.write('<div style="text-align:center; padding: 20px;">');
-    win.document.write(`<h1 style="margin:0; color:#134e4a;">Bajaj Sugar - ${filters.PlantinType} Planting Audit</h1>`);
-    win.document.write(`<p style="color:#64748b;">Planting Submission Core | Unit: ${filters.unit} | Range: ${filters.Datefrom} to ${filters.DateTo}</p>`);
-    win.document.write('</div>');
-    win.document.write(content.innerHTML);
-    win.document.write('</body></html>');
-    win.document.close();
-    win.print();
+    openPrintWindow({
+      title: `${filters.PlantinType} Planting Audit`,
+      subtitle: `Unit: ${filters.unit} | Range: ${filters.Datefrom} to ${filters.DateTo}`,
+      contentHtml: content ? content.outerHTML : ""
+    });
   };
 
   return (

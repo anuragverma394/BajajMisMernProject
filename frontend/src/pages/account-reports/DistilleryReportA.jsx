@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { distilleryService, masterService } from '../../microservices/api.service';
 import '../../styles/DistilleryReportA_1.css';const __cx = (...vals) => vals.filter(Boolean).join(" ");
+import { openPrintWindow } from '../../utils/print';
 
 const AccountReports_DistilleryReportA = () => {
   const navigate = useNavigate();
@@ -69,30 +70,10 @@ const AccountReports_DistilleryReportA = () => {
   };
 
   const handlePrint = () => {
-    const printContent = tableRef.current.outerHTML;
-    const win = window.open('', '', 'width=1000,height=800');
-    win.document.write(`
-            <html>
-                <head>
-                    <title>Distillery Report A</title>
-                    <style>
-                        table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 11px; }
-                        th, td { border: 1px solid #333; padding: 6px; text-align: left; }
-                        th { background: #f0f0f0; }
-                        .text-right { text-align: right; }
-                        .row-bold { font-weight: bold; background: #fafafa; }
-                    </style>
-                </head>
-                <body>
-                    <h2>Bajaj Group</h2>
-                    <h4>Distillery Report A</h4>
-                    ${printContent}
-                </body>
-            </html>
-        `);
-    win.document.close();
-    win.focus();
-    win.print();
+    openPrintWindow({
+      title: "Distillery Report A",
+      contentHtml: tableRef.current ? tableRef.current.outerHTML : ""
+    });
   };
 
   const handleExport = () => {

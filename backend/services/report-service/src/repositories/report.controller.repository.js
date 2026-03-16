@@ -3,6 +3,29 @@ const reportService = require('../services/report.service');
 
 const CONTROLLER = 'Report';
 
+// Normalize incoming date to YYYY-MM-DD for SQL usage
+function toSqlDateAnalysis(raw) {
+  const value = String(raw || '').trim();
+  if (!value) return '';
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+    const [dd, mm, yyyy] = value.split('/');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  if (/^\d{2}-\d{2}-\d{4}$/.test(value)) {
+    const [dd, mm, yyyy] = value.split('-');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  const dt = new Date(value);
+  if (Number.isNaN(dt.getTime())) return '';
+  const dd = String(dt.getDate()).padStart(2, '0');
+  const mm = String(dt.getMonth() + 1).padStart(2, '0');
+  const yyyy = dt.getFullYear();
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 // ── Stored-procedure whitelist (security) ─────────────────────────────────────
 // Only procedures listed here may be executed via createProcedureHandler.
 // Add new procedures here before wiring up a new export.
@@ -44,6 +67,42 @@ if (typeof next === 'function') return next(error);
 throw error;
 }
 };
+}
+
+// ------------------------------------------------------------
+// Column discovery helpers (avoid invalid column errors)
+// ------------------------------------------------------------
+const tableColumnCache = new Map();
+async function getTableColumnList(season, tableName) {
+  const key = `${season || ''}:${tableName}`;
+  if (tableColumnCache.has(key)) return tableColumnCache.get(key);
+  const rows = await executeQuery(
+    `SELECT c.name AS columnName
+     FROM sys.columns c
+     WHERE c.object_id = OBJECT_ID(@tableName)`,
+    { tableName },
+    season
+  );
+  const cols = (rows || []).map((r) => String(r.columnName));
+  tableColumnCache.set(key, cols);
+  return cols;
+}
+
+function pickExistingColumnFromList(cols, candidates, fallback) {
+  const set = new Set((cols || []).map((c) => c.toLowerCase()));
+  for (const c of candidates) {
+    if (set.has(String(c).toLowerCase())) return c;
+  }
+  return fallback;
+}
+
+async function resolveColumn(season, tableName, candidates, fallback) {
+  try {
+    const cols = await getTableColumnList(season, tableName);
+    return pickExistingColumnFromList(cols, candidates, fallback);
+  } catch (error) {
+    return fallback;
+  }
 }
 
 function buildCrushingDefaults(req) {
@@ -178,1161 +237,8 @@ recordsets: [[], [], [], []]
 }
 
 /**
-* Normalizes a date string to 'YYYY-MM-DD' format for SQL queries.
-* Accepts dd/mm/yyyy, dd-mm-yyyy or yyyy-mm-dd.
-*/
-function toSqlDateAnalysis(raw) {
-const s = String(raw || '').trim();
-if (!s) return '';
-// dd/mm/yyyy or dd-mm-yyyy
-const ddmmyyyy = s.match(/^(\d{2})[\-\/](\d{2})[\-\/](\d{4})$/);
-if (ddmmyyyy) return `${ddmmyyyy[3]}-${ddmmyyyy[2]}-${ddmmyyyy[1]}`;
-// yyyy-mm-dd
-if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-return '';
-}
-
-const tokenDateColumnCache = new Map();
-
-async function resolveTokenDateColumn(season) {
-if (tokenDateColumnCache.has(season)) return tokenDateColumnCache.get(season);
-const rows = await executeQuery(
-`SELECT COLUMN_NAME
- FROM INFORMATION_SCHEMA.COLUMNS
- WHERE TABLE_NAME = 'T_TOKEN'
-   AND COLUMN_NAME IN (
-     'tt_TokDatetime', 'TT_TokDatetime',
-     'tt_TokDateTime', 'TT_TokDateTime',
-     'tt_TokDate', 'TT_TokDate',
-     'TT_DATE', 'tt_date',
-     'TT_CRDATE', 'tt_crdate',
-     'TT_DPDATE', 'tt_dpdate'
-   )`,
-{},
-season
-).catch(() => []);
-
-const col = rows?.[0]?.COLUMN_NAME ? String(rows[0].COLUMN_NAME) : null;
-tokenDateColumnCache.set(season, col);
-return col;
-}
-
-/**
-* Fetches all 4 analysis datasets by running direct SQL queries
-* (mirroring the .NET sugarReportDataAccess.cs methods).
-*
-* Section 1 – Main hours table (cane crush + lab hour):  GetHours × GetCaneCrush × GetLabhourdata
-* Section 2 – Juice analysis:                            GetTimeJuiceData / GetJuicedata
-* Section 3 – Bagasse:                                   GetBagass
-* Section 4 – Final Molasses:                            GetFMolasses
-*/
-function createAnalysisHandler() {
-return async (req, res, next) => {
-try {
-const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
-const p = { ...(req.query || {}), ...(req.body || {}) };
-
-// Resolve factory code
-const fcode = String(
-p.F_code ?? p.F_Code ?? p.factcode ?? p.FACTCODE ?? p.unit ?? p.factoryCode ?? p.FACTORY ?? p.factory ?? ''
-).trim();
-
-// Resolve and normalise date → YYYY-MM-DD for SQL
-const rawDate = String(p.Date ?? p.DATE ?? p.date ?? p.DDATE ?? p.DDate ?? '').trim();
-const sqlDate = toSqlDateAnalysis(rawDate);
-
-if (!sqlDate) {
-return res.status(200).json(buildAnalysisDefaults());
-}
-
-// ── Shared query parameters (safe, parameterized – prevents SQL injection) ──
-// All user-supplied values are passed as named @params through mssql request.input()
-// so they are NEVER concatenated into the SQL string.
-const hasFactory = !(!fcode || fcode === '0');
-const qpDate = { Date: sqlDate };                              // @Date
-const qpAll = { Date: sqlDate, Factory: fcode };             // @Date + @Factory
-
-// ── Section 1a: All hour slots from Mi_Hours (static, no user input) ─────
-const hoursQ = `SELECT SN, HOURS, SNCC FROM Mi_Hours ORDER BY SN ASC`;
-
-// ── Section 1b: Cane crush weight per hour for the selected day ───────────
-const caneCrushQ = hasFactory
-? `SELECT hou, SUM(FinWt) AS FinWt FROM (
-SELECT SUM(CAST(M_GROSS - M_TARE - M_JOONA AS DECIMAL(18,2))) AS FinWt,
-DATEPART(hour, M_TARE_DT) AS hou
-FROM PURCHASE
-WHERE CAST(M_DATE AS DATE) = @Date AND M_FACTORY = @Factory AND M_CENTRE IN (100)
-GROUP BY DATEPART(hour, M_TARE_DT)
-UNION ALL
-SELECT SUM(CAST(tt_grossweight - tt_tareweight - tt_joonaweight AS DECIMAL(18,2))) AS FinWt,
-DATEPART(hour, TT_TARE_DT) AS hou
-FROM RECEIPT
-WHERE CAST(TT_DATE AS DATE) = @Date AND TT_FACTORY = @Factory
-AND TT_CENTER NOT IN (100) AND tt_tareweight > 0
-GROUP BY DATEPART(hour, TT_TARE_DT)
-) Temp GROUP BY hou`
-: `SELECT hou, SUM(FinWt) AS FinWt FROM (
-SELECT SUM(CAST(M_GROSS - M_TARE - M_JOONA AS DECIMAL(18,2))) AS FinWt,
-DATEPART(hour, M_TARE_DT) AS hou
-FROM PURCHASE
-WHERE CAST(M_DATE AS DATE) = @Date AND M_CENTRE IN (100)
-GROUP BY DATEPART(hour, M_TARE_DT)
-UNION ALL
-SELECT SUM(CAST(tt_grossweight - tt_tareweight - tt_joonaweight AS DECIMAL(18,2))) AS FinWt,
-DATEPART(hour, TT_TARE_DT) AS hou
-FROM RECEIPT
-WHERE CAST(TT_DATE AS DATE) = @Date AND TT_CENTER NOT IN (100) AND tt_tareweight > 0
-GROUP BY DATEPART(hour, TT_TARE_DT)
-) Temp GROUP BY hou`;
-
-// ── Section 1c: Lab hour readings per hour ────────────────────────────────
-
-
-const labHourQ = hasFactory
-? `SELECT SHIFT, Time,
-CAST(ISNULL(Col2, 0) AS NUMERIC(18,0)) AS Juice,
-ADD_WATER, '0' AS MDF,
-ISNULL(L_31,0)+ISNULL(L_30,0)+ISNULL(L_29,0)
-+ISNULL(M_31,0)+ISNULL(M_30,0)+ISNULL(M_29,0)
-+ISNULL(S_31,0)+ISNULL(S_30,0)+ISNULL(S_29,0) AS SugarBags
-FROM LAB_HOUR
-WHERE factory = @Factory AND CAST(H_DATE AS DATE) = @Date`
-: (hasFactory   
-? `SELECT Time,
-SUM(CAST(ISNULL(Col2, 0) AS NUMERIC(18,0))) AS Juice,
-SUM(ADD_WATER) AS ADD_WATER, '0' AS MDF,
-SUM(ISNULL(L_31,0)+ISNULL(L_30,0)+ISNULL(L_29,0)
-+ISNULL(M_31,0)+ISNULL(M_30,0)+ISNULL(M_29,0)
-+ISNULL(S_31,0)+ISNULL(S_30,0)+ISNULL(S_29,0)) AS SugarBags
-FROM LAB_HOUR
-WHERE factory = @Factory AND CAST(H_DATE AS DATE) = @Date
-GROUP BY Time`
-: `SELECT Time,
-SUM(CAST(ISNULL(Col2, 0) AS NUMERIC(18,0))) AS Juice,
-SUM(ADD_WATER) AS ADD_WATER, '0' AS MDF,
-SUM(ISNULL(L_31,0)+ISNULL(L_30,0)+ISNULL(L_29,0)
-+ISNULL(M_31,0)+ISNULL(M_30,0)+ISNULL(M_29,0)
-+ISNULL(S_31,0)+ISNULL(S_30,0)+ISNULL(S_29,0)) AS SugarBags
-FROM LAB_HOUR
-WHERE CAST(H_DATE AS DATE) = @Date
-GROUP BY Time`);
-
-// ── Section 2: Juice analysis per hour ────────────────────────────────────
-const juiceDataQ = hasFactory
-? `SELECT h.Hours AS TIME1,
-AVG(PJ_BX) AS PrimaryBrix, AVG(PJ_POL) AS PrimaryPol, AVG(PJ_PY) AS PrimaryPurity,
-AVG(MJ_BX) AS MixBrix,     AVG(MJ_POL) AS MixPol,     AVG(MJ_PY) AS MixPurity,
-AVG(LMJ_BX) AS BrixML
-FROM LAB_DAILY lab
-JOIN MI_Hours h ON h.SN = lab.TIME1
-WHERE factory = @Factory AND CAST(DDATE AS DATE) = @Date
-AND MJ_PY > 0 AND PJ_PY > 0
-GROUP BY h.SN, h.Hours
-ORDER BY h.SN ASC`
-: `SELECT h.Hours AS TIME1,
-AVG(PJ_BX) AS PrimaryBrix, AVG(PJ_POL) AS PrimaryPol, AVG(PJ_PY) AS PrimaryPurity,
-AVG(MJ_BX) AS MixBrix,     AVG(MJ_POL) AS MixPol,     AVG(MJ_PY) AS MixPurity,
-AVG(LMJ_BX) AS BrixML
-FROM LAB_DAILY lab
-JOIN MI_Hours h ON h.SN = lab.TIME1
-WHERE CAST(DDATE AS DATE) = @Date
-AND MJ_PY > 0 AND PJ_PY > 0
-GROUP BY h.SN, h.Hours
-ORDER BY h.SN ASC`;
-
-// ── Section 3: Bagasse (Pol + Moisture) per hour ──────────────────────────
-const bagasseQ = hasFactory
-? `SELECT h.Hours AS Time, AVG(B_POL) AS Pol, AVG(B_MOIS) AS Mois
-FROM LAB_DAILY lab
-JOIN MI_Hours h ON h.SN = lab.TIME1
-WHERE factory = @Factory AND CAST(DDATE AS DATE) = @Date
-GROUP BY h.SN, h.Hours
-ORDER BY h.SN ASC`
-: `SELECT h.Hours AS Time, AVG(B_POL) AS Pol, AVG(B_MOIS) AS Mois
-FROM LAB_DAILY lab
-JOIN MI_Hours h ON h.SN = lab.TIME1
-WHERE CAST(DDATE AS DATE) = @Date
-GROUP BY h.SN, h.Hours
-ORDER BY h.SN ASC`;
-
-// ── Section 4: Final Molasses per hour ────────────────────────────────────
-const molassesQ = hasFactory
-? `SELECT h.SN, h.Hours AS Time,
-FM_BX AS Brix, FM_POL AS Pol, FM_PY AS Purity,
-ISNULL((SELECT SUM(SS_BX) FROM LAB_DAILY
-WHERE factory = lab.factory AND TIME1 = lab.TIME AND DDATE = lab.DDATE), 0) AS QuadBrix
-FROM LAB_ABC_HEAVY lab
-JOIN MI_Hours h ON h.SN = lab.TIME
-WHERE lab.factory = @Factory AND CAST(lab.DDATE AS DATE) = @Date
-ORDER BY h.SN ASC`
-: `SELECT h.SN, h.Hours AS Time,
-FM_BX AS Brix, FM_POL AS Pol, FM_PY AS Purity,
-ISNULL((SELECT SUM(SS_BX) FROM LAB_DAILY
-WHERE TIME1 = lab.TIME AND DDATE = lab.DDATE), 0) AS QuadBrix
-FROM LAB_ABC_HEAVY lab
-JOIN MI_Hours h ON h.SN = lab.TIME
-WHERE CAST(lab.DDATE AS DATE) = @Date
-ORDER BY h.SN ASC`;
-
-// ── Execute all queries in parallel using safe parameterized inputs ────────
-const labHourParams = (hasFactory && !isGola) ? qpAll : (hasFactory ? qpAll : qpDate);
-const [hoursRows, caneCrushRows, labHourRows, juiceRows, bagasseRows, molassesRows] = await Promise.all([
-executeQuery(hoursQ, {}, season).catch(() => []),
-executeQuery(caneCrushQ, hasFactory ? qpAll : qpDate, season).catch(() => []),
-executeQuery(labHourQ, labHourParams, season).catch(() => []),
-executeQuery(juiceDataQ, hasFactory ? qpAll : qpDate, season).catch(() => []),
-executeQuery(bagasseQ, hasFactory ? qpAll : qpDate, season).catch(() => []),
-executeQuery(molassesQ, hasFactory ? qpAll : qpDate, season).catch(() => [])
-]);
-
-// ── Build Section 1: merge hours + caneCrush + labHour ───────────────────
-// Build a map from hour→caneCrush weight
-const caneCrushMap = {};
-for (const r of caneCrushRows) {
-const h = String(r.hou ?? '').trim();
-if (h) caneCrushMap[h] = Number(r.FinWt || 0);
-}
-// Build a map from Time→labHour row
-const labHourMap = {};
-for (const r of labHourRows) {
-const t = String(r.Time ?? '').trim();
-if (t) labHourMap[t] = r;
-}
-
-let tccrush = 0;
-let tjtank = 0;
-let twhtank = 0;
-let tsbag = 0;
-
-const mainRows = (hoursRows || []).map((hourRow) => {
-const sncc = String(hourRow.SNCC ?? '').trim();
-const hourLabel = String(hourRow.HOURS ?? '').trim();
-const hourNum = String(hourRow.SN ?? '').trim();
-
-const crushWt = caneCrushMap[sncc] || 0;
-const lab = labHourMap[hourNum] || null;
-
-if (crushWt > 0) tccrush += crushWt;
-
-let juice = 0, addWater = 0, sugarBags = 0;
-let juicePct = 0, waterPct = 0, baggingRecoveryPct = 0, dmf = 0;
-
-if (lab) {
-juice = Number(lab.Juice || 0);
-addWater = Number(lab.ADD_WATER || 0);
-sugarBags = Number(lab.SugarBags || 0);
-
-tjtank += juice;
-twhtank += addWater;
-tsbag += sugarBags;
-
-if (tjtank > 0 && tccrush > 0) juicePct = Math.round(((tjtank * 10) / tccrush) * 100 * 100) / 100;
-if (twhtank > 0 && tccrush > 0) waterPct = Math.round(((twhtank * 10) / tccrush) * 100 * 100) / 100;
-if (tsbag > 0 && tccrush > 0) baggingRecoveryPct = Math.round(((tsbag / tccrush) * 100) * 100) / 100;
-if (juicePct > 0 && waterPct > 0) dmf = Math.round((juicePct - (juicePct * 0.4 / 100) - waterPct) * 100) / 100;
-}
-
-return {
-Time: hourLabel,
-CaneCrush: Math.round(crushWt * 100) / 100,
-JuiceInTon: Math.round(juice * 100) / 100,
-JuicePct: juicePct,
-WaterInTon: Math.round(addWater * 100) / 100,
-WaterPct: waterPct,
-DMF: dmf,
-SugarBags: sugarBags,
-BaggingRecoveryPct: baggingRecoveryPct
-};
-});
-
-// ── Build Section 2: juice analysis rows ─────────────────────────────────
-const juiceAnalysisRows = (juiceRows || []).map((r) => ({
-Time: String(r.TIME1 ?? ''),
-PrimaryBrix: Number(r.PrimaryBrix || 0),
-PrimaryPol: Number(r.PrimaryPol || 0),
-PrimaryPurity: Number(r.PrimaryPurity || 0),
-MixBrix: Number(r.MixBrix || 0),
-MixPol: Number(r.MixPol || 0),
-MixPurity: Number(r.MixPurity || 0),
-BrixML: Number(r.BrixML || 0)
-}));
-
-// ── Build Section 3: bagasse rows ────────────────────────────────────────
-const bagasseDataRows = (bagasseRows || []).map((r) => ({
-Time: String(r.Time ?? ''),
-Pol: Number(r.Pol || 0),
-Mois: Number(r.Mois || 0)
-}));
-
-// ── Build Section 4: molasses rows ───────────────────────────────────────
-const molassesDataRows = (molassesRows || []).map((r) => ({
-Time: String(r.Time ?? ''),
-Brix: Number(r.Brix || 0),
-Pol: Number(r.Pol || 0),
-Purity: Number(r.Purity || 0),
-QuadBrix: Number(r.QuadBrix || 0)
-}));
-
-return res.status(200).json({
-success: true,
-message: 'Report.Analysisdata executed',
-data: mainRows,
-recordsets: [mainRows, juiceAnalysisRows, bagasseDataRows, molassesDataRows]
-});
-} catch (error) {
-if (typeof next === 'function') return next(error);
-throw error;
-}
-};
-}
-
-exports.CrushingReport = createProcedureHandler(CONTROLLER, 'CrushingReport', '');
-exports.Imagesblub = createCrushingHandler('Imagesblub');
-exports.LOADMODEWISEDATA = createCrushingHandler('LOADMODEWISEDATA');
-exports.LOADFACTORYDATA = createCrushingHandler('LOADFACTORYDATA');
-exports.Value = createProcedureHandler(CONTROLLER, 'Value', 'string a');
-exports.GetYesterdaytransitDetail = createProcedureHandler(CONTROLLER, 'GetYesterdaytransitDetail', '');
-exports.GetTodaytransitDetail = createProcedureHandler(CONTROLLER, 'GetTodaytransitDetail', '');
-exports.Analysisdata = createAnalysisHandler();
-/**
-* CentrePurchase – mirrors CenterPurchase.cs → GetCentrePurchaseByCDO
-* Returns rows: SN, m_Centre, C_Name, 1stwmtTime, LastWmtTime, PurchyNos,
-*               PurQty, VehDispatchNos, 1stdisptchAt, LastDisptchAt, Recieved, Balance
-*/
-function createCentrePurchaseHandler() {
-return async (req, res, next) => {
-try {
-const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
-const p = { ...(req.query || {}), ...(req.body || {}) };
-const userId = String(req.user?.userId || p.Userid || p.userid || '').trim();
-
-const fcode = String(
-p.F_code ?? p.F_Code ?? p.factcode ?? p.FACTCODE ?? p.unit ?? p.factory ?? p.FACTORY ?? ''
-).trim();
-
-const rawDate = String(p.Date ?? p.DATE ?? p.date ?? p.DDATE ?? p.DDate ?? '').trim();
-const sqlDate = toSqlDateAnalysis(rawDate); // reuse existing date normalizer
-
-if (!sqlDate || !fcode || fcode === '0' || fcode === 'All') {
-return res.status(200).json({ success: true, message: 'CentrePurchase: missing params', data: [], recordsets: [[]] });
-}
-
-const buildInClause = (column, values, params, prefix = 'b') => {
-  if (!values.length) return '';
-  const keys = [];
-  values.forEach((val, idx) => {
-    const key = `${prefix}${idx}`;
-    params[key] = val;
-    keys.push(`@${key}`);
-  });
-  return ` AND ${column} IN (${keys.join(', ')})`;
-};
-
-let blockFilter = '';
-if (userId) {
-  const cdoRows = await executeQuery(
-    `SELECT TOP 1 CDO_MOBILENO, CDO_GRP_CODE
-     FROM cdo_mst
-     WHERE CDO_Factcode = @factory
-       AND CDO_MOBILENO IN (
-         SELECT Mobile FROM MI_User WHERE Type = 1 AND Userid = @userId
-       )`,
-    { factory: fcode, userId },
-    season
-  ).catch(() => []);
-
-  if (cdoRows?.length) {
-    const cdo = cdoRows[0];
-    const mobile = String(cdo.CDO_MOBILENO || '').trim();
-    const grp = String(cdo.CDO_GRP_CODE || '').trim();
-    let blockRows = [];
-
-    if (grp === 'BI') {
-      blockRows = await executeQuery(
-        `SELECT bl_code
-         FROM block
-         WHERE bl_factcode = @factory
-           AND bl_inchargecode IN (
-             SELECT CDO_CODE
-             FROM cdo_mst
-             WHERE CDO_Factcode = @factory
-               AND CDO_MOBILENO IN (
-                 SELECT Mobile FROM MI_User WHERE Type = 1 AND Userid = @userId AND Mobile = @mobile
-               )
-           )`,
-        { factory: fcode, userId, mobile },
-        season
-      ).catch(() => []);
-    } else if (grp === 'DI') {
-      blockRows = await executeQuery(
-        `SELECT bl_code
-         FROM block
-         WHERE bl_factcode = @factory
-           AND bl_Zonecode IN (
-             SELECT Z_CODE
-             FROM ZONE
-             WHERE z_factory = @factory
-               AND z_div_code IN (
-                 SELECT Div_Code
-                 FROM Division
-                 WHERE factory = @factory
-                   AND Div_OfficerCode IN (
-                     SELECT CDO_CODE
-                     FROM cdo_mst
-                     WHERE CDO_Factcode = @factory
-                       AND CDO_MOBILENO IN (
-                         SELECT Mobile FROM MI_User WHERE Type = 1 AND Userid = @userId AND Mobile = @mobile
-                       )
-                   )
-               )
-           )`,
-        { factory: fcode, userId, mobile },
-        season
-      ).catch(() => []);
-    } else if (grp === 'ZI') {
-      blockRows = await executeQuery(
-        `SELECT bl_code
-         FROM block
-         WHERE bl_factcode = @factory
-           AND bl_Zonecode IN (
-             SELECT Z_CODE
-             FROM ZONE
-             WHERE z_factory = @factory
-               AND Z_ZoneOfficerCode IN (
-                 SELECT CDO_CODE
-                 FROM cdo_mst
-                 WHERE CDO_Factcode = @factory
-                   AND CDO_MOBILENO IN (
-                     SELECT Mobile FROM MI_User WHERE Type = 1 AND Userid = @userId AND Mobile = @mobile
-                   )
-               )
-           )`,
-        { factory: fcode, userId, mobile },
-        season
-      ).catch(() => []);
-    }
-
-    const blocks = blockRows.map((r) => String(r.bl_code || r.BL_CODE || r.bl_Code || '').trim()).filter(Boolean);
-    blockFilter = blocks.length ? buildInClause('cn.C_block', blocks, p, 'bl') : ' AND 1=0';
-  }
-}
-
-// Direct SQL – mirrors the .NET DAL (CenterPurchase.cs) – no CDO filter applied
-// (CDO-based block restriction only applies in the .NET mobile app flow)
-const sql = `
-WITH cet_base AS (
-SELECT m_Centre, M_Factory,
-CASE WHEN CAST(MIN(M_GROS_DT) AS DATE) = @Date
-THEN CASE WHEN CONVERT(varchar(5), ISNULL(MIN(M_GROS_DT), 0), 8) = '0'
-THEN CONVERT(varchar(5), ISNULL(MIN(M_TARE_DT), 0), 8)
-ELSE CONVERT(varchar(5), ISNULL(MIN(M_GROS_DT), 0), 8) END
-ELSE CONVERT(varchar(5), ISNULL(MIN(M_TARE_DT), 0), 8)
-END AS [1stwmtTime],
-CONVERT(varchar(5), ISNULL(MAX(M_TARE_DT), 0), 8) AS LastWmtTime,
-COUNT(m_Number) AS PurchyNos,
-SUM(ISNULL((M_GROSS - M_TARE - M_JOONA), 0)) AS PurQty
-FROM Purchase
-WHERE M_TARE_DT != '1900-01-01'
-  AND CAST(M_TARE_DT AS DATE) = @Date
-  AND M_FACTORY = @Factory
-GROUP BY m_Centre, M_Factory
-),
-/* Fallback when tare-dated rows are missing for the day */
-cet_fallback AS (
-SELECT m_Centre, M_Factory,
-CASE WHEN CAST(MIN(M_GROS_DT) AS DATE) = @Date
-THEN CASE WHEN CONVERT(varchar(5), ISNULL(MIN(M_GROS_DT), 0), 8) = '0'
-THEN CONVERT(varchar(5), ISNULL(MIN(M_TARE_DT), 0), 8)
-ELSE CONVERT(varchar(5), ISNULL(MIN(M_GROS_DT), 0), 8) END
-ELSE CONVERT(varchar(5), ISNULL(MIN(M_TARE_DT), 0), 8)
-END AS [1stwmtTime],
-CONVERT(varchar(5), ISNULL(MAX(M_TARE_DT), 0), 8) AS LastWmtTime,
-COUNT(m_Number) AS PurchyNos,
-SUM(ISNULL((M_GROSS - M_TARE - M_JOONA), 0)) AS PurQty
-FROM Purchase
-WHERE CAST(COALESCE(
-  NULLIF(M_TARE_DT, '1900-01-01'),
-  NULLIF(M_GROS_DT, '1900-01-01'),
-  M_DATE
-) AS DATE) = @Date
-  AND M_FACTORY = @Factory
-GROUP BY m_Centre, M_Factory
-),
-cet AS (
-  SELECT * FROM cet_base
-  UNION ALL
-  SELECT * FROM cet_fallback
-  WHERE NOT EXISTS (SELECT 1 FROM cet_base)
-),
-etc AS (
-SELECT CH_Centre, ch_Factory,
-COUNT(DISTINCT ch_Challan) AS VehDispatchNos,
-CONVERT(varchar(5), ISNULL(MIN(Ch_dep_date), 0), 8) AS [1stdisptchAt],
-CONVERT(varchar(5), ISNULL(MAX(Ch_dep_date), 0), 8) AS LastDisptchAt,
-SUM(CASE WHEN CH_status > 0 THEN 1 ELSE 0 END) AS Recieved
-FROM challan_Final
-WHERE Ch_Cancel = 0
-  AND CAST(Ch_dep_date AS DATE) = @Date
-  AND Ch_dep_date != '1900-01-01'
-  AND CH_Factory = @Factory
-GROUP BY CH_Centre, ch_Factory
-)
-SELECT
-ROW_NUMBER() OVER (ORDER BY cn.c_code) AS SN,
-cn.c_code  AS m_Centre,
-cn.C_Name,
-ISNULL(
-  CASE
-    WHEN c.MinGross IS NOT NULL AND CAST(c.MinGross AS DATE) = @Date
-      THEN CASE
-        WHEN CONVERT(varchar(5), c.MinGross, 8) IN ('00:00', '0')
-          THEN CONVERT(varchar(5), ISNULL(c.MinTare, c.MinGross), 8)
-        ELSE CONVERT(varchar(5), c.MinGross, 8)
-      END
-    ELSE CONVERT(varchar(5), ISNULL(c.MinTare, c.MinGross), 8)
-  END, 0
-) AS [1stwmtTime],
-ISNULL(CONVERT(varchar(5), ISNULL(c.MaxTare, c.MaxGross), 8), 0) AS LastWmtTime,
-ISNULL(c.PurchyNos,     0) AS PurchyNos,
-ISNULL(c.PurQty,        0) AS PurQty,
-ISNULL(e.VehDispatchNos,0) AS VehDispatchNos,
-ISNULL(e.[1stdisptchAt],0) AS [1stdisptchAt],
-ISNULL(e.LastDisptchAt, 0) AS LastDisptchAt,
-ISNULL(e.Recieved,      0) AS Recieved,
-ISNULL((e.VehDispatchNos - e.Recieved), 0) AS Balance
-FROM Centre cn
-LEFT JOIN cet c ON c.M_CENTRE = cn.c_code AND c.M_FACTORY = cn.c_factory
-LEFT JOIN etc e ON e.CH_Centre = cn.c_code
-WHERE cn.c_factory = @Factory AND cn.C_HHC_Centre > 0${blockFilter}
-ORDER BY c_code`;
-
-const rows = await executeQuery(sql, { Date: sqlDate, Factory: fcode, ...p }, season).catch((err) => {
-  console.error('[CentrePurchase] SQL Error:', err.message);
-  return [];
-});
-
-try {
-  const debugSql = `
-    WITH cet_base AS (
-      SELECT 1 AS ok
-      FROM Purchase
-      WHERE M_TARE_DT != '1900-01-01'
-        AND CAST(M_TARE_DT AS DATE) = @Date
-        AND M_FACTORY = @Factory
-    ),
-    cet_fallback AS (
-      SELECT 1 AS ok
-      FROM Purchase
-      WHERE CAST(COALESCE(
-        NULLIF(M_TARE_DT, '1900-01-01'),
-        NULLIF(M_GROS_DT, '1900-01-01'),
-        M_DATE
-      ) AS DATE) = @Date
-        AND M_FACTORY = @Factory
-    )
-    SELECT
-      (SELECT COUNT(1) FROM cet_base) AS baseCount,
-      (SELECT COUNT(1) FROM cet_fallback) AS fallbackCount`;
-  const debugRows = await executeQuery(debugSql, { Date: sqlDate, Factory: fcode }, season);
-  const debug = debugRows?.[0] || {};
-  console.log('[CentrePurchase] Debug counts', {
-    factory: fcode,
-    date: sqlDate,
-    baseCount: Number(debug.baseCount || 0),
-    fallbackCount: Number(debug.fallbackCount || 0)
-  });
-} catch (debugErr) {
-  console.warn('[CentrePurchase] Debug count failed:', debugErr?.message || debugErr);
-}
-
-return res.status(200).json({
-success: true,
-message: 'CentrePurchase executed',
-data: rows,
-recordsets: [rows]
-});
-} catch (error) {
-if (typeof next === 'function') return next(error);
-throw error;
-}
-};
-}
-
-exports.CentrePurchase = createCentrePurchaseHandler();
-/**
-* TruckDispatchWeighed – mirrors sugarReportDataAccess.cs
-* filterType (query param): all | yesterday-transit | transit | at-yard | at-donga | weighed
-* Returns columns: SN, C_Code, c_name, ChalanNo, TruckNo, Transporter,
-*                  DepartureTime, ArrivalTime, WeighmentTime, TravelTime, WailtTime
-*/
-function createTruckDispatchWeighedHandler() {
-return async (req, res, next) => {
-try {
-const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
-const p = { ...(req.query || {}), ...(req.body || {}) };
-
-console.log(`[TruckDispatchWeighed] Raw request - Query:`, JSON.stringify(req.query), `Body:`, JSON.stringify(req.body));
-
-const fcode = String(
-p.F_code ?? p.F_Code ?? p.factcode ?? p.FACTCODE ?? p.unit ?? p.factory ?? p.FACTORY ?? ''
-).trim();
-
-const rawDate = String(p.Date ?? p.DATE ?? p.date ?? p.DDATE ?? p.DDate ?? '').trim();
-const sqlDate = toSqlDateAnalysis(rawDate);
-const filterType = String(p.filterType ?? p.type ?? 'all').toLowerCase().trim();
-
-console.log(`[TruckDispatchWeighed] Parsed - Factory: '${fcode}', RawDate: '${rawDate}', SqlDate: '${sqlDate}', Filter: '${filterType}', Season: '${season}'`);
-
-if (!sqlDate || !fcode || fcode === '0' || fcode === 'All') {
-console.log(`[TruckDispatchWeighed] Missing parameters - Factory: '${fcode}', Date: '${sqlDate}'`);
-return res.status(200).json({ success: true, message: 'TruckDispatchWeighed: missing params', data: [], recordsets: [[]] });
-}
-
-const tokenDateColumn = await resolveTokenDateColumn(season);
-const tokenDateExpr = tokenDateColumn ? `TK.[${tokenDateColumn}]` : 'r.tt_Date';
-const tokenDateColumnBare = tokenDateColumn ? `[${tokenDateColumn}]` : '';
-const tokenDateFilter = tokenDateColumnBare ? ` AND CAST(${tokenDateColumnBare} AS DATE) <= @Date` : '';
-
-// ── Shared SELECT & FROM ──────────────────────────────────────────────────
-// Identical column set in all 4 .NET methods
-const BASE_SELECT = `
-SELECT
-ROW_NUMBER() OVER (ORDER BY cf.Ch_Centre) AS SN,
-cf.Ch_Centre                              AS C_Code,
-c.C_Name,
-cf.ch_challan                             AS ChalanNo,
-t.TR_CODE                                 AS Tr_Code,
-t.TR_NAME                                 AS Transporter,
-cf.Ch_truck_no                            AS TruckNo,
-CONVERT(varchar, ISNULL(cf.Ch_dep_date, '01/01/1900'), 103)
-+ ' ' + CONVERT(varchar, ISNULL(cf.Ch_dep_date, '01/01/1900'), 8)
-AS DepartureTime,
-CONVERT(varchar,
-CASE WHEN ISNULL(${tokenDateExpr}, '01/01/1900') = '01/01/1900'
-THEN ISNULL(r.tt_Date, '01/01/1900')
-ELSE ISNULL(${tokenDateExpr}, '01/01/1900') END, 103)
-+ ' ' + CONVERT(varchar,
-CASE WHEN ISNULL(${tokenDateExpr}, '01/01/1900') = '01/01/1900'
-THEN ISNULL(r.tt_Date, '01/01/1900')
-ELSE ISNULL(${tokenDateExpr}, '01/01/1900') END, 8)
-AS ArrivalTime,
-CONVERT(varchar, ISNULL(r.tt_TARE_DT, '01/01/1900'), 103)
-+ ' ' + CONVERT(varchar, ISNULL(r.tt_TARE_DT, '01/01/1900'), 8)
-AS WeighmentTime,
-CONVERT(varchar(5),
-DATEADD(minute, DATEDIFF(minute,
-CONVERT(varchar, ISNULL(cf.Ch_dep_date, '01/01/1900'), 8),
-CONVERT(varchar,
-CASE WHEN ISNULL(${tokenDateExpr}, '01/01/1900') = '01/01/1900'
-THEN ISNULL(r.tt_Date, cf.Ch_dep_date)
-ELSE ISNULL(${tokenDateExpr}, '01/01/1900') END, 8)), 0), 114)
-AS TravelTime,
-CONVERT(varchar(5),
-DATEADD(minute, DATEDIFF(minute,
-CONVERT(varchar,
-CASE WHEN ISNULL(${tokenDateExpr}, '01/01/1900') = '01/01/1900'
-THEN ISNULL(r.tt_Date, '01/01/1900')
-ELSE ISNULL(${tokenDateExpr}, '01/01/1900') END, 8),
-CONVERT(varchar,
-CASE WHEN ISNULL(r.tt_TARE_DT, '1900-01-01') = '1900-01-01'
-THEN ISNULL(r.tt_Date, ISNULL(${tokenDateExpr}, '01/01/1900'))
-ELSE ISNULL(r.tt_TARE_DT, '1900-01-01') END, 8)), 0), 114)
-AS WailtTime
-FROM challan_final cf
-LEFT JOIN Receipt    r  ON r.tt_factory = cf.ch_Factory
-          AND r.tt_center  = cf.Ch_Centre
-          AND r.tt_chalanNo = cf.ch_challan
-JOIN  centre         c  ON c.c_factory   = cf.ch_Factory
-          AND c.C_Code      = cf.Ch_Centre
-JOIN  Transporter    t  ON t.TR_FACTORY  = cf.ch_Factory
-          AND t.TR_CODE     = cf.ch_trans
-LEFT JOIN T_TOKEN    TK ON TK.TT_FACTORY = cf.CH_FACTORY
-          AND TK.TT_CHLN    = cf.CH_CHALLAN
-WHERE cf.ch_cancel = 0
-AND cf.ch_Factory = @Factory`;
-
-// ── Per-type WHERE additions ──────────────────────────────────────────────
-let extraWhere = '';
-let postFilter = '';   // applied after the subquery (ArrivalTime check)
-
-switch (filterType) {
-case 'yesterday-transit':
-extraWhere = ` AND CAST(cf.Ch_dep_date AS DATE) < @Date`;
-postFilter = ` AND ArrivalTime = '01/01/1900 00:00:00'`;
-break;
-case 'transit':
-extraWhere = ` AND CAST(cf.Ch_dep_date AS DATE) = @Date`;
-postFilter = ` AND ArrivalTime = '01/01/1900 00:00:00'`;
-break;
-case 'at-yard':
-// Has a token (arrived at yard) but not yet weighed
-extraWhere = ` AND CAST(cf.Ch_dep_date AS DATE) = @Date
-AND cf.ch_challan IN (SELECT TT_CHLN FROM T_Token WHERE TT_FACTORY = @Factory${tokenDateFilter})`;
-break;
-case 'at-donga':
-// Arrived (has receipt) but tare weight = 0 (at donga – not weighed yet)
-extraWhere = ` AND CAST(cf.Ch_dep_date AS DATE) = @Date AND r.tt_tareWeight = 0`;
-break;
-case 'weighed':
-extraWhere = ` AND CAST(cf.Ch_dep_date AS DATE) = @Date AND r.tt_TARE_DT IS NOT NULL AND r.tt_TARE_DT != '1900-01-01'`;
-break;
-case 'all':
-default:
-extraWhere = ` AND CAST(cf.Ch_dep_date AS DATE) = @Date`;
-break;
-}
-
-const sql = postFilter
-? `SELECT * FROM (${BASE_SELECT}${extraWhere}) AS Tmp WHERE 1=1${postFilter} ORDER BY C_Code`
-: `${BASE_SELECT}${extraWhere} ORDER BY cf.Ch_Centre`;
-
-console.log(`[TruckDispatchWeighed] Executing SQL for filter: ${filterType}, with params: Date=${sqlDate}, Factory=${fcode}`);
-
-const rows = await executeQuery(sql, { Date: sqlDate, Factory: fcode }, season).catch((err) => {
-  console.error(`[TruckDispatchWeighed] SQL Error:`, err.message);
-  console.error(`[TruckDispatchWeighed] SQL Text:`, sql);
-  return [];
-});
-
-console.log(`[TruckDispatchWeighed] Retrieved ${rows.length} rows`);
-
-return res.status(200).json({
-success: true,
-message: `TruckDispatchWeighed [${filterType}] executed`,
-data: rows,
-recordsets: [rows]
-});
-} catch (error) {
-if (typeof next === 'function') return next(error);
-throw error;
-}
-};
-}
-
-exports.TruckDispatchWeighed = createTruckDispatchWeighedHandler();
-/**
-* IndentFailSummary – mirrors sugarReportDataAccess.cs
-*   GETINDENTFAILURESUMMARY  → main rows with Early / OtherThanEarly / Total columns
-*   GETINDENTFAILURE2DAYBACK → pipeline balance (PIPBALIND) merged per date
-*
-* Returned columns (match screenshot header):
-*   IS_IS_DT (Date)
-*   ERINDQTY, EINDWT, EACTWT, EPURCHYPERC, EWTPERC                 ← Early
-*   OTINDQTY, OTINDWT, OTACTWT, OTPURCHYPERC, OTWTPERC             ← Other Than Early
-*   TOTINDQTY, TOTINDWT, TOTACTWT, TOTPURCHYPERC, TOTWTPERC         ← Total
-*   BALTOTINDQTY, PIPBALIND, TOTBALIND                              ← Balance
-*/
-function createIndentFailSummaryHandler() {
-return async (req, res, next) => {
-try {
-const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
-const p = { ...(req.query || {}), ...(req.body || {}) };
-
-const fcode = String(
-p.F_code ?? p.F_Code ?? p.FACT ?? p.unit ?? p.factory ?? p.FACTORY ?? ''
-).trim();
-
-const rawDate = String(p.Date ?? p.DATE ?? p.date ?? p.DDATE ?? '').trim();
-const sqlDate = toSqlDateAnalysis(rawDate); // gives YYYY-MM-DD
-
-if (!sqlDate || !fcode || fcode === '0' || fcode === 'All') {
-return res.status(200).json({ success: true, message: 'IndentFailSummary: missing params', data: [], recordsets: [[]] });
-}
-
-// .NET computes a ±5 day window around the given date
-const centerDate = new Date(sqlDate);
-const startDate = new Date(centerDate); startDate.setDate(centerDate.getDate() - 5);
-const endDate = new Date(centerDate); endDate.setDate(centerDate.getDate() + 5);
-const fmtYMD = (d) => `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
-const dtStart = fmtYMD(startDate);
-const dtEnd   = fmtYMD(endDate);
-// Precompute the 2-day-back pipeline window dates (used in pipSql)
-const pipEndDate   = new Date(endDate); pipEndDate.setDate(endDate.getDate() - 1);
-const pipStartDate = new Date(endDate); pipStartDate.setDate(endDate.getDate() - 2);
-const pipEnd   = fmtYMD(pipEndDate);
-const pipStart = fmtYMD(pipStartDate);
-
-// ── Query 1: Main summary rows ────────────────────────────────────────────
-const mainSql = `
-WITH CT AS (
-SELECT IS_FACTORY, IS_DS_DT,
-ISNULL(SUM(CASE WHEN IS_CATEG IN (10,11,12,13) THEN MD_QTY ELSE 0 END), 0) ERINDQTY,
-ISNULL(SUM(CASE WHEN IS_CATEG IN (10,11,12,13) AND IS_STATUS IN (1,5) THEN MD_QTY ELSE 0 END), 0) EINDWT,
-ISNULL(SUM(CASE WHEN IS_CATEG NOT IN (10,11,12,13) THEN MD_QTY ELSE 0 END), 0) OTINDQTY,
-ISNULL(SUM(CASE WHEN IS_CATEG NOT IN (10,11,12,13) AND IS_STATUS IN (1,5) THEN MD_QTY ELSE 0 END), 0) OTINDWT
-FROM ISSUED LEFT JOIN MODE ON IS_MODE = MD_CODE AND MD_FACTORY = IS_FACTORY
-WHERE IS_FACTORY = @Fact
-AND CONVERT(NVARCHAR, IS_DS_DT, 112) BETWEEN @DtStart AND @DtEnd
-GROUP BY IS_FACTORY, IS_DS_DT
-),
-CTE AS (
-SELECT M_FACTORY, M_IND_DT,
-ISNULL(SUM(CASE WHEN M_CATEG NOT IN (10,11,12,13) THEN (M_GROSS - M_TARE - M_JOONA) ELSE 0 END), 0) OTACTWT,
-ISNULL(SUM(CASE WHEN M_CATEG IN (10,11,12,13) THEN (M_GROSS - M_TARE - M_JOONA) ELSE 0 END), 0) EACTWT
-FROM PURCHASE LEFT JOIN MODE ON M_MODE = MD_CODE AND MD_FACTORY = M_FACTORY
-WHERE M_FACTORY = @Fact
-AND CONVERT(NVARCHAR, M_IND_DT, 112) BETWEEN @DtStart AND @DtEnd
-GROUP BY M_FACTORY, M_IND_DT
-)
-SELECT
-IS_FACTORY,
-CONVERT(NVARCHAR, IS_DS_DT, 103) AS IS_IS_DT,
-ISNULL(ERINDQTY, 0) AS ERINDQTY,
-ISNULL(EINDWT,   0) AS EINDWT,
-ISNULL(EACTWT,   0) AS EACTWT,
-'0' AS EPURCHYPERC,
-'0' AS EWTPERC,
-ISNULL(OTINDQTY, 0) AS OTINDQTY,
-ISNULL(OTINDWT,  0) AS OTINDWT,
-ISNULL(OTACTWT,  0) AS OTACTWT,
-'0' AS OTPURCHYPERC,
-'0' AS OTWTPERC,
-(ISNULL(ERINDQTY, 0) + ISNULL(OTINDQTY, 0)) AS TOTINDQTY,
-(ISNULL(EINDWT,   0) + ISNULL(OTINDWT,  0)) AS TOTINDWT,
-(ISNULL(EACTWT,   0) + ISNULL(OTACTWT,  0)) AS TOTACTWT,
-'0' AS TOTPURCHYPERC,
-'0' AS TOTWTPERC,
-((ISNULL(ERINDQTY, 0) + ISNULL(OTINDQTY, 0)) - (ISNULL(EINDWT, 0) + ISNULL(OTINDWT, 0))) AS BALTOTINDQTY,
-'0' AS PIPBALIND,
-'0' AS TOTBALIND
-FROM CT
-LEFT JOIN CTE ON CT.IS_DS_DT = CTE.M_IND_DT AND CT.IS_FACTORY = CTE.M_FACTORY
-ORDER BY CT.IS_DS_DT`;
-
-// ── Query 2: 2-day-back pipeline balance ──────────────────────────────────
-const pipSql = `
-WITH CT AS (
-SELECT IS_FACTORY, IS_DS_DT,
-ISNULL(SUM(CASE WHEN LEFT(CAST(IS_CATEG AS VARCHAR), 1) = '1' THEN MD_QTY ELSE 0 END), 0) TDERINDQTY,
-ISNULL(SUM(CASE WHEN LEFT(CAST(IS_CATEG AS VARCHAR), 1) != '1' THEN MD_QTY ELSE 0 END), 0) TDOTINDQTY
-FROM ISSUED LEFT JOIN MODE ON IS_MODE = MD_CODE AND MD_FACTORY = IS_FACTORY
-WHERE IS_FACTORY = @Fact
-AND CONVERT(NVARCHAR, IS_DS_DT, 112) BETWEEN @PipStart AND @PipEnd
-GROUP BY IS_FACTORY, IS_DS_DT
-),
-CTE AS (
-SELECT M_FACTORY, M_IND_DT,
-ISNULL(SUM(CASE WHEN LEFT(CAST(M_CATEG AS VARCHAR), 1) = '1' THEN MD_QTY ELSE 0 END), 0) TDEINDWT,
-ISNULL(SUM(CASE WHEN LEFT(CAST(M_CATEG AS VARCHAR), 1) != '1' THEN MD_QTY ELSE 0 END), 0) TDOTINDWT
-FROM PURCHASE LEFT JOIN MODE ON M_MODE = MD_CODE AND MD_FACTORY = M_FACTORY
-WHERE M_FACTORY = @Fact
-AND CONVERT(NVARCHAR, M_IND_DT, 112) BETWEEN @PipStart AND @PipEnd
-GROUP BY M_FACTORY, M_IND_DT
-)
-SELECT
-CONVERT(NVARCHAR, CT.IS_DS_DT, 103) AS IS_DS_DT,
-ISNULL((TDERINDQTY + TDOTINDQTY), 0) AS TDQTY,
-ISNULL((TDEINDWT + TDOTINDWT), 0)    AS TDWT,
-ISNULL(((TDERINDQTY + TDOTINDQTY) - (TDEINDWT + TDOTINDWT)), 0) AS BAL
-FROM CT
-LEFT JOIN CTE ON CT.IS_DS_DT = CTE.M_IND_DT AND CT.IS_FACTORY = CTE.M_FACTORY
-ORDER BY CT.IS_DS_DT`;
-
-const [mainRows, pipRows] = await Promise.all([
-executeQuery(mainSql, { Fact: fcode, DtStart: dtStart, DtEnd: dtEnd }, season).catch(() => []),
-executeQuery(pipSql,  { Fact: fcode, PipStart: pipStart, PipEnd: pipEnd }, season).catch(() => [])
-]);
-
-// Compute pipeline balance sum (all 2-day-back rows)
-const pipBal = pipRows.reduce((sum, r) => sum + (Number(r.BAL) || 0), 0);
-
-// Merge percentages and pipeline balance into each main row
-const n = (v) => Number(String(v ?? '').replace(/,/g, '')) || 0;
-const pct = (a, b) => (b > 0 ? ((a / b) * 100).toFixed(2) : '0.00');
-
-const merged = mainRows.map(row => {
-const erIndQty = n(row.ERINDQTY);
-const eIndWt = n(row.EINDWT);
-const eActWt = n(row.EACTWT);
-const otIndQty = n(row.OTINDQTY);
-const otIndWt = n(row.OTINDWT);
-const otActWt = n(row.OTACTWT);
-const totIndQty = erIndQty + otIndQty;
-const totIndWt = eIndWt + otIndWt;
-const totActWt = eActWt + otActWt;
-const balTot = totIndQty - totIndWt;
-const totBal = balTot + pipBal;
-
-return {
-...row,
-EPURCHYPERC: pct(erIndQty - eIndWt, erIndQty),
-EWTPERC: pct(erIndQty - eActWt, erIndQty),
-OTPURCHYPERC: pct(otIndQty - otIndWt, otIndQty),
-OTWTPERC: pct(otIndQty - otActWt, otIndQty),
-TOTINDQTY: totIndQty,
-TOTINDWT: totIndWt,
-TOTACTWT: totActWt,
-TOTPURCHYPERC: pct(totIndQty - totIndWt, totIndQty),
-TOTWTPERC: pct(totIndQty - totActWt, totIndQty),
-BALTOTINDQTY: balTot,
-PIPBALIND: pipBal,
-TOTBALIND: totBal
-};
-});
-
-return res.status(200).json({
-success: true,
-message: 'IndentFailSummary executed',
-data: merged,
-recordsets: [merged]
-});
-} catch (error) {
-if (typeof next === 'function') return next(error);
-throw error;
-}
-};
-}
-
-exports.IndentFailSummary = createIndentFailSummaryHandler();
-exports.IndentFailSummaryData = createIndentFailSummaryHandler(); // same handler, kept for route compat
-exports.IndentFaillDetails = createProcedureHandler(CONTROLLER, 'IndentFaillDetails', '');
-exports.IndentFaillDetailsData = createProcedureHandler(CONTROLLER, 'IndentFaillDetailsData', 'string Date, string FACT');
-exports.TargetActualMISReport = createProcedureHandler(CONTROLLER, 'TargetActualMISReport', '');
-exports.TargetActualMISPeriodReport = createProcedureHandler(CONTROLLER, 'TargetActualMISPeriodReport', '');
-exports.txtdate_TextChanged = createProcedureHandler(CONTROLLER, 'txtdate_TextChanged', 'string Date');
-exports.next = createProcedureHandler(CONTROLLER, 'next', 'string Date');
-exports.prev = createProcedureHandler(CONTROLLER, 'prev', 'string Date');
-/**
- * DriageSummary — mirrors DriageClerkCentreDetail.cs: GETDRIAGESUMMARY + GETCLOSINGBALANCE
- * Columns: SLNO, C_CODE, C_NAME, PQTY, RQTY, CLBAL, TOTREPT, DRQTY, PERC
- */
-function createDriageSummaryHandler() {
-  return async (req, res, next) => {
-    try {
-      const p = { ...(req.query || {}), ...(req.body || {}) };
-      const fcode = String(p.F_code ?? p.F_Code ?? p.FACT ?? p.unit ?? p.factory ?? '').trim();
-      const rawDate = String(p.Date ?? p.DATE ?? p.date ?? p.DDATE ?? '').trim();
-      const sqlDate = toSqlDateAnalysis(rawDate);
-
-      if (!sqlDate || !fcode) {
-        return res.status(200).json({ success: true, data: [], recordsets: [[]] });
-      }
-
-      const fmtYMD = (d) => `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
-      const dt = fmtYMD(new Date(sqlDate));
-
-      const season = p.season || process.env.DEFAULT_SEASON || '2526';
-
-      // ── Main GETDRIAGESUMMARY query ───────────────────────────────────────
-      const mainSql = `
-        WITH CEN AS (
-          SELECT C_FACTORY, C_CODE, C_NAME FROM CENTRE WHERE C_FACTORY = @Fact
-        ),
-        PUR AS (
-          SELECT MC_GCode AS M_CENTRE,
-            ISNULL(SUM(ISNULL(M_GROSS,0) - ISNULL(M_TARE,0) - ISNULL(M_JOONA,0)), 0) PQTY
-          FROM PURCHASE
-          JOIN MI_MargeCenter ON MC_CCODE = M_CENTRE AND MC_FACTORY = M_FACTORY
-            AND CONVERT(NVARCHAR, M_DATE, 112) <= @Dt AND M_FACTORY = @Fact
-          GROUP BY MC_GCode
-        ),
-        REP AS (
-          SELECT TT_CENTER,
-            ISNULL(SUM(ISNULL(TT_GROSSWEIGHT,0) - ISNULL(TT_TAREWEIGHT,0) - ISNULL(TT_JOONAWEIGHT,0)), 0) RQTY
-          FROM RECEIPT
-          JOIN CENTRE ON C_CODE = TT_CENTER AND C_FACTORY = TT_FACTORY
-            AND CONVERT(NVARCHAR, tt_DpDate, 112) <= @Dt AND TT_FACTORY = @Fact
-          GROUP BY TT_CENTER
-        )
-        SELECT
-          C_FACTORY, C_CODE, C_NAME,
-          ISNULL(PQTY, 0) PQTY,
-          ISNULL(RQTY, 0) RQTY,
-          '0' AS CLBAL, '0' AS TOTREPT, '0' AS DRQTY, '0' AS PERC
-        FROM CEN
-        JOIN PUR ON C_CODE = M_CENTRE
-        LEFT JOIN REP ON M_CENTRE = TT_CENTER
-        WHERE C_CODE != 100
-        ORDER BY C_CODE`;
-
-      const mainRows = await executeQuery(mainSql, { Fact: fcode, Dt: dt }, season).catch(() => []);
-
-      // ── Fetch CLBal per centre from CHALLAN_FINAL ─────────────────────────
-      const balSql = `
-        SELECT CH_CENTRE, MAX(CH_CHALLAN) CH_CHALLAN, ISNULL(CH_BALANCE, 0) CH_BALANCE
-        FROM CHALLAN_FINAL
-        WHERE Ch_Cancel = 0 AND CH_FACTORY = @Fact
-          AND CONVERT(NVARCHAR, CH_DEP_DATE, 112) = @Dt
-        GROUP BY CH_CENTRE, CH_BALANCE
-        ORDER BY CH_CHALLAN DESC`;
-
-      const balRows = await executeQuery(balSql, { Fact: fcode, Dt: dt }, season).catch(() => []);
-      const balMap = {};
-      balRows.forEach(r => {
-        const cc = String(r.CH_CENTRE);
-        if (!balMap[cc]) balMap[cc] = Number(r.CH_BALANCE) || 0;
-      });
-
-      // ── Compute derived columns ───────────────────────────────────────────
-      const n = (v) => Number(String(v ?? '').replace(/,/g, '')) || 0;
-      const pct = (a, b) => (b > 0 ? ((a / b) * 100).toFixed(2) : '0.00');
-      const merged = mainRows.map((row, idx) => {
-        const pqty = n(row.PQTY);
-        const rqty = n(row.RQTY);
-        const clbal = balMap[String(row.C_CODE)] ?? 0;
-        const total = rqty + clbal;           // TOTREPT = RQTY + CLBAL
-        const drqty = pqty - total;           // DRQTY = PQTY - TOTREPT
-        const perc = pct(drqty, pqty);
-        return {
-          ...row,
-          SLNO: idx + 1,
-          CLBAL: clbal,
-          TOTREPT: total,
-          DRQTY: drqty < 0 ? 0 : drqty,
-          PERC: perc
-        };
-      });
-
-      return res.status(200).json({ success: true, data: merged, recordsets: [merged] });
-    } catch (error) {
-      if (typeof next === 'function') return next(error);
-      throw error;
-    }
-  };
-}
-
-exports.DriageSummary = createDriageSummaryHandler();
-exports.DriageDetail = createProcedureHandler(CONTROLLER, 'DriageDetail', 'string FACT, string DATE, string CENTER');
-/**
- * DriageClerkSummary — mirrors DriageClerkCentreDetail.cs:
- *   GETDRIAGEDETAILSClerk  → clerks grouped from PURCHASE/RECEIPT via USERS table
- *   GETOpeningGBALANCEClerk → opening balance per clerk from CHALLAN_FINAL (date-1)
- *   GETCLOSINGBALANCEClerk → closing balance per clerk from CHALLAN_FINAL
- * Columns: SLNO, u_code (Code), u_Name (Name Of Clerk), OPBAL, PQTY, RQTY, CLBAL, TOTREPT, DRQTY, PERC
- */
-function createDriageClerkSummaryHandler() {
-  return async (req, res, next) => {
-    try {
-      const p = { ...(req.query || {}), ...(req.body || {}) };
-      const fcode = String(p.F_code ?? p.F_Code ?? p.FACT ?? p.unit ?? p.factory ?? '').trim();
-      const rawDate = String(p.Date ?? p.DATE ?? p.date ?? p.DDATE ?? '').trim();
-      const sqlDate = toSqlDateAnalysis(rawDate);
-
-      if (!sqlDate || !fcode) {
-        return res.status(200).json({ success: true, data: [], recordsets: [[]] });
-      }
-
-      const fmtYMD = (d) => `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
-      const dt = fmtYMD(new Date(sqlDate));
-      // date - 1 day (for opening/closing balance queries)
-      const dtPrev = (() => { const d = new Date(sqlDate); d.setDate(d.getDate() - 1); return fmtYMD(d); })();
-
-      const season = p.season || process.env.DEFAULT_SEASON || '2526';
-
-      // ── Main clerk summary query (GETDRIAGEDETAILSClerk) ──────────────────
-      const mainSql = `
-        WITH PUR AS (
-          SELECT M_TARE_OPR,
-            MIN(CAST(M_DATE AS Date)) Mfrom,
-            MAX(CAST(M_DATE AS Date)) MTill,
-            ISNULL(SUM(ISNULL(M_GROSS,0) - ISNULL(M_TARE,0) - ISNULL(M_JOONA,0)), 0) PQTY
-          FROM PURCHASE
-          WHERE CONVERT(NVARCHAR, M_DATE, 112) <= @Dt
-            AND M_FACTORY = @Fact AND M_CENTRE != 100
-          GROUP BY M_TARE_OPR
-        ),
-        REP AS (
-          SELECT tt_Clerk,
-            MAX(CAST(tt_DpDate AS Date)) TFrom,
-            MAX(CAST(tt_DpDate AS Date)) TTill,
-            ISNULL(SUM(ISNULL(TT_GROSSWEIGHT,0) - ISNULL(TT_TAREWEIGHT,0) - ISNULL(TT_JOONAWEIGHT,0)), 0) RQTY
-          FROM RECEIPT
-          WHERE CONVERT(NVARCHAR, tt_DpDate, 112) <= @Dt
-            AND TT_FACTORY = @Fact
-          GROUP BY tt_Clerk
-        )
-        SELECT
-          U_factory AS factory, U_code, U_Name,
-          CONVERT(VARCHAR, MIN(Mfrom), 103) MFrom,
-          CONVERT(VARCHAR, MAX(MTill), 103) Till,
-          ISNULL(SUM(PQTY), 0) PQTY,
-          ISNULL(SUM(RQTY), 0) RQTY,
-          '0' AS CLBAL, '0' AS OPBAL, '0' AS TOTREPT, '0' AS DRQTY, '0' AS PERC
-        FROM PUR
-        FULL OUTER JOIN REP ON M_TARE_OPR = tt_Clerk
-        JOIN users ON U_code = M_TARE_OPR AND U_code = tt_Clerk
-        WHERE U_factory = @Fact
-        GROUP BY U_factory, U_code, U_Name
-        ORDER BY MIN(Mfrom), MAX(MTill)`;
-
-      const mainRows = await executeQuery(mainSql, { Fact: fcode, Dt: dt }, season).catch(() => []);
-
-      // ── Opening balance per clerk (CHALLAN_FINAL, date <= dtPrev) ──────────
-      const opSql = `
-        SELECT ch_op_code, ISNULL(CH_BALANCE, 0) CH_BALANCE
-        FROM CHALLAN_FINAL
-        WHERE Ch_Cancel = 0 AND CH_FACTORY = @Fact
-          AND CONVERT(NVARCHAR, CH_DEP_DATE, 112) <= @DtPrev
-          AND CH_CHALLAN = (
-            SELECT MAX(CH_CHALLAN) FROM CHALLAN_FINAL cf2
-            WHERE cf2.Ch_Cancel = 0 AND cf2.CH_FACTORY = CHALLAN_FINAL.CH_FACTORY
-              AND cf2.ch_op_code = CHALLAN_FINAL.ch_op_code
-              AND CONVERT(NVARCHAR, cf2.CH_DEP_DATE, 112) <= @DtPrev
-          )`;
-
-      const opRows = await executeQuery(opSql, { Fact: fcode, DtPrev: dtPrev }, season).catch(() => []);
-      const opMap = {};
-      opRows.forEach(r => { opMap[String(r.ch_op_code)] = Number(r.CH_BALANCE) || 0; });
-
-      // ── Closing balance per clerk (CHALLAN_FINAL, exact date) ─────────────
-      const clSql = `
-        SELECT ch_op_code, ISNULL(CH_BALANCE, 0) CH_BALANCE
-        FROM CHALLAN_FINAL
-        WHERE Ch_Cancel = 0 AND CH_FACTORY = @Fact
-          AND CONVERT(NVARCHAR, CH_DEP_DATE, 112) = @Dt
-          AND CH_CHALLAN = (
-            SELECT MAX(CH_CHALLAN) FROM CHALLAN_FINAL cf2
-            WHERE cf2.Ch_Cancel = 0 AND cf2.CH_FACTORY = CHALLAN_FINAL.CH_FACTORY
-              AND cf2.ch_op_code = CHALLAN_FINAL.ch_op_code
-              AND CONVERT(NVARCHAR, cf2.CH_DEP_DATE, 112) = @Dt
-          )`;
-
-      const clRows = await executeQuery(clSql, { Fact: fcode, Dt: dt }, season).catch(() => []);
-      const clMap = {};
-      clRows.forEach(r => { clMap[String(r.ch_op_code)] = Number(r.CH_BALANCE) || 0; });
-
-      // ── Merge & compute derived columns ───────────────────────────────────
-      const nv = (v) => Number(String(v ?? '').replace(/,/g, '')) || 0;
-      const pct = (a, b) => (b > 0 ? ((a / b) * 100).toFixed(2) : '0.00');
-      const merged = mainRows.map((row, idx) => {
-        const pqty = nv(row.PQTY);
-        const rqty = nv(row.RQTY);
-        const opbal = opMap[String(row.U_code)] ?? 0;
-        const clbal = clMap[String(row.U_code)] ?? 0;
-        const total = rqty + clbal;          // TOTREPT = RQTY + CLBAL
-        const drqty = Math.max(0, pqty - total);
-        const perc = pct(drqty, pqty);
-        return {
-          ...row,
-          SLNO: idx + 1,
-          OPBAL: opbal,
-          CLBAL: clbal,
-          TOTREPT: total,
-          DRQTY: drqty,
-          PERC: perc
-        };
-      });
-
-      return res.status(200).json({ success: true, data: merged, recordsets: [merged] });
-    } catch (error) {
-      if (typeof next === 'function') return next(error);
-      throw error;
-    }
-  };
-}
-
-exports.DriageClerkSummary = createDriageClerkSummaryHandler();
-exports.DriageClerkDetail = createProcedureHandler(CONTROLLER, 'DriageClerkDetail', 'string FACT, string DATE, string CLERK');
-exports.DriageCentreDetail = createProcedureHandler(CONTROLLER, 'DriageCentreDetail', 'string FACT, string DATE, string CLERK, string CENTER');
-exports.DriageCentreClerkDetail = createProcedureHandler(CONTROLLER, 'DriageCentreClerkDetail', '');
-exports.DriageClerkCentreDetail = createProcedureHandler(CONTROLLER, 'DriageClerkCentreDetail', '');
-exports.BudgetVSActual = createProcedureHandler(CONTROLLER, 'BudgetVSActual', '');
-exports.IndentFailSummaryNew = createProcedureHandler(CONTROLLER, 'IndentFailSummaryNew', '');
-exports.IndentFailSummaryNewData = createProcedureHandler(CONTROLLER, 'IndentFailSummaryNewData', 'string F_code, string Date');
-/**
- * HourlyCaneArrival – mirrors HourlyCaneArrival stored procedure
- * Returns arrival counts per hour for selected date, yesterday, and day before.
- * Categories: Cart (Group 1), Trolly (Group 2,3), Truck (Group 4)
+ * HourlyCaneArrival - mirrors ReportController.HourlyCaneArrivalReport (BajajMIS)
+ * Uses MI_Hours + GetHourlyArrivalData logic and builds Shift A/B/C totals.
  */
 exports.HourlyCaneArrival = async (req, res, next) => {
   try {
@@ -1344,135 +250,228 @@ exports.HourlyCaneArrival = async (req, res, next) => {
 
     if (!sqlDate) return res.status(200).json({ status: 'error', message: 'Invalid date' });
 
-    // Dates for T, T-1, T-2
-    const d1 = sqlDate;
-    const d2 = new Date(sqlDate); d2.setDate(d2.getDate() - 1);
-    const d2str = d2.toISOString().split('T')[0];
-    const d3 = new Date(sqlDate); d3.setDate(d3.getDate() - 2);
-    const d3str = d3.toISOString().split('T')[0];
+    const parseDate = (ymd) => {
+      const [y, m, d] = String(ymd).split('-').map((v) => parseInt(v, 10));
+      return new Date(y, (m || 1) - 1, d || 1);
+    };
+    const formatYMD = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const formatDMY = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 
-    const fmtDate = (d) => {
-      const dt = new Date(d);
-      return `${String(dt.getDate()).padStart(2, '0')}/${String(dt.getMonth() + 1).padStart(2, '0')}/${dt.getFullYear()}`;
+    const baseDate = parseDate(sqlDate);
+    const d1 = new Date(baseDate);
+    const d2 = new Date(baseDate); d2.setDate(d2.getDate() - 1);
+    const d3 = new Date(baseDate); d3.setDate(d3.getDate() - 2);
+
+    const CURDATE = formatYMD(d1);
+    const ODBDT = formatYMD(d2);
+    const TDBDT = formatYMD(d3);
+
+    const hoursSql = `
+      select DIS_HOU,hours,
+      0 as TwoDBeforeCart,0 as TwoDBeforeTrolly,0 as TwoDBeforeTruck,
+      0 as OneDBeforeCart,0 as OneDBeforeTrolly,0 as OneDBeforeTruck,
+      0 as RDBeforeCart,0 as RDBeforeTrolly,0 as RDBeforeTruck
+      from MI_Hours order by LABSN`;
+    const hoursRows = await executeQuery(hoursSql, {}, season).catch(() => []);
+
+    const purchaseTokDtColRaw = await resolveColumn(season, 'Purchase', [
+      'm_tokdatetime', 'M_TOKDateTime', 'M_TokDateTime', 'M_TokDatetime'
+    ], 'm_tokdatetime');  
+    const purchaseTokDateColRaw = await resolveColumn(season, 'Purchase', [
+      'm_tok_dt', 'M_TOK_DT', 'M_Tok_DT', 'M_DATE'
+    ], 'm_tok_dt');
+
+    const grossTokDtColRaw = await resolveColumn(season, 'gross', [
+      'G_TokDatetime', 'G_TokDateTime', 'G_TokDDate'
+    ], 'G_TokDatetime');
+    const grossTokDateColRaw = await resolveColumn(season, 'gross', [
+      'G_TokDDate', 'G_TokDatetime', 'G_TokDateTime'
+    ], 'G_TokDatetime');
+
+    const tokenHourColRaw = await resolveColumn(season, 'Token', [
+      'T_Cr_Date', 'T_CRDATE', 'T_CrDate'
+    ], 'T_Cr_Date');
+    const tokenDateColRaw = await resolveColumn(season, 'Token', [
+      'T_Date', 'T_DATE', 'T_Cr_Date'
+    ], 'T_Date');
+
+    const receiptTokDtColRaw = await resolveColumn(season, 'Receipt', [
+      'tt_TokDatetime', 'TT_TokDatetime', 'tt_tokdatetime', 'TT_DATE', 'TT_TARE_DT'
+    ], 'tt_TokDatetime');
+    const receiptTokDateColRaw = await resolveColumn(season, 'Receipt', [
+      'tt_tok_Date', 'TT_DATE', 'tt_Date', 'TT_TARE_DT', 'tt_TokDatetime'
+    ], 'TT_DATE');
+
+    const tTokenHourColRaw = await resolveColumn(season, 'T_Token', [
+      'TT_CRDATE', 'TT_CrDate', 'TT_DATE'
+    ], 'TT_CRDATE');
+    const tTokenDateColRaw = await resolveColumn(season, 'T_Token', [
+      'TT_DATE', 'TT_CRDATE'
+    ], 'TT_DATE');
+
+    const purchaseTokDtCol = `[${purchaseTokDtColRaw}]`;
+    const purchaseTokDateCol = `[${purchaseTokDateColRaw}]`;
+    const grossTokDtCol = `[${grossTokDtColRaw}]`;
+    const grossTokDateCol = `[${grossTokDateColRaw}]`;
+    const tokenHourCol = `[${tokenHourColRaw}]`;
+    const tokenDateCol = `[${tokenDateColRaw}]`;
+    const receiptTokDtCol = `[${receiptTokDtColRaw}]`;
+    const receiptTokDateCol = `[${receiptTokDateColRaw}]`;
+    const tTokenHourCol = `[${tTokenHourColRaw}]`;
+    const tTokenDateCol = `[${tTokenDateColRaw}]`;
+
+    const arrivalSql = `
+      with cte as
+      (Select HH,SUM(CART)CART,SUM(TROLLY)TROLLY from
+      (select cast(Format(${purchaseTokDtCol}, 'HH') as int)HH,
+      (CASE WHEN md_groupcode in(1) THEN 1 ELSE 0 END)CART,
+      (CASE WHEN md_groupcode in(2,3) THEN 1 ELSE 0 END)TROLLY from Purchase
+       JOIN Mode ON MD_CODE = M_MODE and md_factory=M_FACTORY WHERE M_CENTRE = 100 and CAST(${purchaseTokDateCol} AS DATE) = @Date and (@Unit='All' OR @Unit='0' OR M_FACTORY= @Unit) 
+       UNION ALL  
+       select cast(Format(${grossTokDtCol}, 'HH') as int)HH,(CASE WHEN md_groupcode = 1 THEN 1 ELSE 0 END)CART,(CASE WHEN md_groupcode in(2,3) THEN
+       1 ELSE 0 END)TROLLY from gross JOIN Mode ON MD_CODE = G_ModSupp and md_factory=G_Factory WHERE CAST(${grossTokDateCol} AS DATE) = @Date and (@Unit='All' OR @Unit='0' OR G_Factory= @Unit) 
+       UNION ALL 
+       select cast(Format(${tokenHourCol}, 'HH') as int)HH, (CASE WHEN md_groupcode = 1 THEN 1 ELSE 0 END)CART, (CASE WHEN md_groupcode in(2,3) 
+       THEN 1 ELSE 0 END)TROLLY from Token JOIN Mode ON MD_CODE = T_ModSupp and md_factory=T_Factory WHERE CAST(${tokenDateCol} AS DATE) = @Date and (@Unit='All' OR @Unit='0' OR T_Factory= @Unit))x 
+      GROUP BY HH )
+       ,ct1 as( Select HH,SUM(T_TRUCK)T_TRUCK FROM ( select cast(Format(${receiptTokDtCol},'HH') as int)HH,1 T_TRUCK  
+       from Receipt where CAST(${receiptTokDateCol} AS DATE) = @Date  and (@Unit='All' OR @Unit='0' OR tt_factory= @Unit)
+       UNION ALL 
+       select cast(Format(${tTokenHourCol},'HH') as int)HH,1 T_TRUCK from T_Token where CAST(${tTokenDateCol} AS DATE) = @Date  and (@Unit='All' OR @Unit='0' OR tt_factory= @Unit))x 
+       GROUP BY HH)select isnull((case when isnull(cte.HH,'')= '' then ct1.HH when isnull(cte.HH,'')= '' then cte.HH else  cte.HH end ),0)HHH,
+       isnull(CART,0)CART,isnull(TROLLY,0)TROLLY,isnull(T_TRUCK,0)Truck   from cte full outer join   ct1 on  cte.HH= ct1.HH   
+       where isnull((case when isnull(cte.HH, '') = '' then ct1.HH when isnull(cte.HH, '') = '' then cte.HH else cte.HH end ),0)= @Hour 
+       order by (case when isnull(cte.HH,'')= '' then ct1.HH when isnull(cte.HH,'')= '' then cte.HH else  cte.HH end )`;
+
+    const getHourlyArrivalData = async (unit, date, hour) => {
+      const rows = await executeQuery(arrivalSql, { Unit: unit, Date: date, Hour: hour }, season).catch(() => []);
+      return rows && rows.length ? rows[0] : null;
     };
 
-    const qp = { D1: d1, D2: d2str, D3: d3str, Fact: fcode };
-    const factFilter = (fcode === 'All' || fcode === '0') ? '' : 'AND M_FACTORY = @Fact';
-    const factFilterR = (fcode === 'All' || fcode === '0') ? '' : 'AND TT_FACTORY = @Fact';
+    const dt = hoursRows.map((r) => ({
+      DIS_HOU: r.DIS_HOU,
+      hours: Number(r.hours),
+      TwoDBeforeCart: 0, TwoDBeforeTrolly: 0, TwoDBeforeTruck: 0,
+      OneDBeforeCart: 0, OneDBeforeTrolly: 0, OneDBeforeTruck: 0,
+      RDBeforeCart: 0, RDBeforeTrolly: 0, RDBeforeTruck: 0
+    }));
 
-    const sql = `
-      WITH RawData AS (
-        SELECT 
-          DATEPART(HOUR, M_GROS_DT) AS HOU,
-          CASE 
-            WHEN M_DATE = @D1 THEN 'T'
-            WHEN M_DATE = @D2 THEN 'T1'
-            WHEN M_DATE = @D3 THEN 'T2'
-          END AS DTAG,
-          CASE 
-            WHEN md.md_groupcode = 1 THEN 'Cart'
-            WHEN md.md_groupcode IN (2, 3) THEN 'Trolly'
-            WHEN md.md_groupcode = 4 THEN 'Truck'
-            ELSE 'Other'
-          END AS CAT,
-          COUNT(*) AS NOS
-        FROM PURCHASE p
-        JOIN Mode md ON p.M_MODE = md.md_code AND md.MD_FACTORY = p.M_FACTORY
-        WHERE M_DATE IN (@D1, @D2, @D3) ${factFilter}
-        GROUP BY DATEPART(HOUR, M_GROS_DT), M_DATE, md.md_groupcode
-        UNION ALL
-        SELECT 
-          DATEPART(HOUR, TT_TARE_DT) AS HOU,
-          CASE 
-            WHEN TT_DATE = @D1 THEN 'T'
-            WHEN TT_DATE = @D2 THEN 'T1'
-            WHEN TT_DATE = @D3 THEN 'T2'
-          END AS DTAG,
-          CASE 
-            WHEN md.md_groupcode = 1 THEN 'Cart'
-            WHEN md.md_groupcode IN (2, 3) THEN 'Trolly'
-            WHEN md.md_groupcode = 4 THEN 'Truck'
-            ELSE 'Other'
-          END AS CAT,
-          COUNT(*) AS NOS
-        FROM RECEIPT r
-        JOIN Mode md ON r.TT_MODE = md.md_code AND md.MD_FACTORY = r.TT_FACTORY
-        WHERE TT_DATE IN (@D1, @D2, @D3) ${factFilterR}
-        GROUP BY DATEPART(HOUR, TT_TARE_DT), TT_DATE, md.md_groupcode
-      )
-      SELECT HOU, DTAG, CAT, SUM(NOS) AS TOTAL_NOS
-      FROM RawData
-      WHERE HOU IS NOT NULL
-      GROUP BY HOU, DTAG, CAT`;
+    for (const row of dt) {
+      let hour = String(row.hours);
+      if (hour === '24') hour = '0';
+      const h = Number(hour);
 
-    const rows = await executeQuery(sql, qp, season).catch(() => []);
-
-    // Pivot logic
-    const pivot = {};
-    for (let i = 0; i < 24; i++) {
-        pivot[i] = {
-            DIS_HOU: `${String(i).padStart(2, '0')}-${String((i + 1) % 24).padStart(2, '0')}`,
-            TwoDBeforeCart: 0, TwoDBeforeTrolly: 0, TwoDBeforeTruck: 0,
-            OneDBeforeCart: 0, OneDBeforeTrolly: 0, OneDBeforeTruck: 0,
-            RDBeforeCart: 0, RDBeforeTrolly: 0, RDBeforeTruck: 0
-        };
+      const t2 = await getHourlyArrivalData(fcode, TDBDT, h);
+      if (t2) {
+        row.TwoDBeforeCart = Number(t2.CART) || 0;
+        row.TwoDBeforeTrolly = Number(t2.TROLLY) || 0;
+        row.TwoDBeforeTruck = Number(t2.Truck) || 0;
+      }
+      const t1 = await getHourlyArrivalData(fcode, ODBDT, h);
+      if (t1) {
+        row.OneDBeforeCart = Number(t1.CART) || 0;
+        row.OneDBeforeTrolly = Number(t1.TROLLY) || 0;
+        row.OneDBeforeTruck = Number(t1.Truck) || 0;
+      }
+      const t0 = await getHourlyArrivalData(fcode, CURDATE, h);
+      if (t0) {
+        row.RDBeforeCart = Number(t0.CART) || 0;
+        row.RDBeforeTrolly = Number(t0.TROLLY) || 0;
+        row.RDBeforeTruck = Number(t0.Truck) || 0;
+      }
     }
 
-    rows.forEach(r => {
-        const h = r.HOU;
-        const tag = r.DTAG;
-        const cat = r.CAT;
-        const val = r.TOTAL_NOS;
+    const columns = [
+      'TwoDBeforeCart', 'TwoDBeforeTrolly', 'TwoDBeforeTruck',
+      'OneDBeforeCart', 'OneDBeforeTrolly', 'OneDBeforeTruck',
+      'RDBeforeCart', 'RDBeforeTrolly', 'RDBeforeTruck'
+    ];
 
-        if (tag === 'T2') {
-            if (cat === 'Cart') pivot[h].TwoDBeforeCart += val;
-            else if (cat === 'Trolly') pivot[h].TwoDBeforeTrolly += val;
-            else if (cat === 'Truck') pivot[h].TwoDBeforeTruck += val;
-        } else if (tag === 'T1') {
-            if (cat === 'Cart') pivot[h].OneDBeforeCart += val;
-            else if (cat === 'Trolly') pivot[h].OneDBeforeTrolly += val;
-            else if (cat === 'Truck') pivot[h].OneDBeforeTruck += val;
-        } else if (tag === 'T') {
-            if (cat === 'Cart') pivot[h].RDBeforeCart += val;
-            else if (cat === 'Trolly') pivot[h].RDBeforeTrolly += val;
-            else if (cat === 'Truck') pivot[h].RDBeforeTruck += val;
+    const sdt = [];
+    let cout = 0;
+    for (let i = 0; i < dt.length; i++) {
+      let DR1 = {};
+      const Nhours = Number(dt[i].hours);
+
+      if (cout === 0 || cout < 8) {
+        cout++;
+        DR1 = { ...dt[i] };
+
+        if (cout === 8 && Nhours < 6) {
+          sdt.push(DR1);
+          DR1 = {};
+          columns.forEach((col) => {
+            const sum = sdt
+              .filter((y) => y.hours >= 22 || (y.hours < 6 && y.hours !== 0))
+              .reduce((acc, y) => acc + (Number(y[col]) || 0), 0);
+            DR1[col] = sum;
+          });
+          DR1.DIS_HOU = 'Shift C';
+          DR1.hours = 0;
         }
-    });
+      } else {
+        if (Nhours >= 6 && Nhours <= 14) {
+          columns.forEach((col) => {
+            const sum = sdt
+              .filter((y) => y.hours >= 6 && y.hours <= 14)
+              .reduce((acc, y) => acc + (Number(y[col]) || 0), 0);
+            DR1[col] = sum;
+          });
+          DR1.DIS_HOU = 'Shift A';
+          DR1.hours = 0;
+          sdt.push(DR1);
+          cout = 0;
+          DR1 = { ...dt[i] };
+          cout++;
+        } else if (Nhours > 14 && Nhours <= 22) {
+          columns.forEach((col) => {
+            const sum = sdt
+              .filter((y) => y.hours >= 14 && y.hours < 22)
+              .reduce((acc, y) => acc + (Number(y[col]) || 0), 0);
+            DR1[col] = sum;
+          });
+          DR1.DIS_HOU = 'Shift B';
+          DR1.hours = 0;
+          sdt.push(DR1);
+          cout = 0;
+          DR1 = { ...dt[i] };
+          cout++;
+        } else {
+          DR1 = { ...dt[i] };
+        }
+      }
+      sdt.push(DR1);
+    }
 
-    const data = Object.values(pivot);
-    const totals = {
-        TwoDBeforeCart: 0, TwoDBeforeTrolly: 0, TwoDBeforeTruck: 0,
-        OneDBeforeCart: 0, OneDBeforeTrolly: 0, OneDBeforeTruck: 0,
-        RDBeforeCart: 0, RDBeforeTrolly: 0, RDBeforeTruck: 0
+    const grandTotals = {
+      TwoDBeforeCart: 0, TwoDBeforeTrolly: 0, TwoDBeforeTruck: 0,
+      OneDBeforeCart: 0, OneDBeforeTrolly: 0, OneDBeforeTruck: 0,
+      RDBeforeCart: 0, RDBeforeTrolly: 0, RDBeforeTruck: 0
     };
-
-    data.forEach(row => {
-        totals.TwoDBeforeCart += row.TwoDBeforeCart;
-        totals.TwoDBeforeTrolly += row.TwoDBeforeTrolly;
-        totals.TwoDBeforeTruck += row.TwoDBeforeTruck;
-        totals.OneDBeforeCart += row.OneDBeforeCart;
-        totals.OneDBeforeTrolly += row.OneDBeforeTrolly;
-        totals.OneDBeforeTruck += row.OneDBeforeTruck;
-        totals.RDBeforeCart += row.RDBeforeCart;
-        totals.RDBeforeTrolly += row.RDBeforeTrolly;
-        totals.RDBeforeTruck += row.RDBeforeTruck;
-    });
+    sdt
+      .filter((row) => Number(row.hours) === 0)
+      .forEach((row) => {
+        columns.forEach((col) => {
+          grandTotals[col] += Number(row[col]) || 0;
+        });
+      });
 
     return res.status(200).json({
-        status: 'success',
-        data: data,
-        grandTotals: totals,
-        dates: {
-            date1: fmtDate(d1),
-            date2: fmtDate(d2str),
-            date3: fmtDate(d3str)
-        }
+      status: 'success',
+      data: sdt,
+      grandTotals,
+      dates: {
+        date1: formatDMY(d1),
+        date2: formatDMY(d2),
+        date3: formatDMY(d3)
+      }
     });
   } catch (error) {
     if (typeof next === 'function') return next(error);
     throw error;
   }
 };
+
 exports.LoansummaryRpt = createProcedureHandler(CONTROLLER, 'LoansummaryRpt', '');
 exports.LoansummaryRpt_2 = createProcedureHandler(CONTROLLER, 'LoansummaryRpt', 'LoanSummaryModel model');
 exports.SurveyPLot = createProcedureHandler(CONTROLLER, 'SurveyPLot', '');
@@ -1544,6 +543,7 @@ function createCrushingDataHandler() {
       const fcode = String(p.FACTCODE ?? p.F_code ?? p.F_Code ?? p.factory ?? '0').trim();
       const rawDate = String(p.Date ?? p.DATE ?? p.date ?? '').trim();
       const sqlDate = toSqlDateAnalysis(rawDate);
+      const date111 = sqlDate ? sqlDate.replace(/-/g, '/') : '';
 
       const defaults = buildCrushingDefaults(req);
       if (!sqlDate || !fcode || fcode === '0') {
@@ -1612,7 +612,7 @@ function createCrushingDataHandler() {
               SELECT md2.md_code FROM Mode md2
               WHERE md2.md_groupcode = md.md_groupcode AND md2.MD_FACTORY = @F
             )
-            AND CAST(p.M_DATE AS DATE) = @Date
+            AND CONVERT(NVARCHAR, p.M_DATE, 111) = @Date111
             AND p.M_CENTRE IN (SELECT value FROM STRING_SPLIT(@GC, ','))
             AND p.M_FACTORY = @F
         WHERE md.MD_FACTORY = @F AND md.md_groupcode BETWEEN 1 AND 4
@@ -1629,7 +629,7 @@ function createCrushingDataHandler() {
               SELECT md2.md_code FROM Mode md2
               WHERE md2.md_groupcode = md.md_groupcode AND md2.MD_FACTORY = @F
             )
-            AND CAST(p.M_DATE AS DATE) <= @Date
+            AND CONVERT(NVARCHAR, p.M_DATE, 111) <= @Date111
             AND p.M_CENTRE IN (SELECT value FROM STRING_SPLIT(@GC, ','))
             AND p.M_FACTORY = @F
         WHERE md.MD_FACTORY = @F AND md.md_groupcode BETWEEN 1 AND 4
@@ -1641,7 +641,7 @@ function createCrushingDataHandler() {
         SELECT ISNULL(COUNT(tt_chalanNo),0) AS ODCNos,
                ISNULL(SUM(tt_grossweight-tt_tareweight-tt_joonaweight),0) AS ODCWt
         FROM RECEIPT
-        WHERE CAST(tt_Date AS DATE) = @Date
+        WHERE CONVERT(NVARCHAR, tt_Date, 111) = @Date111
           AND tt_center NOT IN (SELECT value FROM STRING_SPLIT(@GC, ','))
           AND TT_FACTORY = @F
           AND ISNULL(TT_TAREWEIGHT,0) > 0`;
@@ -1652,7 +652,7 @@ function createCrushingDataHandler() {
         SELECT ISNULL(COUNT(tt_chalanNo),0) AS TDCNos,
                ISNULL(SUM(tt_grossweight-tt_tareweight-tt_joonaweight),0) AS TDCWt
         FROM RECEIPT
-        WHERE CAST(tt_Date AS DATE) <= @Date
+        WHERE CONVERT(NVARCHAR, tt_Date, 111) <= @Date111
           AND tt_center NOT IN (SELECT value FROM STRING_SPLIT(@GC, ','))
           AND TT_FACTORY = @F
           AND ISNULL(TT_TAREWEIGHT,0) > 0`;
@@ -1676,7 +676,7 @@ function createCrushingDataHandler() {
         SELECT DATEPART(HOUR, M_TARE_DT) AS hou,
         ISNULL(SUM(M_GROSS-M_TARE-M_JOONA),0) AS FinWt
         FROM PURCHASE
-        WHERE CAST(M_DATE AS DATE) = @Date
+        WHERE CONVERT(NVARCHAR, M_DATE, 111) = @Date111
           AND M_FACTORY = @F
           AND M_CENTRE IN (SELECT value FROM STRING_SPLIT(@GC, ','))
         GROUP BY DATEPART(HOUR, M_TARE_DT)
@@ -1688,7 +688,7 @@ function createCrushingDataHandler() {
         SELECT DATEPART(HOUR, TT_TARE_DT) AS hou,
         ISNULL(SUM(tt_grossweight-tt_tareweight-tt_joonaweight),0) AS FinWt
         FROM RECEIPT
-        WHERE CAST(TT_DATE AS DATE) = @Date
+        WHERE CONVERT(NVARCHAR, TT_DATE, 111) = @Date111
           AND TT_FACTORY = @F
           AND TT_CENTER NOT IN (SELECT value FROM STRING_SPLIT(@GC, ','))
           AND tt_tareweight > 0
@@ -1701,28 +701,28 @@ function createCrushingDataHandler() {
         SELECT 'GATE_TODAY' AS TAG,
                ISNULL(SUM(M_GROSS-M_TARE-M_JOONA),0) AS FinWt
         FROM PURCHASE
-        WHERE CAST(M_DATE AS DATE) = @Date
+        WHERE CONVERT(NVARCHAR, M_DATE, 111) = @Date111
           AND DATEPART(HOUR,M_TARE_DT) BETWEEN 6 AND 17
           AND M_FACTORY=@F AND M_CENTRE IN (SELECT value FROM STRING_SPLIT(@GC,','))
         UNION ALL
         SELECT 'CENTER_TODAY',
                ISNULL(SUM(TT_GROSSWEIGHT-TT_TAREWEIGHT-TT_JOONAWEIGHT),0)
         FROM RECEIPT
-        WHERE CAST(TT_DATE AS DATE) = @Date
+        WHERE CONVERT(NVARCHAR, TT_DATE, 111) = @Date111
           AND DATEPART(HOUR,TT_TARE_DT) BETWEEN 6 AND 17
           AND TT_FACTORY=@F AND TT_CENTER NOT IN (SELECT value FROM STRING_SPLIT(@GC,','))
         UNION ALL
         SELECT 'GATE_TOD_PM',
                ISNULL(SUM(M_GROSS-M_TARE-M_JOONA),0)
         FROM PURCHASE
-        WHERE CAST(M_DATE AS DATE) = @Date
+        WHERE CONVERT(NVARCHAR, M_DATE, 111) = @Date111
           AND DATEPART(HOUR,M_TARE_DT) IN (0,1,2,3,4,5,18,19,20,21,22,23)
           AND M_FACTORY=@F AND M_CENTRE IN (SELECT value FROM STRING_SPLIT(@GC,','))
         UNION ALL
         SELECT 'CENTER_TOD_PM',
                ISNULL(SUM(TT_GROSSWEIGHT-TT_TAREWEIGHT-TT_JOONAWEIGHT),0)
         FROM RECEIPT
-        WHERE CAST(TT_DATE AS DATE) = @Date
+        WHERE CONVERT(NVARCHAR, TT_DATE, 111) = @Date111
           AND DATEPART(HOUR,TT_TARE_DT) IN (0,1,2,3,4,5,18,19,20,21,22,23)
           AND TT_FACTORY=@F AND TT_CENTER NOT IN (SELECT value FROM STRING_SPLIT(@GC,','))
           AND tt_tareWeight > 0
@@ -1730,28 +730,28 @@ function createCrushingDataHandler() {
         SELECT 'GATE_YES',
                ISNULL(SUM(M_GROSS-M_TARE-M_JOONA),0)
         FROM PURCHASE
-        WHERE CAST(M_DATE AS DATE) = DATEADD(DAY,-1,@Date)
+        WHERE CONVERT(NVARCHAR, M_DATE, 111) = DATEADD(DAY,-1,@Date111)
           AND DATEPART(HOUR,M_TARE_DT) BETWEEN 6 AND 17
           AND M_FACTORY=@F AND M_CENTRE IN (SELECT value FROM STRING_SPLIT(@GC,','))
         UNION ALL
         SELECT 'CENTER_YES',
                ISNULL(SUM(TT_GROSSWEIGHT-TT_TAREWEIGHT-TT_JOONAWEIGHT),0)
         FROM RECEIPT
-        WHERE CAST(TT_DATE AS DATE) = DATEADD(DAY,-1,@Date)
+        WHERE CONVERT(NVARCHAR, TT_DATE, 111) = DATEADD(DAY,-1,@Date111)
           AND DATEPART(HOUR,TT_TARE_DT) BETWEEN 6 AND 17
           AND TT_FACTORY=@F AND TT_CENTER NOT IN (SELECT value FROM STRING_SPLIT(@GC,','))
         UNION ALL
         SELECT 'GATE_YES_PM',
                ISNULL(SUM(M_GROSS-M_TARE-M_JOONA),0)
         FROM PURCHASE
-        WHERE CAST(M_DATE AS DATE) = DATEADD(DAY,-1,@Date)
+        WHERE CONVERT(NVARCHAR, M_DATE, 111) = DATEADD(DAY,-1,@Date111)
           AND DATEPART(HOUR,M_TARE_DT) IN (0,1,2,3,4,5,18,19,20,21,22,23)
           AND M_FACTORY=@F AND M_CENTRE IN (SELECT value FROM STRING_SPLIT(@GC,','))
         UNION ALL
         SELECT 'CENTER_YES_PM',
                ISNULL(SUM(TT_GROSSWEIGHT-TT_TAREWEIGHT-TT_JOONAWEIGHT),0)
         FROM RECEIPT
-        WHERE CAST(TT_DATE AS DATE) = DATEADD(DAY,-1,@Date)
+        WHERE CONVERT(NVARCHAR, TT_DATE, 111) = DATEADD(DAY,-1,@Date111)
           AND DATEPART(HOUR,TT_TARE_DT) IN (0,1,2,3,4,5,18,19,20,21,22,23)
           AND TT_FACTORY=@F AND TT_CENTER NOT IN (SELECT value FROM STRING_SPLIT(@GC,','))
           AND tt_tareWeight > 0`;
@@ -1761,7 +761,7 @@ function createCrushingDataHandler() {
       const cenOperQ = `
         SELECT COUNT(DISTINCT M_CENTRE) AS NOS
         FROM PURCHASE
-        WHERE CAST(M_DATE AS DATE) = @Date
+        WHERE CONVERT(NVARCHAR, M_DATE, 111) = @Date111
           AND M_CENTRE NOT IN (SELECT value FROM STRING_SPLIT(@GC,','))
           AND M_FACTORY=@F`;
 
@@ -1770,7 +770,7 @@ function createCrushingDataHandler() {
       const cenPurQ = `
         SELECT ISNULL(SUM(M_GROSS-M_TARE-M_JOONA),0) AS WT
         FROM PURCHASE
-        WHERE CAST(M_DATE AS DATE) = @Date
+        WHERE CONVERT(NVARCHAR, M_DATE, 111) = @Date111
           AND M_CENTRE NOT IN (SELECT value FROM STRING_SPLIT(@GC,','))
           AND M_FACTORY=@F`;
 
@@ -1780,7 +780,7 @@ function createCrushingDataHandler() {
         SELECT COUNT(CH_CHALLAN) AS NOS
         FROM challan_final
         WHERE Ch_Cancel=0 AND CH_FACTORY=@F
-          AND CAST(CH_DEP_DATE AS DATE) = @Date`;
+          AND CONVERT(NVARCHAR, CH_DEP_DATE, 111) = @Date111`;
 
       // ─── Step 18: Truck received (challan_final, CH_status>0 = received) ────
       // TRUCKRECEIVED: SUM CASE CH_status>0
@@ -1795,7 +795,7 @@ function createCrushingDataHandler() {
         SELECT COUNT(*) AS NOS
         FROM challan_final
         WHERE Ch_Cancel=0 AND CH_FACTORY=@F
-          AND CAST(CH_DEP_DATE AS DATE) = @Date
+          AND CONVERT(NVARCHAR, CH_DEP_DATE, 111) = @Date111
           AND CH_STATUS = 0
           AND CH_Challan NOT IN (
             SELECT TT_CHLN FROM T_TOKEN WHERE TT_FACTORY=@F
@@ -1809,7 +809,7 @@ function createCrushingDataHandler() {
         SELECT COUNT(*) AS NOS
         FROM challan_final
         WHERE Ch_Cancel=0 AND CH_FACTORY=@F
-          AND CAST(CH_DEP_DATE AS DATE) <= DATEADD(DAY,-1,@Date)
+          AND CONVERT(NVARCHAR, CH_DEP_DATE, 111) <= DATEADD(DAY,-1,@Date111)
           AND CH_STATUS = 0
           AND CH_Challan NOT IN (
             SELECT TT_CHLN FROM T_TOKEN WHERE TT_FACTORY=@F
@@ -1818,7 +818,7 @@ function createCrushingDataHandler() {
           )`;
 
       // ─── Execute all queries in parallel ─────────────────────────────────────
-      const qp = { F: fcode, Date: sqlDate, GC: GATECODE };
+      const qp = { F: fcode, Date: sqlDate, Date111: date111, GC: GATECODE };
 
       const [cropRows, modesRows, oyRows, dongaRows, odcRows, tdcRows,
         cenODC, cenTDC, cenOY, cenDonga, gateHourRows, centreHourRows,

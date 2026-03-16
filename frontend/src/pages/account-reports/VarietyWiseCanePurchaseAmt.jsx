@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { Search, FileSpreadsheet, Printer, LogOut, IndianRupee, Building2, Calendar, LayoutDashboard } from 'lucide-react';
 import { accountReportsService, masterService } from '../../microservices/api.service';
+import { openPrintWindow } from '../../utils/print';
 import '../../styles/VarietyWiseCanePurchaseAmt.css';
 
 const AccountReports_VarietyWiseCanePurchaseAmt = () => {
@@ -84,32 +85,11 @@ const AccountReports_VarietyWiseCanePurchaseAmt = () => {
       toast.error("No data to print!");
       return;
     }
-
-    const printWindow = window.open('', '_blank');
-    const content = tableRef.current.innerHTML;
-
-    printWindow.document.write(`
-            <html>
-                <head>
-                    <title>Variety Wise Cane Purchase Amount</title>
-                    <style>
-                        table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size: 10px; }
-                        th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
-                        th { background: #f0fdf4; font-weight: bold; }
-                        .text-right { text-align: right; }
-                        .font-bold { font-weight: bold; background: #f8fafc; }
-                        h2 { text-align: center; color: #15803d; }
-                    </style>
-                </head>
-                <body>
-                    <h2>Bajaj Group - Variety Wise Cane Purchase Amount</h2>
-                    <p style="text-align: center">Period: ${fromDate || 'Start'} to ${toDate}</p>
-                    <table>${content}</table>
-                </body>
-            </html>
-        `);
-    printWindow.document.close();
-    printWindow.print();
+    openPrintWindow({
+      title: "Variety Wise Cane Purchase Amount",
+      subtitle: `Period: ${fromDate || 'Start'} to ${toDate || 'End'}`,
+      contentHtml: tableRef.current ? tableRef.current.outerHTML : ""
+    });
   };
 
   return (

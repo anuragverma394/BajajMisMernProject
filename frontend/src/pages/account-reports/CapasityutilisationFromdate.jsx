@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { accountReportsService, masterService } from '../../microservices/api.service';
 import '../../styles/CapasityutilisationFromdate.css';
+import { openPrintWindow } from '../../utils/print';
 
 const AccountReports_CapasityutilisationFromdate = () => {
   const navigate = useNavigate();
@@ -94,36 +95,11 @@ const AccountReports_CapasityutilisationFromdate = () => {
       toast.error("No data to print!");
       return;
     }
-
-    const printContent = tableRef.current.outerHTML;
-    const printWindow = window.open('', '_blank', 'width=1000,height=1000');
-    printWindow.document.write(`
-            <html>
-                <head>
-                    <title>Capacity Utilisation Periodical</title>
-                    <style>
-                        body { font-family: sans-serif; }
-                        h2, h4 { text-align: center; }
-                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                        th, td { border: 1px solid black; padding: 8px; text-align: right; }
-                        th { background-color: #e5e7eb; text-align: center; }
-                        td:first-child, th:first-child { text-align: left; }
-                    </style>
-                </head>
-                <body>
-                    <h2>Bajaj Group</h2>
-                    <h4>Capacity Utilisation Periodical</h4>
-                    <p>From: ${fromDate || 'N/A'} To: ${toDate || 'N/A'}</p>
-                    ${printContent}
-                </body>
-            </html>
-        `);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
+    openPrintWindow({
+      title: "Capacity Utilisation Periodical",
+      subtitle: `From: ${fromDate || 'N/A'} To: ${toDate || 'N/A'}`,
+      contentHtml: tableRef.current ? tableRef.current.outerHTML : ""
+    });
   };
 
   return (

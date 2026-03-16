@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { surveyService, masterService } from '../../microservices/api.service';
-import '../../styles/SurveyReports.css';const __cx = (...vals) => vals.filter(Boolean).join(" ");
+import '../../styles/SurveyReports.css';
+import { openPrintWindow } from '../../utils/print';
+const __cx = (...vals) => vals.filter(Boolean).join(" ");
 
 const SurveyReport_WeeklySubmissionofIndents = () => {
   const navigate = useNavigate();
@@ -57,18 +59,11 @@ const SurveyReport_WeeklySubmissionofIndents = () => {
 
   const handlePrint = () => {
     const content = document.getElementById('report-print-area');
-    const win = window.open('', '', 'height=800,width=1400');
-    win.document.write('<html><head><title>Resource Allocation Matrix</title>');
-    win.document.write('<style>table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 8px; } th, td { border: 1px solid #e2e8f0; padding: 6px; text-align: center; } th { background: #f8fafc; color: #1e293b; font-weight: 800; text-transform: uppercase; } .text-left { text-align: left; } .font-bold { font-weight: 700; }</style>');
-    win.document.write('</head><body>');
-    win.document.write('<div style="text-align:center; padding: 30px;">');
-    win.document.write('<h1 style="margin:0; color:#0f172a; text-transform:uppercase;">Bajaj Sugar - Resource Allocation Matrix</h1>');
-    win.document.write(`<p style="color:#64748b;">Node: ${filters.unit} | Zone: ${filters.F_Zone} | Period: ${filters.Datefrom} to ${filters.DateTo}</p>`);
-    win.document.write('</div>');
-    win.document.write(content.innerHTML);
-    win.document.write('</body></html>');
-    win.document.close();
-    win.print();
+    openPrintWindow({
+      title: "Weekly Submission of Indents",
+      subtitle: `Node: ${filters.unit} | Zone: ${filters.F_Zone} | Period: ${filters.Datefrom} to ${filters.DateTo}`,
+      contentHtml: content ? content.outerHTML : ""
+    });
   };
 
   return (

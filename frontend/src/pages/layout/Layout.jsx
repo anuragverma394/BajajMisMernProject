@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, NavLink, useNavigate, Outlet } from "react-router-dom";
+import { Link, NavLink, useNavigate, Outlet, useLocation } from "react-router-dom";
 import '../../styles/Layout.css';const __cx = (...vals) => vals.filter(Boolean).join(" ");
 
 const logo = "/assets/images/Bajaj_Logo.png";
@@ -10,7 +10,9 @@ export default function Layout() {
   const [userName, setUserName] = useState("Admin");
   const [season, setSeason] = useState("2526");
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [printTitle, setPrintTitle] = useState("Bajaj Sugar");
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Get current date and time
   useEffect(() => {
@@ -43,6 +45,19 @@ export default function Layout() {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const pickTitle = () => {
+      const heading = document.querySelector("h1, h2, .page-title, .report-title");
+      const text = heading?.textContent?.trim();
+      if (text) return text;
+      const docTitle = document.title?.trim();
+      if (docTitle) return docTitle;
+      return "Bajaj Sugar";
+    };
+    const timer = setTimeout(() => setPrintTitle(pickTitle()), 0);
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -60,6 +75,13 @@ export default function Layout() {
 
   return (
     <div className="dn-container">
+            <div className="print-header print-only">
+                <img src={logo} alt="Bajaj Sugar" className="print-logo" />
+                <div className="print-header-text">
+                    <div className="print-brand">Bajaj Sugar</div>
+                    <div className="print-title">{printTitle}</div>
+                </div>
+            </div>
             {/* HEADER */}
             <header className={__cx("dn-header", "py-[5px] px-[20px] bg-white border-b border-b-[#e0e0e0]")}>
                 <div className={__cx("dn-logo-wrapper", "")} onClick={() => navigate("/dashboard")}>

@@ -1,25 +1,232 @@
 const { executeProcedure, executeQuery } = require('../core/db/query-executor');
+const { config } = require('../../../../shared/lib/config');
+
+function logProcError(scope, details) {
+  console.error(`[ReportNewRepository] ${scope} error:`, details);
+}
+
+async function executeProcedureWithFallback(procName, params, season) {
+  try {
+    return await executeProcedure(procName, params, season);
+  } catch (error) {
+    const message = String(error?.message || '');
+    if (!message.toLowerCase().includes('could not find stored procedure')) {
+      throw error;
+    }
+    // Try schema-qualified name
+    const dboName = procName.startsWith('dbo.') ? procName : `dbo.${procName}`;
+    try {
+      return await executeProcedure(dboName, params, season);
+    } catch (dboError) {
+      if (!String(dboError?.message || '').toLowerCase().includes('could not find stored procedure')) {
+        throw dboError;
+      }
+      // Safe fallback: return empty result for missing proc
+      return { rows: [], recordsets: [], rowsAffected: [] };
+    }
+  }
+}
 
 /**
  * Get Hourly Cane Arrival Weight
  */
 async function getHourlyCaneArrivalWeight(season) {
   try {
-    const result = await executeProcedure('sp_GetHourlyCaneArrivalWeight', { Season: season });
-    return result || [];
+    const procName = 'sp_GetHourlyCaneArrivalWeight';
+    const params = { Season: season };
+    const result = await executeProcedureWithFallback(procName, params, season);
+    return result?.rows || result?.recordsets?.[0] || [];
   } catch (error) {
-    console.error('[ReportNewRepository] getHourlyCaneArrivalWeight error:', error.message);
+    logProcError('getHourlyCaneArrivalWeight', {
+      message: error.message,
+      procedure: 'sp_GetHourlyCaneArrivalWeight',
+      params: { Season: season },
+      season,
+      database: config?.DB_NAME || process.env.DB_NAME
+    });
     throw error;
   }
+}
+
+function toSqlDate(raw) {
+  const value = String(raw || '').trim();
+  if (!value) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+    const [dd, mm, yyyy] = value.split('/');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  if (/^\d{2}-\d{2}-\d{4}$/.test(value)) {
+    const [dd, mm, yyyy] = value.split('-');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  const dt = new Date(value);
+  if (Number.isNaN(dt.getTime())) return '';
+  const dd = String(dt.getDate()).padStart(2, '0');
+  const mm = String(dt.getMonth() + 1).padStart(2, '0');
+  const yyyy = dt.getFullYear();
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function addDays(isoDate, days) {
+  const [y, m, d] = isoDate.split('-').map((v) => parseInt(v, 10));
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() + days);
+  const yyyy = dt.getFullYear();
+  const mm = String(dt.getMonth() + 1).padStart(2, '0');
+  const dd = String(dt.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 /**
  * Get Indent Purchase Report New
  */
-async function getIndentPurchaseReportNew(season) {
+async function getIndentPurchaseReportNew(params = {}, season) {
   try {
-    const result = await executeProcedure('sp_GetIndentPurchaseReportNew', { Season: season });
-    return result || [];
+    const factory = String(params.F_code || params.F_Code || params.factory || '').trim();
+    const rawDate = String(params.Fdate || params.Date || params.date || '').trim();
+    const zonefrom = String(params.Zone || params.zone || '0').trim();
+    const zoneto = String(params.ZoneTo || params.zoneTo || '9999').trim();
+
+    const date = toSqlDate(rawDate);
+    if (!factory || !date) {
+      return [];
+    }
+
+    const day1 = addDays(date, -1);
+    const day2 = addDays(date, -2);
+    const nextdate = addDays(date, 1);
+
+    const baseParams = {
+      factory,
+      date,
+      day1,
+      day2,
+      nextdate,
+      zonefrom,
+      zoneto
+    };
+
+    const getAllZoneSql = zonefrom && zoneto
+      ? `select bL_code blk_code,bL_name blk_name,sum(onedaysbalnace)onedaysbalnace,sum(twodaysdaysbalnace)twodaysdaysbalnace,
+sum(TodayIndent)TodayIndent,sum(totalindenttoday)totalindenttoday,sum(purchase)purchase,
+round(((case when sum(purchase) > 0 then(sum(purchase) / sum(totalindenttoday)) * 100 else 0 end)),0)mature,
+sum(backonedaysbalnace)backonedaysbalnace,sum(backtwodaysdaysbalnace)backtwodaysdaysbalnace,sum(backTodayIndent)backTodayIndent,sum(backbalanceindent)backbalanceindent
+from(select bL_code, bL_name, c_code, c_name,onedaysbalnace, twodaysdaysbalnace, TodayIndent,
+onedaysbalnace+twodaysdaysbalnace + TodayIndent as totalindenttoday,purchase,
+round(((case when(onedaysbalnace + twodaysdaysbalnace + TodayIndent) > 0 then(purchase / (onedaysbalnace + twodaysdaysbalnace + TodayIndent)) * 100 else 0 end )),0)Mature,
+backonedaysbalnace,backtwodaysdaysbalnace,backTodayIndent,(backonedaysbalnace + backtwodaysdaysbalnace + backTodayIndent) as backbalanceindent
+from(select bl_code, bl_name, c_code, c_name,
+(round(isnull(sum(case when  cast(is_ds_dt as date) = @day2  and is_status = 0 then md_qty else 0 end),0),0)
+ + round((select isnull(sum(m_gross - m_tare - m_joona), 0) from mill_pur join mode on md_code = m_mode and md_factory = M_FACTORY
+where cast(m_ind_dt as date) = @day2 and m_centre = c_code and M_FACTORY = c_factory and cast(m_date as date) = @date),0))onedaysbalnace ,
+(round(isnull(sum(case when  cast(is_ds_dt as date) = @day1  and is_status = 0 then md_qty else 0 end),0),0)
+ + round((select isnull(sum(m_gross - m_tare - m_joona), 0) from mill_pur join mode on md_code = m_mode and md_factory = M_FACTORY
+where cast(m_ind_dt as date) = @day1  and m_centre = c_code and M_FACTORY = c_factory and cast(m_date as date) = @date),0))twodaysdaysbalnace ,
+(round(isnull(sum(case when  cast(is_ds_dt as date) = @date  and is_status = 0   then md_qty else 0 end),0),0)
+ + round((select isnull(sum(m_gross - m_tare - m_joona), 0) from mill_pur join mode on md_code = m_mode and md_factory = M_FACTORY
+where cast(m_ind_dt as date) = @date and m_centre = c_code and M_FACTORY = c_factory and cast(m_date as date) = @date),0))TodayIndent,
+round(isnull((select sum(m_gross - m_tare - m_joona)  from Mill_Pur where m_centre = c_code and M_FACTORY = c_factory and cast(m_date as date) = @date), 0),0) as Purchase,
+round(isnull(sum(case when  cast(is_ds_dt as date) = @day1   and is_status = 0 then md_qty else 0 end),0),0)backonedaysbalnace ,
+round(isnull(sum(case when  cast(is_ds_dt as date) = @date  and is_status = 0 then md_qty else 0 end),0),0)backtwodaysdaysbalnace ,
+round(isnull(sum(case when  cast(is_ds_dt as date) = @nextdate and is_status = 0  then md_qty else 0 end),0),0)backTodayIndent,
+round(isnull((select sum(m_gross - m_tare - m_joona) from Mill_Pur where m_centre = c_code  and M_FACTORY = c_factory and cast(m_date as date) = @nextdate), 0),0) as backPurchase
+from issued join centre on c_code = is_cnt_cd and c_factory = IS_FACTORY join block on bl_code = c_block and bl_factcode = c_factory
+join mode on md_code = Issued.Is_Mode and md_factory = ISSUED.IS_FACTORY
+where c_code!= 1 and bl_code between @zonefrom and @zoneto and c_factory = @factory
+group by bl_code,bl_name,c_code,c_name,c_factory) AS X)AS V group by  bL_code,bL_name order by bL_name`
+      : `select bL_code blk_code,bL_name blk_name,sum(onedaysbalnace)onedaysbalnace,sum(twodaysdaysbalnace)twodaysdaysbalnace,
+sum(TodayIndent)TodayIndent,sum(totalindenttoday)totalindenttoday,sum(purchase)purchase,
+round(((case when sum(purchase) > 0 then(sum(purchase) / sum(totalindenttoday)) * 100 else 0 end)),0)mature,
+sum(backonedaysbalnace)backonedaysbalnace,sum(backtwodaysdaysbalnace)backtwodaysdaysbalnace,sum(backTodayIndent)backTodayIndent,sum(backbalanceindent)backbalanceindent
+from(select bL_code, bL_name, c_code, c_name,onedaysbalnace, twodaysdaysbalnace, TodayIndent,
+onedaysbalnace+twodaysdaysbalnace + TodayIndent as totalindenttoday,purchase,
+round(((case when(onedaysbalnace + twodaysdaysbalnace + TodayIndent) > 0 then(purchase / (onedaysbalnace + twodaysdaysbalnace + TodayIndent)) * 100 else 0 end )),0)Mature,
+backonedaysbalnace,backtwodaysdaysbalnace,backTodayIndent,(backonedaysbalnace + backtwodaysdaysbalnace + backTodayIndent) as backbalanceindent
+from(select bl_code, bl_name, c_code, c_name,
+(round(isnull(sum(case when  cast(is_ds_dt as date) = @day2  and is_status = 0 then md_qty else 0 end),0),0)
+ + round((select isnull(sum(m_gross - m_tare - m_joona), 0) from mill_pur join mode on md_code = m_mode and md_factory = M_FACTORY
+where cast(m_ind_dt as date) = @day2  and m_centre = c_code and M_FACTORY = c_factory and cast(m_date as date) = @date),0))onedaysbalnace ,
+(round(isnull(sum(case when  cast(is_ds_dt as date) = @day1  and is_status = 0 then md_qty else 0 end),0),0)
+ + round((select isnull(sum(m_gross - m_tare - m_joona), 0) from mill_pur join mode on md_code = m_mode and md_factory = M_FACTORY
+where cast(m_ind_dt as date) = @day1  and m_centre = c_code and M_FACTORY = c_factory and cast(m_date as date) = @date),0))twodaysdaysbalnace ,
+(round(isnull(sum(case when  cast(is_ds_dt as date) = @date  and is_status = 0   then md_qty else 0 end),0),0)
+ + round((select isnull(sum(m_gross - m_tare - m_joona), 0) from mill_pur join mode on md_code = m_mode and md_factory = M_FACTORY
+where cast(m_ind_dt as date) = @date and m_centre = c_code and M_FACTORY = c_factory and cast(m_date as date) = @date),0))TodayIndent,
+round(isnull((select sum(m_gross - m_tare - m_joona)  from Mill_Pur where m_centre = c_code and M_FACTORY = c_factory and cast(m_date as date) = @date), 0),0) as Purchase,
+round(isnull(sum(case when  cast(is_ds_dt as date) = @day1   and is_status = 0 then md_qty else 0 end),0),0)backonedaysbalnace ,
+round(isnull(sum(case when  cast(is_ds_dt as date) = @date  and is_status = 0 then md_qty else 0 end),0),0)backtwodaysdaysbalnace ,
+round(isnull(sum(case when  cast(is_ds_dt as date) = @nextdate and is_status = 0  then md_qty else 0 end),0),0)backTodayIndent,
+round(isnull((select sum(m_gross - m_tare - m_joona) from Mill_Pur where m_centre = c_code  and M_FACTORY = c_factory and cast(m_date as date) = @nextdate), 0),0) as backPurchase
+from issued join centre on c_code = is_cnt_cd and c_factory = IS_FACTORY join block on bl_code = c_block and bl_factcode = c_factory
+join mode on md_code = Issued.Is_Mode and md_factory = ISSUED.IS_FACTORY
+where c_code!= 1 and c_factory = @factory
+group by bl_code,bl_name,c_code,c_name,c_factory) AS X)AS V group by  bL_code,bL_name order by bL_name`;
+
+    const getAllZone1Sql = zonefrom && zoneto
+      ? `select bL_code blk_code,bL_name blk_name,sum(onedaysbalnace)onedaysbalnace,sum(twodaysdaysbalnace)twodaysdaysbalnace,
+sum(TodayIndent)TodayIndent,sum(totalindenttoday)totalindenttoday,sum(purchase)purchase,
+round(((case when sum(purchase)>0 then (sum(purchase)/sum(totalindenttoday))*100 else 0 end)),0)mature,
+sum(backonedaysbalnace)backonedaysbalnace,sum(backtwodaysdaysbalnace)backtwodaysdaysbalnace,sum(backTodayIndent)backTodayIndent,
+sum(backbalanceindent)backbalanceindent from
+(select  bl_code,bl_name, c_code, c_name,onedaysbalnace,twodaysdaysbalnace,TodayIndent,
+onedaysbalnace+twodaysdaysbalnace+TodayIndent as totalindenttoday,purchase,
+round(((case when (onedaysbalnace+twodaysdaysbalnace+TodayIndent)>0 then (purchase/ (onedaysbalnace+twodaysdaysbalnace+TodayIndent))*100 else 0 end )),0) Mature,
+backonedaysbalnace,backtwodaysdaysbalnace,backTodayIndent,(backonedaysbalnace+backtwodaysdaysbalnace+backTodayIndent) as backbalanceindent   from
+( 
+select bl_code,bl_name, c_code, c_name,
+(round(isnull(sum(case when  cast(is_ds_dt as date)=@day2  and is_status = 0 then md_qty else 0 end),0),0)
+ + round((select isnull(sum(m_gross-m_tare-m_joona),0) from mill_pur join mode on md_code=m_mode and md_factory=M_FACTORY
+where cast(m_ind_dt as date)=@day2 and m_centre=c_code and M_FACTORY=c_factory and cast(m_date as date) = @date),0))onedaysbalnace ,
+(round(isnull(sum(case when  cast(is_ds_dt as date)=@day1  and is_status = 0 then md_qty else 0 end),0),0)
+ + round((select isnull(sum(m_gross-m_tare-m_joona),0) from mill_pur join mode on md_code=m_mode and md_factory=M_FACTORY
+where cast(m_ind_dt as date)= @day1 and m_centre=c_code and M_FACTORY=c_factory and cast(m_date as date) = @date),0))twodaysdaysbalnace ,
+(round(isnull(sum(case when  cast(is_ds_dt as date) = @date  and is_status = 0   then md_qty else 0 end),0),0)
+ + round((select isnull(sum(m_gross-m_tare-m_joona),0) from mill_pur join mode on md_code=m_mode and md_factory=M_FACTORY
+where cast(m_ind_dt as date)= @date and m_centre=c_code and M_FACTORY=c_factory and cast(m_date as date) = @date),0))TodayIndent,
+round(isnull((select sum(m_gross - m_tare - m_joona) from Mill_Pur where m_centre = c_code and M_FACTORY=c_factory and cast(m_date as date) = @date),0),0) as Purchase,
+round(isnull(sum(case when  cast(is_ds_dt as date)= @day1   and is_status = 0 then md_qty else 0 end),0),0)backonedaysbalnace ,
+round(isnull(sum(case when  cast(is_ds_dt as date)= @date  and is_status = 0 then md_qty else 0 end),0),0)backtwodaysdaysbalnace ,
+round(isnull(sum(case when  cast(is_ds_dt as date) = @nextdate and is_status = 0  then md_qty else 0 end),0),0)backTodayIndent,
+round(isnull((select sum(m_gross - m_tare - m_joona) from Mill_Pur where m_centre = c_code and M_FACTORY=c_factory  and cast(m_date as date) = @nextdate),0),0) as backPurchase
+from issued  join centre on c_code = is_cnt_cd  and c_factory = IS_FACTORY left join block on bL_code = c_block and bl_factcode=c_factory
+join mode on md_code = Issued.Is_Mode and md_factory=ISSUED.IS_FACTORY
+where c_code=100 and bL_code between @zonefrom and @zoneto group by c_factory,bl_code,bl_name,c_code,c_name  )as x) as u group by  bL_code,bL_name  order by bL_name`
+      : `select bL_code blk_code,bL_name blk_name,sum(onedaysbalnace)onedaysbalnace,sum(twodaysdaysbalnace)twodaysdaysbalnace,
+sum(TodayIndent)TodayIndent,sum(totalindenttoday)totalindenttoday,sum(purchase)purchase,
+round(((case when sum(purchase)>0 then (sum(purchase)/sum(totalindenttoday))*100 else 0 end)),0)mature,
+sum(backonedaysbalnace)backonedaysbalnace,sum(backtwodaysdaysbalnace)backtwodaysdaysbalnace,sum(backTodayIndent)backTodayIndent,
+sum(backbalanceindent)backbalanceindent from
+(select  bl_code,bl_name, c_code, c_name,onedaysbalnace,twodaysdaysbalnace,TodayIndent,
+onedaysbalnace+twodaysdaysbalnace+TodayIndent as totalindenttoday,purchase,
+round(((case when (onedaysbalnace+twodaysdaysbalnace+TodayIndent)>0 then (purchase/ (onedaysbalnace+twodaysdaysbalnace+TodayIndent))*100 else 0 end )),0) Mature,
+backonedaysbalnace,backtwodaysdaysbalnace,backTodayIndent,(backonedaysbalnace+backtwodaysdaysbalnace+backTodayIndent) as backbalanceindent   from
+( 
+select bl_code,bl_name, c_code, c_name,
+(round(isnull(sum(case when  cast(is_ds_dt as date)=@day2  and is_status = 0 then md_qty else 0 end),0),0)
+ + round((select isnull(sum(m_gross-m_tare-m_joona),0) from mill_pur join mode on md_code=m_mode and md_factory=M_FACTORY
+where cast(m_ind_dt as date)=@day2 and m_centre=c_code and M_FACTORY=c_factory and cast(m_date as date) = @date),0))onedaysbalnace ,
+(round(isnull(sum(case when  cast(is_ds_dt as date)=@day1  and is_status = 0 then md_qty else 0 end),0),0)
+ + round((select isnull(sum(m_gross-m_tare-m_joona),0) from mill_pur join mode on md_code=m_mode and md_factory=M_FACTORY
+where cast(m_ind_dt as date)= @day1 and m_centre=c_code and M_FACTORY=c_factory and cast(m_date as date) = @date),0))twodaysdaysbalnace ,
+(round(isnull(sum(case when  cast(is_ds_dt as date) = @date  and is_status = 0   then md_qty else 0 end),0),0)
+ + round((select isnull(sum(m_gross-m_tare-m_joona),0) from mill_pur join mode on md_code=m_mode and md_factory=M_FACTORY
+where cast(m_ind_dt as date)= @date and m_centre=c_code and M_FACTORY=c_factory and cast(m_date as date) = @date),0))TodayIndent,
+round(isnull((select sum(m_gross - m_tare - m_joona) from Mill_Pur where m_centre = c_code and M_FACTORY=c_factory and cast(m_date as date) = @date),0),0) as Purchase,
+round(isnull(sum(case when  cast(is_ds_dt as date)= @day1   and is_status = 0 then md_qty else 0 end),0),0)backonedaysbalnace ,
+round(isnull(sum(case when  cast(is_ds_dt as date)= @date  and is_status = 0 then md_qty else 0 end),0),0)backtwodaysdaysbalnace ,
+round(isnull(sum(case when  cast(is_ds_dt as date) = @nextdate and is_status = 0  then md_qty else 0 end),0),0)backTodayIndent,
+round(isnull((select sum(m_gross - m_tare - m_joona) from Mill_Pur where m_centre = c_code and M_FACTORY=c_factory  and cast(m_date as date) = @nextdate),0),0) as backPurchase
+from issued  join centre on c_code = is_cnt_cd  and c_factory = IS_FACTORY left join block on bL_code = c_block and bl_factcode=c_factory
+join mode on md_code = Issued.Is_Mode and md_factory=ISSUED.IS_FACTORY
+where c_code=100  group by c_factory,bl_code,bl_name,c_code,c_name  )as x) as u group by  bL_code,bL_name  order by bL_name`;
+
+    const zoneRows = await executeQuery(getAllZoneSql, baseParams, season);
+    const zoneRows1 = await executeQuery(getAllZone1Sql, baseParams, season);
+
+    const rows = [...(zoneRows1 || []), ...(zoneRows || [])];
+
+    return rows || [];
   } catch (error) {
     console.error('[ReportNewRepository] getIndentPurchaseReportNew error:', error.message);
     throw error;

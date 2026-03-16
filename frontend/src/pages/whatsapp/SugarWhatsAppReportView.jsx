@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'react-hot-toast';
 import { masterService, dailyCaneEntryService } from '../../microservices/api.service';
 import './SugarWhatsAppReportView.css';
+import { openPrintWindow } from '../../utils/print';
 
 function formatDDMMYYYY(d) {
   const dd = String(d.getDate()).padStart(2, '0');
@@ -51,7 +52,7 @@ function buildReportData(summary, selectedDate) {
   };
 }
 
-function buildPrintHtml(report) {
+function buildPrintBody(report) {
   const rowsCrush = report.rows
     .map((r) => `<tr><td>${escapeHtml(r.Unit || '-')}</td><td>${num(r.Cn_Crush_OnDate)}</td><td>/${num(r.Cn_Crush_ToDate)}</td></tr>`)
     .join('');
@@ -87,19 +88,6 @@ function buildPrintHtml(report) {
     .join('');
 
   return `
-    <html>
-      <head>
-        <title>Sugar WhatsApp Report</title>
-        <style>
-          body { font-family: Arial, sans-serif; color: #111827; padding: 12px; }
-          .print-title { font-weight: 700; margin-bottom: 8px; }
-          .print-subtitle { font-weight: 700; margin: 10px 0 2px; }
-          .print-table { border-collapse: collapse; margin: 4px 0 12px; }
-          .print-table th, .print-table td { text-align: left; padding-right: 18px; vertical-align: top; }
-          .print-bold { font-weight: 700; }
-        </style>
-      </head>
-      <body>
         <div class="print-title">Crush Report - ${escapeHtml(report.reportDate)}</div>
         <div class="print-subtitle">Difference from last Season</div>
         <table class="print-table">
@@ -156,6 +144,26 @@ function buildPrintHtml(report) {
           <tr><th>Unit</th><th>Remark</th></tr>
           ${rowsStop}
         </table>
+  `;
+}
+
+function buildPrintHtml(report) {
+  const body = buildPrintBody(report);
+  return `
+    <html>
+      <head>
+        <title>Sugar WhatsApp Report</title>
+        <style>
+          body { font-family: Arial, sans-serif; color: #111827; padding: 12px; }
+          .print-title { font-weight: 700; margin-bottom: 8px; }
+          .print-subtitle { font-weight: 700; margin: 10px 0 2px; }
+          .print-table { border-collapse: collapse; margin: 4px 0 12px; }
+          .print-table th, .print-table td { text-align: left; padding-right: 18px; vertical-align: top; }
+          .print-bold { font-weight: 700; }
+        </style>
+      </head>
+      <body>
+        ${body}
       </body>
     </html>
   `;
@@ -219,12 +227,11 @@ export default function SugarWhatsAppReportView() {
       toast.error('No data to print');
       return;
     }
-    const win = window.open('', '', 'width=1200,height=900');
-    if (!win) return;
-    win.document.write(buildPrintHtml(report));
-    win.document.close();
-    win.focus();
-    win.print();
+    openPrintWindow({
+      title: "Sugar WhatsApp Report",
+      subtitle: `Crush Report - ${report.reportDate}`,
+      contentHtml: buildPrintBody(report)
+    });
   };
 
   const handleExport = () => {

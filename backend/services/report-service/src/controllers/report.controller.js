@@ -1,135 +1,10 @@
-const { executeQuery, executeProcedure } = require('../core/db/query-executor');
-const reportService = require('../services/report.service');
+  const reportService = require('../services/report.service');
 const reportRepository = require('../repositories/report.repository');
 const reportControllerRepository = require('../repositories/report.controller.repository');
+const { createProcedureHandler, safeProcedure } = require('../utils/procedure-utils');
+const { getSeason, getFactoryCode } = require('../utils/request-utils');const { logInfo, logError } = require('../utils/logger');
 
 const CONTROLLER = 'Report';
-
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
-
-/**
- * Creates a handler that executes a stored procedure
- * @param {string} controller - Controller name for logging
- * @param {string} action - Procedure name to execute
- * @param {string} signature - Signature (for documentation)
- * @returns {Function} Async handler function
- */
-function createProcedureHandler(controller, action, signature) {
-  return async (req, res, next) => {
-    try {
-      const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
-      const params = { ...(req.query || {}), ...(req.body || {}) };
-      const result = await executeProcedure(action, params, season);
-      return res.status(200).json({
-        success: true,
-        message: `${controller}.${action} executed`,
-        data: result?.rows || [],
-        recordsets: result?.recordsets || []
-      });
-    } catch (error) {
-      if (typeof next === 'function') return next(error);
-      throw error;
-    }
-  };
-}
-
-/**
- * Normalizes date input to DD/MM/YYYY format
- * @param {any} raw - Raw date input (string or Date object)
- * @returns {string} Normalized date in DD/MM/YYYY format or empty string
- */
-function normalizeDateInput(raw) {
-  const value = String(raw || '').trim();
-  if (!value) return '';
-
-  // Already in YYYY-MM-DD format
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    const [yyyy, mm, dd] = value.split('-');
-    return `${dd}/${mm}/${yyyy}`;
-  }
-
-  // Already in DD/MM/YYYY format
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
-    return value;
-  }
-
-  // DD-MM-YYYY format
-  if (/^\d{2}-\d{2}-\d{4}$/.test(value)) {
-    return value.replace(/-/g, '/');
-  }
-
-  // Try parsing as Date object
-  const dt = new Date(value);
-  if (Number.isNaN(dt.getTime())) return '';
-  const dd = String(dt.getDate()).padStart(2, '0');
-  const mm = String(dt.getMonth() + 1).padStart(2, '0');
-  const yyyy = dt.getFullYear();
-  return `${dd}/${mm}/${yyyy}`;
-}
-
-
-/**
- * Converts normalized date to SQL format (YYYY-MM-DD)
- * @param {any} raw - Raw date input
- * @returns {string} SQL formatted date or empty string
- */
-function toSqlDate(raw) {
-  const value = normalizeDateInput(raw);
-  if (!value) return '';
-  const [dd, mm, yyyy] = value.split('/');
-  return `${yyyy}-${mm}-${dd}`;
-}
-
-/**
- * Gets season from request
- * @param {Object} req - Express request object
- * @returns {string} Season value (e.g., '2526')
- */
-function getSeason(req) {
-  return req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
-}
-
-/**
- * Gets factory code from request with multiple key fallbacks
- * @param {Object} req - Express request object
- * @param {...string} keys - Keys to check for factory code
- * @returns {string} Factory code or empty string
- */
-function getFactoryCode(req, ...keys) {
-  for (const key of keys) {
-    const value = req.query?.[key] ?? req.body?.[key];
-    if (value !== undefined && value !== null && String(value).trim() !== '' && String(value).trim() !== 'All') {
-      return String(value).trim();
-    }
-  }
-  return '';
-}
-
-/**
- * Safely executes a stored procedure with error handling
- * @param {string} name - Procedure name
- * @param {Object} params - Parameters to pass
- * @param {string} season - Season for execution
- * @returns {Promise<Array>} Rows from procedure or empty array
- */
-async function safeProcedure(name, params, season) {
-  try {
-    const result = await executeProcedure(name, params, season);
-    return result.rows || [];
-  } catch (error) {
-    const message = String(error?.message || '');
-    if (message.toLowerCase().includes('could not find stored procedure')) {
-      return [];
-    }
-    throw error;
-  }
-}
-
-// ============================================================================
-// HANDLERS
-// ============================================================================
 
 // ============================================================================
 // HANDLERS
@@ -149,7 +24,7 @@ exports.CrushingReport = async (req, res, next) => {
       });
     }
 
-    console.log(`[CrushingReport] Request - Factory: ${F_code}, Date: ${Date}, Season: ${season}`);
+    logInfo(`[CrushingReport] Request - Factory: ${F_code}, Date: ${Date}, Season: ${season}`);
     
     const data = await reportRepository.getCrushingReportData(
       { factCode: F_code, date: Date },
@@ -162,39 +37,16 @@ exports.CrushingReport = async (req, res, next) => {
       data: data
     });
   } catch (error) {
-    console.error('[CrushingReport] Error:', error.message);
+    logError('[CrushingReport] Error:', error.message);
     return next(error);
   }
 };
 
-// Use repository handler to gracefully fall back when stored proc is missing
-exports.Imagesblub = reportControllerRepository.Imagesblub;
-exports.LOADMODEWISEDATA = async (req, res, next) => {
-  try {
-    const data = await reportService.loadModeWiseData(req);
-    return res.status(200).json({
-      success: true,
-      message: 'Report.LOADMODEWISEDATA executed',
-      data
-    });
-  } catch (error) {
-    if (typeof next === 'function') return next(error);
-    throw error;
-  }
-};
-exports.LOADFACTORYDATA = async (req, res, next) => {
-  try {
-    const data = await reportService.loadFactoryData(req);
-    return res.status(200).json({
-      success: true,
-      message: 'Report.LOADFACTORYDATA executed',
-      data
-    });
-  } catch (error) {
-    if (typeof next === 'function') return next(error);
-    throw error;
-  }
-};
+// Use stored procedure handler for Imagesblub (repository does not export it)
+exports.Imagesblub = createProcedureHandler(CONTROLLER, 'Imagesblub', '');
+// Crushing report data should use the exact SQL mirror for consistency with BajajMIS
+exports.LOADMODEWISEDATA = reportControllerRepository.CrushingReport;
+exports.LOADFACTORYDATA = reportControllerRepository.CrushingReport;
 exports.LatestCrushingDate = async (req, res, next) => {
   try {
     const date = await reportService.getLatestCrushingDate(req);
@@ -227,11 +79,11 @@ exports.Analysisdata = async (req, res, next) => {
       });
     }
 
-    console.log(`[Analysisdata] Fetching analysis data for Factory: ${F_code}, Date: ${Date}`);
+    logInfo(`[Analysisdata] Fetching analysis data for Factory: ${F_code}, Date: ${Date}`);
     const data = await reportService.getAnalysisData(req);
     return res.status(200).json(data);
   } catch (error) {
-    console.error('[Analysisdata] Error:', error.message);
+    logError('[Analysisdata] Error:', error.message);
     return next(error);
   }
 };
@@ -249,7 +101,7 @@ exports.CentrePurchase = async (req, res, next) => {
       });
     }
 
-    console.log(`[CentrePurchase] Request - Factory: ${F_Code}, Date: ${Date}, Season: ${season}`);
+    logInfo(`[CentrePurchase] Request - Factory: ${F_Code}, Date: ${Date}, Season: ${season}`);
 
     // Parse and format date properly
     let fromDate = '';
@@ -279,7 +131,7 @@ exports.CentrePurchase = async (req, res, next) => {
       }
     }
 
-    console.log(`[CentrePurchase] Parsed dates - From: ${fromDate}, To: ${toDate}`);
+    logInfo(`[CentrePurchase] Parsed dates - From: ${fromDate}, To: ${toDate}`);
 
     const data = await reportRepository.getCentreCode(
       { fCode: F_Code, fromDate, toDate },
@@ -292,7 +144,7 @@ exports.CentrePurchase = async (req, res, next) => {
       data: data
     });
   } catch (error) {
-    console.error('[CentrePurchase] Error:', error.message);
+    logError('[CentrePurchase] Error:', error.message);
     return next(error);
   }
 };
@@ -300,8 +152,9 @@ exports.CentrePurchase = async (req, res, next) => {
 // TruckDispatchWeighed - use handler from repository with full logic
 exports.TruckDispatchWeighed = reportControllerRepository.TruckDispatchWeighed;
 
-exports.IndentFailSummary = createProcedureHandler(CONTROLLER, 'IndentFailSummary', '');
-exports.IndentFailSummaryData = createProcedureHandler(CONTROLLER, 'IndentFailSummaryData', 'string F_code, string Date');
+// IndentFailSummary - use handler from repository with full logic (no stored proc)
+exports.IndentFailSummary = reportControllerRepository.IndentFailSummary;
+exports.IndentFailSummaryData = reportControllerRepository.IndentFailSummaryData;
 exports.IndentFaillDetails = createProcedureHandler(CONTROLLER, 'IndentFaillDetails', '');
 exports.IndentFaillDetailsData = createProcedureHandler(CONTROLLER, 'IndentFaillDetailsData', 'string Date, string FACT');
 exports.TargetActualMISReport = createProcedureHandler(CONTROLLER, 'TargetActualMISReport', '');
@@ -309,17 +162,21 @@ exports.TargetActualMISPeriodReport = createProcedureHandler(CONTROLLER, 'Target
 exports.txtdate_TextChanged = createProcedureHandler(CONTROLLER, 'txtdate_TextChanged', 'string Date');
 exports.next = createProcedureHandler(CONTROLLER, 'next', 'string Date');
 exports.prev = createProcedureHandler(CONTROLLER, 'prev', 'string Date');
-exports.DriageSummary = createProcedureHandler(CONTROLLER, 'DriageSummary', '');
+// DriageSummary - use handler from repository with full logic (no stored proc)
+exports.DriageSummary = reportControllerRepository.DriageSummary;
 exports.DriageDetail = createProcedureHandler(CONTROLLER, 'DriageDetail', 'string FACT, string DATE, string CENTER');
-exports.DriageClerkSummary = createProcedureHandler(CONTROLLER, 'DriageClerkSummary', '');
+// DriageClerkSummary - use handler from repository with full logic (no stored proc)
+exports.DriageClerkSummary = reportControllerRepository.DriageClerkSummary;
 exports.DriageClerkDetail = createProcedureHandler(CONTROLLER, 'DriageClerkDetail', 'string FACT, string DATE, string CLERK');
 exports.DriageCentreDetail = createProcedureHandler(CONTROLLER, 'DriageCentreDetail', 'string FACT, string DATE, string CLERK, string CENTER');
-exports.DriageCentreClerkDetail = createProcedureHandler(CONTROLLER, 'DriageCentreClerkDetail', '');
+// DriageCentreClerkDetail - use handler from repository with full logic (no stored proc)
+exports.DriageCentreClerkDetail = reportControllerRepository.DriageCentreClerkDetail;
 exports.DriageClerkCentreDetail = createProcedureHandler(CONTROLLER, 'DriageClerkCentreDetail', '');
-exports.BudgetVSActual = createProcedureHandler(CONTROLLER, 'BudgetVSActual', '');
+// BudgetVSActual - use handler from repository with full logic (no stored proc)
+exports.BudgetVSActual = reportControllerRepository.BudgetVSActual;
 exports.IndentFailSummaryNew = createProcedureHandler(CONTROLLER, 'IndentFailSummaryNew', '');
 exports.IndentFailSummaryNewData = createProcedureHandler(CONTROLLER, 'IndentFailSummaryNewData', 'string F_code, string Date');
-exports.HourlyCaneArrival = createProcedureHandler(CONTROLLER, 'HourlyCaneArrival', '');
+exports.HourlyCaneArrival = reportControllerRepository.HourlyCaneArrival;
 exports.LoansummaryRpt = createProcedureHandler(CONTROLLER, 'LoansummaryRpt', '');
 exports.LoansummaryRpt_2 = createProcedureHandler(CONTROLLER, 'LoansummaryRpt', 'LoanSummaryModel model');
 exports.SurveyPLot = createProcedureHandler(CONTROLLER, 'SurveyPLot', '');

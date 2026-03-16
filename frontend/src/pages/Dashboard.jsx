@@ -11,8 +11,9 @@ import {
   Legend,
   ResponsiveContainer
 } from "recharts";
-import { masterService, dashboardService } from "../microservices/api.service";
+import { masterService, dashboardService, normalizeIsoDate } from "../microservices/api.service";
 import "../styles/Dashboard_1.css";
+import { openPrintWindow } from "../utils/print";
 
 const FACTORY_COLORS = ["#129a81", "#3490dc", "#f6993f", "#e3342f", "#9561e2", "#38c172", "#f66d9b"];
 const BRAND_COLOR = "#1F9E8A";
@@ -129,7 +130,9 @@ export default function Dashboard() {
   };
 
   const loadDashboardData = useCallback(async ({ dateFrom, dateTo, factoryCode, type }) => {
-    const params = { dateFrom, dateTo, factoryCode, type };
+    const safeFrom = normalizeIsoDate(dateFrom) || dateFrom;
+    const safeTo = normalizeIsoDate(dateTo) || dateTo;
+    const params = { dateFrom: safeFrom, dateTo: safeTo, factoryCode, type };
     const crushCall =
       type === "marketing"
         ? dashboardService.getMarketingData(params)
@@ -390,13 +393,10 @@ export default function Dashboard() {
     }
 
     if (type === "print") {
-      const printWindow = window.open("", "", "width=900,height=700");
-      if (!printWindow) return;
-      printWindow.document.write(`<html><body>${el.innerHTML}</body></html>`);
-      printWindow.document.close();
-      printWindow.focus();
-      printWindow.print();
-      printWindow.close();
+      openPrintWindow({
+        title: title?.replace(/_/g, " ") || "Dashboard Chart",
+        contentHtml: el.outerHTML
+      });
       return;
     }
 
@@ -489,6 +489,15 @@ export default function Dashboard() {
     </div>
   );
 
+  const tooltipStyle = {
+    background: "#0f172a",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: "8px",
+    color: "#f8fafc",
+    fontSize: 12,
+    boxShadow: "0 8px 20px rgba(15, 23, 42, 0.35)"
+  };
+
   return (
     <div className="dashboard-screen">
       <div className="dashboard-filter-shell">
@@ -511,7 +520,7 @@ export default function Dashboard() {
           <div className="dashboard-grow" />
 
           <select value={filterFactory} onChange={(e) => setFilterFactory(e.target.value)} className="dashboard-input dashboard-select">
-            <option value="0">Select Factory</option>
+            <option value="0">All Factories</option>
             {factoriesList.map((f, idx) => (
               <option key={`${f.F_Code}-${idx}`} value={f.F_Code}>
                 {f.F_Name}
@@ -537,7 +546,7 @@ export default function Dashboard() {
 
           <button
             onClick={() => fetchData()}
-            disabled={isLoading || filterFactory === "0"}
+            disabled={isLoading}
             className="dashboard-search-btn"
           >
             {isLoading ? "..." : "Search"}
@@ -555,10 +564,10 @@ export default function Dashboard() {
               <div id="chart-main" className="dashboard-chart-area chart-main">
                 <ResponsiveContainer width="100%" height="100%" minWidth={240} minHeight={300}>
                   <LineChart data={caneCrushRows}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                    <CartesianGrid strokeDasharray="3 6" vertical={false} stroke="#e2e8f0" />
                     <XAxis dataKey="label" tick={{ fill: "#697586", fontSize: 11 }} />
                     <YAxis tick={{ fill: "#697586", fontSize: 11 }} />
-                    <Tooltip />
+                    <Tooltip contentStyle={tooltipStyle} />
                     <Legend />
                     {(caneCrushData.MyList || []).map((f, index) => (
                       <Line
@@ -567,7 +576,10 @@ export default function Dashboard() {
                         dataKey={f.name}
                         stroke={FACTORY_COLORS[index % FACTORY_COLORS.length]}
                         dot={false}
-                        strokeWidth={2}
+                        strokeWidth={2.6}
+                        activeDot={{ r: 4.5 }}
+                        animationDuration={900}
+                        animationEasing="ease-out"
                       />
                     ))}
                   </LineChart>
@@ -583,9 +595,19 @@ export default function Dashboard() {
                     <BarChart data={paginate(yeastBarData, p1)}>
                       <XAxis dataKey="name" hide />
                       <YAxis hide />
-                      <Tooltip />
-                      <Bar dataKey="Normal" fill="#2f9e44" />
-                      <Bar dataKey="Overshoot" fill="#e03131" />
+                      <Tooltip contentStyle={tooltipStyle} />
+                      <defs>
+                        <linearGradient id="barNormal" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#2f9e44" stopOpacity={0.95} />
+                          <stop offset="100%" stopColor="#0f766e" stopOpacity={0.7} />
+                        </linearGradient>
+                        <linearGradient id="barOver" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#ff6b6b" stopOpacity={0.95} />
+                          <stop offset="100%" stopColor="#c92a2a" stopOpacity={0.7} />
+                        </linearGradient>
+                      </defs>
+                      <Bar dataKey="Normal" fill="url(#barNormal)" radius={[6, 6, 0, 0]} animationDuration={800} />
+                      <Bar dataKey="Overshoot" fill="url(#barOver)" radius={[6, 6, 0, 0]} animationDuration={800} />
                     </BarChart>
                   </ResponsiveContainer>
                   {renderPager(setP1, yeastBarData.length)}
@@ -599,13 +621,13 @@ export default function Dashboard() {
                     <BarChart data={paginate(tokenBarData, p2)}>
                       <XAxis dataKey="name" hide />
                       <YAxis hide />
-                      <Tooltip />
-                      <Bar dataKey="TokenToGross" fill="#2f9e44" />
-                      <Bar dataKey="TokenToGrossOS" fill="#e03131" />
-                      <Bar dataKey="GrossToTare" fill="#1971c2" />
-                      <Bar dataKey="GrossToTareOS" fill="#f08c00" />
-                      <Bar dataKey="TokenToTare" fill="#845ef7" />
-                      <Bar dataKey="TokenToTareOS" fill="#5c3d2e" />
+                      <Tooltip contentStyle={tooltipStyle} />
+                      <Bar dataKey="TokenToGross" fill="#22c55e" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="TokenToGrossOS" fill="#ef4444" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="GrossToTare" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="GrossToTareOS" fill="#f59e0b" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="TokenToTare" fill="#8b5cf6" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="TokenToTareOS" fill="#7c3f1d" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                   {renderPager(setP2, tokenBarData.length)}
@@ -619,9 +641,9 @@ export default function Dashboard() {
                     <BarChart data={paginate(purchaseBarData, p3)}>
                       <XAxis dataKey="name" hide />
                       <YAxis hide />
-                      <Tooltip />
-                      <Bar dataKey="TargetLimit" fill="#2f9e44" />
-                      <Bar dataKey="ActualValue" fill="#e03131" />
+                      <Tooltip contentStyle={tooltipStyle} />
+                      <Bar dataKey="TargetLimit" fill="#16a34a" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="ActualValue" fill="#dc2626" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                   {renderPager(setP3, purchaseBarData.length)}
@@ -635,14 +657,14 @@ export default function Dashboard() {
                     <LineChart data={paginate(centreGateRatioData, p4)}>
                       <XAxis dataKey="name" hide />
                       <YAxis hide />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="Ratio" stroke="#1c7ed6" dot={false} strokeWidth={2} />
+                      <Tooltip contentStyle={tooltipStyle} />
+                      <Line type="monotone" dataKey="Ratio" stroke="#0ea5e9" dot={false} strokeWidth={2.6} />
                       <Line
                         type="monotone"
                         dataKey="Target"
                         stroke="#e03131"
                         dot={false}
-                        strokeWidth={2}
+                        strokeWidth={2.2}
                         strokeDasharray="5 5"
                       />
                     </LineChart>
@@ -662,7 +684,7 @@ export default function Dashboard() {
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#7194d8" />
                     <XAxis dataKey="label" tick={{ fill: "#697586", fontSize: 11 }} />
                     <YAxis tick={{ fill: "#697586", fontSize: 11 }} />
-                    <Tooltip />
+                    <Tooltip contentStyle={tooltipStyle} />
                     <Legend />
                     {(caneCrushData.MyList || []).map((f, index) => (
                       <Line
@@ -671,7 +693,10 @@ export default function Dashboard() {
                         dataKey={f.name}
                         stroke={FACTORY_COLORS[index % FACTORY_COLORS.length]}
                         dot={false}
-                        strokeWidth={2}
+                        strokeWidth={2.6}
+                        activeDot={{ r: 4.5 }}
+                        animationDuration={900}
+                        animationEasing="ease-out"
                       />
                     ))}
                   </LineChart>
@@ -687,9 +712,9 @@ export default function Dashboard() {
                     <BarChart data={paginate(yeastBarData, p1)}>
                       <XAxis dataKey="name" hide />
                       <YAxis hide />
-                      <Tooltip />
-                      <Bar dataKey="Normal" fill="#2f9e44" />
-                      <Bar dataKey="Overshoot" fill="#e03131" />
+                      <Tooltip contentStyle={tooltipStyle} />
+                      <Bar dataKey="Normal" fill="url(#barNormal)" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="Overshoot" fill="url(#barOver)" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                   {renderPager(setP1, yeastBarData.length)}
@@ -703,10 +728,10 @@ export default function Dashboard() {
                     <LineChart data={paginate(tokenTrendData, p2)}>
                       <XAxis dataKey="name" hide />
                       <YAxis hide />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="Token" stroke="#0b7285" dot={false} strokeWidth={2} />
-                      <Line type="monotone" dataKey="Gross" stroke="#1971c2" dot={false} strokeWidth={2} />
-                      <Line type="monotone" dataKey="Tare" stroke="#f08c00" dot={false} strokeWidth={2} />
+                      <Tooltip contentStyle={tooltipStyle} />
+                      <Line type="monotone" dataKey="Token" stroke="#0ea5e9" dot={false} strokeWidth={2.4} />
+                      <Line type="monotone" dataKey="Gross" stroke="#22c55e" dot={false} strokeWidth={2.4} />
+                      <Line type="monotone" dataKey="Tare" stroke="#f59e0b" dot={false} strokeWidth={2.4} />
                     </LineChart>
                   </ResponsiveContainer>
                   {renderPager(setP2, tokenTrendData.length)}
@@ -720,9 +745,9 @@ export default function Dashboard() {
                     <BarChart data={paginate(purchaseBarData, p3)}>
                       <XAxis dataKey="name" hide />
                       <YAxis hide />
-                      <Tooltip />
-                      <Bar dataKey="TargetLimit" fill="#2f9e44" />
-                      <Bar dataKey="ActualValue" fill="#e03131" />
+                      <Tooltip contentStyle={tooltipStyle} />
+                      <Bar dataKey="TargetLimit" fill="#16a34a" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="ActualValue" fill="#dc2626" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                   {renderPager(setP3, purchaseBarData.length)}
@@ -738,10 +763,10 @@ export default function Dashboard() {
                     <BarChart data={paginate(tokenBarData, p4)}>
                       <XAxis dataKey="name" hide />
                       <YAxis hide />
-                      <Tooltip />
-                      <Bar dataKey="TokenToGrossOS" fill="#2f9e44" />
-                      <Bar dataKey="GrossToTareOS" fill="#1971c2" />
-                      <Bar dataKey="TokenToTareOS" fill="#e03131" />
+                      <Tooltip contentStyle={tooltipStyle} />
+                      <Bar dataKey="TokenToGrossOS" fill="#22c55e" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="GrossToTareOS" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="TokenToTareOS" fill="#ef4444" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                   {renderPager(setP4, tokenBarData.length)}
@@ -755,9 +780,9 @@ export default function Dashboard() {
                     <LineChart data={avgTravelHoursData}>
                       <XAxis dataKey="name" hide />
                       <YAxis hide />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="NormalHours" stroke="#1c7ed6" dot={false} strokeWidth={2} />
-                      <Line type="monotone" dataKey="OvershootHours" stroke="#e03131" dot={false} strokeWidth={2} />
+                      <Tooltip contentStyle={tooltipStyle} />
+                      <Line type="monotone" dataKey="NormalHours" stroke="#0ea5e9" dot={false} strokeWidth={2.4} />
+                      <Line type="monotone" dataKey="OvershootHours" stroke="#ef4444" dot={false} strokeWidth={2.4} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>

@@ -1,5 +1,6 @@
 const express = require('express');
 const { authenticate } = require('../middleware/auth.middleware');
+const { config } = require('../../../../shared/lib/config');
 
 const router = express.Router();
 
@@ -59,33 +60,33 @@ function forwardToService(target, basePath, routePrefix) {
   };
 }
 
-router.use('/account', forwardToService(process.env.AUTH_SERVICE_URL, '/api/account', 'account'));
-router.use('/user-management', authenticate, forwardToService(process.env.USER_SERVICE_URL, '/api/user-management', 'user-management'));
-router.use('/dashboard', authenticate, forwardToService(process.env.DASHBOARD_SERVICE_URL, '/api/dashboard', 'dashboard'));
-router.use('/main', authenticate, forwardToService(process.env.DASHBOARD_SERVICE_URL, '/api/main', 'main'));
-router.use('/bajaj-mis-service', authenticate, forwardToService(process.env.DASHBOARD_SERVICE_URL, '/api/bajaj-mis-service', 'bajaj-mis-service'));
-router.use('/report', authenticate, forwardToService(process.env.REPORT_SERVICE_URL, '/api/report', 'report'));
-router.use('/report-new', authenticate, forwardToService(process.env.REPORT_SERVICE_URL, '/api/report-new', 'report-new'));
-router.use('/new-report', authenticate, forwardToService(process.env.REPORT_SERVICE_URL, '/api/new-report', 'new-report'));
-router.use('/account-reports', authenticate, forwardToService(process.env.REPORT_SERVICE_URL, '/api/account-reports', 'account-reports'));
-router.use('/lab', authenticate, forwardToService(process.env.LAB_SERVICE_URL, '/api/lab', 'lab'));
-router.use('/survey-report', authenticate, forwardToService(process.env.SURVEY_SERVICE_URL, '/api/survey-report', 'survey-report'));
-router.use('/survey-service', authenticate, forwardToService(process.env.SURVEY_SERVICE_URL, '/api/survey-service', 'survey-service'));
-router.use('/and-wmt', authenticate, forwardToService(process.env.SURVEY_SERVICE_URL, '/api/and-wmt', 'and-wmt'));
-router.use('/tracking', authenticate, forwardToService(process.env.TRACKING_SERVICE_URL, '/api/tracking', 'tracking'));
-router.use('/distillery', authenticate, forwardToService(process.env.DISTILLERY_SERVICE_URL, '/api/distillery', 'distillery'));
-router.use('/whats-app', authenticate, forwardToService(process.env.WHATSAPP_SERVICE_URL, '/api/whats-app', 'whats-app'));
-router.use('/bajaj-mis-service', authenticate, forwardToService(process.env.DASHBOARD_SERVICE_URL, '/api/bajaj-mis-service', 'bajaj-mis-service'));
-router.use('/report', authenticate, forwardToService(process.env.REPORT_SERVICE_URL, '/api/report', 'report'));
-router.use('/report-new', authenticate, forwardToService(process.env.REPORT_SERVICE_URL, '/api/report-new', 'report-new'));
-router.use('/new-report', authenticate, forwardToService(process.env.REPORT_SERVICE_URL, '/api/new-report', 'new-report'));
-router.use('/account-reports', authenticate, forwardToService(process.env.REPORT_SERVICE_URL, '/api/account-reports', 'account-reports'));
-router.use('/lab', authenticate, forwardToService(process.env.LAB_SERVICE_URL, '/api/lab', 'lab'));
-router.use('/survey-report', authenticate, forwardToService(process.env.SURVEY_SERVICE_URL, '/api/survey-report', 'survey-report'));
-router.use('/survey-service', authenticate, forwardToService(process.env.SURVEY_SERVICE_URL, '/api/survey-service', 'survey-service'));
-router.use('/and-wmt', authenticate, forwardToService(process.env.SURVEY_SERVICE_URL, '/api/and-wmt', 'and-wmt'));
-router.use('/tracking', authenticate, forwardToService(process.env.TRACKING_SERVICE_URL, '/api/tracking', 'tracking'));
-router.use('/distillery', authenticate, forwardToService(process.env.DISTILLERY_SERVICE_URL, '/api/distillery', 'distillery'));
-router.use('/whats-app', authenticate, forwardToService(process.env.WHATSAPP_SERVICE_URL, '/api/whats-app', 'whats-app'));
+router.use('/account', forwardToService(config.AUTH_SERVICE_URL, '/api/account', 'account'));
+router.use('/user-management', authenticate, forwardToService(config.USER_SERVICE_URL, '/api/user-management', 'user-management'));
+router.use('/dashboard', authenticate, forwardToService(config.DASHBOARD_SERVICE_URL, '/api/dashboard', 'dashboard'));
+router.use('/main', authenticate, forwardToService(config.DASHBOARD_SERVICE_URL, '/api/main', 'main'));
+router.use('/bajaj-mis-service', authenticate, forwardToService(config.DASHBOARD_SERVICE_URL, '/api/bajaj-mis-service', 'bajaj-mis-service'));
+router.use('/report', authenticate, forwardToService(config.REPORT_SERVICE_URL, '/api/report', 'report'));
+router.use('/report-new', authenticate, forwardToService(config.REPORT_SERVICE_URL, '/api/report-new', 'report-new'));
+router.use('/new-report', authenticate, forwardToService(config.REPORT_SERVICE_URL, '/api/new-report', 'new-report'));
+router.use('/account-reports', authenticate, forwardToService(config.REPORT_SERVICE_URL, '/api/account-reports', 'account-reports'));
+router.use('/lab', authenticate, forwardToService(config.LAB_SERVICE_URL, '/api/lab', 'lab'));
+router.use('/survey-report', authenticate, forwardToService(config.SURVEY_SERVICE_URL, '/api/survey-report', 'survey-report'));
+router.use('/survey-service', authenticate, forwardToService(config.SURVEY_SERVICE_URL, '/api/survey-service', 'survey-service'));
+router.use('/and-wmt', authenticate, forwardToService(config.SURVEY_SERVICE_URL, '/api/and-wmt', 'and-wmt'));
+router.use('/tracking', authenticate, forwardToService(config.TRACKING_SERVICE_URL, '/api/tracking', 'tracking'));
+router.use('/distillery', authenticate, forwardToService(config.DISTILLERY_SERVICE_URL, '/api/distillery', 'distillery'));
+router.use('/whats-app', authenticate, forwardToService(config.WHATSAPP_SERVICE_URL, '/api/whats-app', 'whats-app'));
+router.use('/bajaj-mis-service', authenticate, forwardToService(config.DASHBOARD_SERVICE_URL, '/api/bajaj-mis-service', 'bajaj-mis-service'));
+router.use('/report', authenticate, forwardToService(config.REPORT_SERVICE_URL, '/api/report', 'report'));
+router.use('/report-new', authenticate, forwardToService(config.REPORT_SERVICE_URL, '/api/report-new', 'report-new'));
+router.use('/new-report', authenticate, forwardToService(config.REPORT_SERVICE_URL, '/api/new-report', 'new-report'));
+router.use('/account-reports', authenticate, forwardToService(config.REPORT_SERVICE_URL, '/api/account-reports', 'account-reports'));
+router.use('/lab', authenticate, forwardToService(config.LAB_SERVICE_URL, '/api/lab', 'lab'));
+router.use('/survey-report', authenticate, forwardToService(config.SURVEY_SERVICE_URL, '/api/survey-report', 'survey-report'));
+router.use('/survey-service', authenticate, forwardToService(config.SURVEY_SERVICE_URL, '/api/survey-service', 'survey-service'));
+router.use('/and-wmt', authenticate, forwardToService(config.SURVEY_SERVICE_URL, '/api/and-wmt', 'and-wmt'));
+router.use('/tracking', authenticate, forwardToService(config.TRACKING_SERVICE_URL, '/api/tracking', 'tracking'));
+router.use('/distillery', authenticate, forwardToService(config.DISTILLERY_SERVICE_URL, '/api/distillery', 'distillery'));
+router.use('/whats-app', authenticate, forwardToService(config.WHATSAPP_SERVICE_URL, '/api/whats-app', 'whats-app'));
 
 module.exports = router;

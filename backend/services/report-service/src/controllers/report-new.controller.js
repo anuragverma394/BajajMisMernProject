@@ -48,8 +48,14 @@ exports.HourlyCaneArrivalWieght = async (req, res, next) => {
 exports.IndentPurchaseReportNew = async (req, res, next) => {
   try {
     const season = getSeason(req);
-    const data = await service.getIndentPurchaseReportNew(season);
-    return res.status(200).json({ success: true, message: 'Indent purchase report', data });
+    const params = { ...(req.query || {}), ...(req.body || {}) };
+    const result = await service.getIndentPurchaseReportNew(params, season);
+    return res.status(200).json({
+      success: true,
+      message: 'Indent purchase report',
+      data: result.rows || [],
+      totals: result.totals || null
+    });
   } catch (error) {
     logError('IndentPurchaseReportNew', req, error);
     return next(error);

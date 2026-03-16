@@ -23,6 +23,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import './styles/App.css';
 
 const Login = lazy(() => import('./pages/Login'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const ChangePassword = lazy(() => import('./pages/account/ChangePassword'));
 const ManageTblControl = lazy(() => import('./pages/account/ManageTblControl'));
@@ -182,7 +183,8 @@ function App() {
     <Router>
       <Suspense fallback={<div className="[padding:16px]">Loading...</div>}>
       <Routes>
-        <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/Account/Login" element={<Navigate to="/login" replace />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
 

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { distilleryService, masterService } from '../../microservices/api.service';
 import '../../styles/DistilleryReports.css';
+import { openPrintWindow } from '../../utils/print';
 
 const DISTILLERY_SyrupEthanolReport = () => {
     const navigate = useNavigate();
@@ -45,32 +46,11 @@ const DISTILLERY_SyrupEthanolReport = () => {
 
     const handlePrint = () => {
         const printContent = document.getElementById('report-table-section');
-        const winPrint = window.open('', '', 'left=0,top=0,width=1000,height=900,toolbar=0,scrollbars=0,status=0');
-        winPrint.document.write(`
-            <html>
-                <head>
-                    <title>Syrup Ethanol Report</title>
-                    <style>
-                        table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 11px; }
-                        th, td { border: 1px solid #333; padding: 6px; text-align: left; }
-                        th { background: #f0f0f0; }
-                        .text-right { text-align: right; }
-                        .text-center { text-align: center; }
-                        .bold { font-weight: bold; background: #fafafa; }
-                        h2, h4 { text-align: center; margin: 5px 0; }
-                    </style>
-                </head>
-                <body>
-                    <h2>Bajaj Group</h2>
-                    <h4>Syrup Ethanol Report</h4>
-                    <p class="text-center">Period: ${fromDate} to ${toDate}</p>
-                    ${printContent.innerHTML}
-                </body>
-            </html>
-        `);
-        winPrint.document.close();
-        winPrint.focus();
-        winPrint.print();
+        openPrintWindow({
+            title: "Syrup Ethanol Report",
+            subtitle: `Period: ${fromDate} to ${toDate}`,
+            contentHtml: printContent ? printContent.outerHTML : ""
+        });
     };
 
     const handleExport = () => {
