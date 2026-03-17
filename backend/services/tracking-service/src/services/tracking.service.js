@@ -1,4 +1,4 @@
-const repository = require("../repositories/tracking.index.repository.js");
+const repository = require("../repositories/tracking");
 const { validateRequest } = require("../validations/tracking.validation.js");
 const { logServiceError } = require('../../../../shared/utils/logger.utils');
 

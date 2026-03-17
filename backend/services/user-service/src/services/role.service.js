@@ -1,5 +1,5 @@
 const { executeInTransaction, withSeason } = require('../core/db/mssql');
-const roleRepository = require('../repositories/role.repository');
+const roleRepository = require('../repositories/role');
 
 async function getRoles(filters, seasonValue) {
   return roleRepository.getRoles(filters, withSeason(seasonValue));

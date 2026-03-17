@@ -1,4 +1,4 @@
-const repository = require('../repositories/new-report.repository');
+const repository = require('../repositories/new-report');
 
 /**
  * GET: Target vs Actual MIS Periodically

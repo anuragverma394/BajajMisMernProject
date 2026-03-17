@@ -1,4 +1,4 @@
-const repository = require('../repositories/distillery.repository');
+const repository = require('../repositories/distillery');
 
 function createServiceError(message, statusCode = 400) {
   const err = new Error(message);

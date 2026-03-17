@@ -1,4 +1,4 @@
-const surveyReportRepository = require('../repositories/survey-report.repository');
+const surveyReportRepository = require('../repositories/survey-report');
 
 async function safeProcedure(handler) {
   try {
@@ -55,8 +55,13 @@ async function getWeeklySubmissionOfIndents({ params, season }) {
   return surveyReportRepository.getWeeklySubmissionOfIndents({ params, season });
 }
 
+async function executeSurveyReportProcedure({ action, params, season }) {
+  return surveyReportRepository.executeSurveyReportProcedure({ action, params, season });
+}
+
 module.exports = {
   getFactoryWiseCaneAreaReport,
+  executeSurveyReportProcedure,
   getPlotWiseDetails,
   getCategoryWiseSummary,
   getCaneVierityVillageGrower,

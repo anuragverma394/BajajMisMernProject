@@ -1,4 +1,4 @@
-const repository = require("../repositories/lab.repository.js");
+const repository = require("../repositories/lab");
 const { validateRequest } = require("../validations/lab.validation.js");
 const { logServiceError } = require('../../../../shared/utils/logger.utils');
 

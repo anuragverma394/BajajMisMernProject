@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const { executeInTransaction, withSeason } = require('../core/db/mssql');
-const userRepository = require('../repositories/user.repository');
+const userRepository = require('../repositories/user');
 
 const BCRYPT_ROUNDS = Number(process.env.BCRYPT_SALT_ROUNDS || 12);
 

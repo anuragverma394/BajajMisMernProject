@@ -1,4 +1,4 @@
-const repository = require("../repositories/whatsapp.index.repository.js");
+const repository = require("../repositories/main");
 const { validateRequest } = require("../validations/main.validation.js");
 const { logServiceError } = require('../../../../shared/utils/logger.utils');
 

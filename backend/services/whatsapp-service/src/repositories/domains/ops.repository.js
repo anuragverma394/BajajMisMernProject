@@ -1,18 +1,32 @@
-const legacy = require('../main.repository');
+const repository = require('../main');
+
+const getDistilleryReportEntry = repository.distilleryReportEntry;
+const createDistilleryReportEntry = repository.distilleryReportEntry_2;
+const getDailyRainfall = repository.DailyRainfall;
+const createDailyRainfall = repository.DailyRainfall_2;
+const getMonthlyEntryReport = repository.MonthlyEntryReport;
+const createMonthlyEntryReport = repository.MonthlyEntryReport_2;
+
 module.exports = {
-  distilleryReportEntryView: legacy.distilleryReportEntryView,
-  distilleryReportEntry: legacy.distilleryReportEntry,
-  distilleryReportEntry_2: legacy.distilleryReportEntry_2,
-  distilleryReportEntryID: legacy.distilleryReportEntryID,
-  DistilleryReportEntryDelete: legacy.DistilleryReportEntryDelete,
-  DailyRainfallview: legacy.DailyRainfallview,
-  DailyRainfallData: legacy.DailyRainfallData,
-  DailyRainfall: legacy.DailyRainfall,
-  DailyRainfall_2: legacy.DailyRainfall_2,
-  DailyRainfallId: legacy.DailyRainfallId,
-  DailyRainfallDelete: legacy.DailyRainfallDelete,
-  MonthlyEntryReportView: legacy.MonthlyEntryReportView,
-  MonthlyEntryReport: legacy.MonthlyEntryReport,
-  MonthlyEntryReport_2: legacy.MonthlyEntryReport_2,
-  TargetEntry: legacy.TargetEntry
+  getDistilleryReportEntry,
+  createDistilleryReportEntry,
+  getDailyRainfall,
+  createDailyRainfall,
+  getMonthlyEntryReport,
+  createMonthlyEntryReport,
+  distilleryReportEntryView: repository.distilleryReportEntryView,
+  distilleryReportEntry: getDistilleryReportEntry,
+  distilleryReportEntry_2: createDistilleryReportEntry,
+  distilleryReportEntryID: repository.distilleryReportEntryID,
+  DistilleryReportEntryDelete: repository.DistilleryReportEntryDelete,
+  DailyRainfallview: repository.DailyRainfallview,
+  DailyRainfallData: repository.DailyRainfallData,
+  DailyRainfall: getDailyRainfall,
+  DailyRainfall_2: createDailyRainfall,
+  DailyRainfallId: repository.DailyRainfallId,
+  DailyRainfallDelete: repository.DailyRainfallDelete,
+  MonthlyEntryReportView: repository.MonthlyEntryReportView,
+  MonthlyEntryReport: getMonthlyEntryReport,
+  MonthlyEntryReport_2: createMonthlyEntryReport,
+  TargetEntry: repository.TargetEntry
 };

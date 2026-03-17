@@ -1,9 +1,13 @@
-const { createNotImplementedHandler } = require('@bajaj/shared');
+const read = require('./bajaj-mis-service/bajaj-mis-service.read.controller');
+const write = require('./bajaj-mis-service/bajaj-mis-service.write.controller');
+const validation = require('./bajaj-mis-service/bajaj-mis-service.validation.controller');
+const meta = require('./bajaj-mis-service/bajaj-mis-service.meta.controller');
+const domain = require('./bajaj-mis-service/bajaj-mis-service.domain.controller');
 
-const CONTROLLER = 'BajajMisService';
-
-exports.GetCrushDate = createNotImplementedHandler(CONTROLLER, 'GetCrushDate', '');
-exports.GATEHOURWISECRUSHINGApp = createNotImplementedHandler(CONTROLLER, 'GATEHOURWISECRUSHINGApp', 'DateTime DATE, string GATECODE, string FACTCODE, string hou');
-exports.Value = createNotImplementedHandler(CONTROLLER, 'Value', 'string a');
-exports.SendNotification = createNotImplementedHandler(CONTROLLER, 'SendNotification', 'string firebaseid, string title, string body');
-exports.getEmpCodeForNotification = createNotImplementedHandler(CONTROLLER, 'getEmpCodeForNotification', 'string EmpID, string Type, ref string Factory');
+module.exports = {
+  ...read,
+  ...write,
+  ...validation,
+  ...meta,
+  ...domain
+};

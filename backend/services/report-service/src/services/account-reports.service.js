@@ -1,4 +1,4 @@
-const repository = require('../repositories/account-reports.repository');
+const repository = require('../repositories/account-reports');
 const validation = require('../validations/account-reports.validation');
 
 function resolveSeason(value) {

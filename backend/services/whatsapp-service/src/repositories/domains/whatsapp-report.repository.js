@@ -1,12 +1,18 @@
-const legacy = require('../main.repository');
+const repository = require('../main');
+
+const getSugarWhatsAppReport = repository.SugarWhatsAppReport;
+const createSugarWhatsAppReport = repository.SugarWhatsAppReport_2;
+
 module.exports = {
-  SugarWhatsAppReportView: legacy.SugarWhatsAppReportView,
-  SugarWhatsAppReport: legacy.SugarWhatsAppReport,
-  SugarWhatsAppReport_2: legacy.SugarWhatsAppReport_2,
-  SugarWhatsAppReportID: legacy.SugarWhatsAppReportID,
-  SugarWhatsAppReportDelete: legacy.SugarWhatsAppReportDelete,
-  SugarWhatsAppReportNew: legacy.SugarWhatsAppReportNew,
-  SugarWhatsAppReportNewData: legacy.SugarWhatsAppReportNewData,
-  SugarWhatsAppReportsData: legacy.SugarWhatsAppReportsData,
-  SWRD: legacy.SWRD
+  getSugarWhatsAppReport,
+  createSugarWhatsAppReport,
+  SugarWhatsAppReportView: repository.SugarWhatsAppReportView,
+  SugarWhatsAppReport: getSugarWhatsAppReport,
+  SugarWhatsAppReport_2: createSugarWhatsAppReport,
+  SugarWhatsAppReportID: repository.SugarWhatsAppReportID,
+  SugarWhatsAppReportDelete: repository.SugarWhatsAppReportDelete,
+  SugarWhatsAppReportNew: repository.SugarWhatsAppReportNew,
+  SugarWhatsAppReportNewData: repository.SugarWhatsAppReportNewData,
+  SugarWhatsAppReportsData: repository.SugarWhatsAppReportsData,
+  SWRD: repository.SWRD
 };

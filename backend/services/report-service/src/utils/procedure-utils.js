@@ -1,4 +1,4 @@
-const { executeProcedure } = require('../core/db/query-executor');
+const { runProcedure } = require('../repositories/report');
 
 /**
  * Creates a handler that executes a stored procedure
@@ -12,7 +12,7 @@ function createProcedureHandler(controller, action, signature) {
     try {
       const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
       const params = { ...(req.query || {}), ...(req.body || {}) };
-      const result = await executeProcedure(action, params, season);
+    const result = await runProcedure(action, params, season);
       return res.status(200).json({
         success: true,
         message: `${controller}.${action} executed`,
@@ -35,7 +35,7 @@ function createProcedureHandler(controller, action, signature) {
  */
 async function safeProcedure(name, params, season) {
   try {
-    const result = await executeProcedure(name, params, season);
+  const result = await runProcedure(name, params, season);
     return result.rows || [];
   } catch (error) {
     const message = String(error?.message || '');

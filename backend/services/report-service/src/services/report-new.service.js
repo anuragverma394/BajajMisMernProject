@@ -1,4 +1,4 @@
-const repository = require('../repositories/report-new.repository');
+const repository = require('../repositories/report-new');
 
 /**
  * GET: Hourly Cane Arrival Weight

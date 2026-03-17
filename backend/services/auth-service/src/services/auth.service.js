@@ -1,5 +1,5 @@
-﻿const bcrypt = require('bcryptjs');
-const repository = require('../repositories/auth.repository');
+const bcrypt = require('bcryptjs');
+const repository = require('../repositories/auth');
 const { signAuthToken } = require('../middleware/auth.middleware');
 const { parseDDMMYYYY } = require('../utils/date');
 

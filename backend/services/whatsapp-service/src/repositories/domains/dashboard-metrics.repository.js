@@ -1,11 +1,12 @@
-const legacy = require('../main.repository');
+const repository = require('../main');
+
 module.exports = {
-  Index: legacy.Index,
-  HelpDesk: legacy.HelpDesk,
-  Home: legacy.Home,
-  Units: legacy.Units,
-  ModeBind: legacy.ModeBind,
-  HomeFact: legacy.HomeFact,
-  OverShootForCenters: legacy.OverShootForCenters,
-  TokenGrossTare: legacy.TokenGrossTare
+  Index: repository.Index,
+  HelpDesk: repository.HelpDesk,
+  Home: repository.Home,
+  Units: repository.Units,
+  ModeBind: repository.ModeBind,
+  HomeFact: repository.HomeFact,
+  OverShootForCenters: repository.OverShootForCenters,
+  TokenGrossTare: repository.TokenGrossTare
 };

@@ -1,4 +1,4 @@
-const repository = require('../repositories/report.repository');
+const repository = require('../repositories/report');
 
 function normalizeDateInput(raw) {
   const value = String(raw || '').trim();
