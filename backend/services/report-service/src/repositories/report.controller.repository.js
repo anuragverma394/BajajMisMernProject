@@ -26,6 +26,61 @@ function toSqlDateAnalysis(raw) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function normalizeDmyInput(raw) {
+  const value = String(raw || '').trim();
+  if (!value) return null;
+
+  let d = null;
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+    const [dd, mm, yyyy] = value.split('/');
+    d = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+  } else if (/^\d{2}-\d{2}-\d{4}$/.test(value)) {
+    const [dd, mm, yyyy] = value.split('-');
+    d = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+  } else if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [yyyy, mm, dd] = value.split('-');
+    d = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+  } else {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) d = parsed;
+  }
+
+  if (!d || Number.isNaN(d.getTime())) return null;
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  const dmy = `${dd}/${mm}/${yyyy}`;
+  const ymd = `${yyyy}-${mm}-${dd}`;
+  const yyyymmdd = `${yyyy}${mm}${dd}`;
+  return { dmy, ymd, yyyymmdd };
+}
+
+function toYyyymmddFromDmy(raw) {
+  const parsed = normalizeDmyInput(raw);
+  return parsed ? parsed.yyyymmdd : '';
+}
+
+function truncateDecimal(value, precision) {
+  const step = Math.pow(10, precision);
+  const tmp = Math.trunc(Number(value || 0) * step);
+  return tmp / step;
+}
+
+function addDaysToYyyymmdd(yyyymmdd, days) {
+  const s = String(yyyymmdd || '');
+  if (!/^\d{8}$/.test(s)) return '';
+  const y = Number(s.slice(0, 4));
+  const m = Number(s.slice(4, 6));
+  const d = Number(s.slice(6, 8));
+  const dt = new Date(y, m - 1, d);
+  if (Number.isNaN(dt.getTime())) return '';
+  dt.setDate(dt.getDate() + Number(days || 0));
+  const yyyy = dt.getFullYear();
+  const mm = String(dt.getMonth() + 1).padStart(2, '0');
+  const dd = String(dt.getDate()).padStart(2, '0');
+  return `${yyyy}${mm}${dd}`;
+}
+
 // ── Stored-procedure whitelist (security) ─────────────────────────────────────
 // Only procedures listed here may be executed via createProcedureHandler.
 // Add new procedures here before wiring up a new export.
@@ -235,6 +290,1318 @@ data: [],
 recordsets: [[], [], [], []]
 };
 }
+
+// ============================================================================
+// Driage Clerk Summary (ported from BajajMic ReportController)
+// ============================================================================
+exports.DriageClerkSummary = async (req, res, next) => {
+  try {
+    const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
+    const fRaw = req.query?.F_code || req.query?.F_Code || req.body?.F_code || req.body?.F_Code || '';
+    const dateRaw = req.query?.Date || req.query?.date || req.body?.Date || req.body?.date || '';
+
+    const fcode = String(fRaw || '').trim();
+    const dateInfo = normalizeDmyInput(dateRaw);
+
+    if (!fcode || fcode === '0' || fcode.toLowerCase() === 'all') {
+      return res.status(200).json({ success: true, data: [], recordsets: [[]], message: 'Please select a Factory' });
+    }
+    if (!dateInfo) {
+      return res.status(200).json({ success: true, data: [], recordsets: [[]], message: 'Invalid Date' });
+    }
+
+    const dt = dateInfo.yyyymmdd;
+
+    const clerkSummarySql = `
+      WITH CEN AS (
+        SELECT U_factory as Factory, u_code SUPVCODE, u_name as SUPVNAME
+        FROM Users
+        WHERE U_factory = @fact
+      ),
+      PUR AS (
+        SELECT M_TARE_OPR, MIN(M_DATE) FDate, MAX(M_DATE) TDate,
+          ISNULL(SUM(ISNULL(M_GROSS,0) - ISNULL(M_TARE,0) - ISNULL(M_JOONA,0)), 0) PQTY
+        FROM PURCHASE
+        WHERE CONVERT(NVARCHAR, M_DATE,112) <= @dt
+          AND M_FACTORY = @fact
+          AND M_CENTRE != 100
+        GROUP BY M_TARE_OPR
+      ),
+      REP AS (
+        SELECT tt_Clerk, MIN(tt_DpDate) tFDate, MAX(tt_DpDate) tTDate,
+          ISNULL(SUM(ISNULL(TT_GROSSWEIGHT,0) - ISNULL(TT_TAREWEIGHT,0) - ISNULL(TT_JOONAWEIGHT,0)), 0) RQTY
+        FROM RECEIPT
+        WHERE CONVERT(NVARCHAR, tt_DpDate,112) <= @dt
+          AND TT_FACTORY = @fact
+        GROUP BY tt_Clerk
+      )
+      SELECT Factory as C_FACTORY, SUPVCODE as C_CODE, SUPVNAME as C_NAME,
+        CONVERT(varchar, FDate,103) FDate,
+        CONVERT(varchar, TDate,103) TDate,
+        ISNULL(PQTY,0) PQTY, ISNULL(RQTY,0) RQTY
+      FROM CEN
+      JOIN PUR on SUPVCODE = M_TARE_OPR
+      FULL OUTER JOIN REP on M_TARE_OPR = tt_Clerk
+      WHERE SUPVCODE is not null
+      ORDER BY SUPVCODE`;
+
+    const clerkRows = await executeQuery(clerkSummarySql, { fact: fcode, dt }, season).catch(() => []);
+    if (!clerkRows || clerkRows.length === 0) {
+      return res.status(200).json({ success: true, data: [], recordsets: [[]], message: 'No data found' });
+    }
+
+    const detailSql = `
+      WITH PUR AS (
+        SELECT M_CENTRE, MIN(CAST(M_DATE as Date)) Mfrom, MAX(CAST(M_DATE as Date)) MTill,
+          ISNULL(SUM(ISNULL(M_GROSS,0) - ISNULL(M_TARE,0) - ISNULL(M_JOONA,0)), 0) PQTY
+        FROM PURCHASE
+        WHERE CONVERT(NVARCHAR, M_DATE,112) <= @dt
+          AND M_FACTORY = @fact
+          AND M_TARE_OPR = @clerk
+        GROUP BY M_CENTRE
+      ),
+      REP AS (
+        SELECT tt_center, MIN(CAST(tt_DpDate as Date)) TFrom, MAX(CAST(tt_DpDate as Date)) TTill,
+          ISNULL(SUM(ISNULL(TT_GROSSWEIGHT,0) - ISNULL(TT_TAREWEIGHT,0) - ISNULL(TT_JOONAWEIGHT,0)), 0) RQTY
+        FROM RECEIPT
+        WHERE CONVERT(NVARCHAR, tt_DpDate,112) <= @dt
+          AND TT_FACTORY = @fact
+          AND tt_Clerk = @clerk
+        GROUP BY tt_center
+      )
+      SELECT c_factory as factory, c_code, C_Name,
+        CONVERT(varchar, (case when Mfrom > TFrom then TFrom else Mfrom end),103) MFrom,
+        CONVERT(varchar, (case when MTill > TTill then MTill else TTill end),103) Till,
+        ISNULL(SUM(PQTY),0) PQTY, ISNULL(SUM(RQTY),0) RQTY
+      FROM PUR
+      FULL OUTER JOIN REP ON M_CENTRE = tt_center
+      JOIN Centre on c_code = M_CENTRE and c_code = tt_center
+      WHERE c_factory = @fact
+      GROUP BY c_factory, c_code, C_Name, Mfrom, MTill, TFrom, TTill
+      ORDER BY (case when Mfrom > TFrom then TFrom else Mfrom end),
+               (case when MTill > TTill then MTill else TTill end)`;
+
+    const openingSql = `
+      SELECT TOP 1 MAX(CH_CHALLAN) AS CH_CHALLAN, ISNULL(CH_BALANCE,0) AS CH_BALANCE
+      FROM CHALLAN_FINAL
+      WHERE Ch_Cancel = 0
+        AND CH_FACTORY = @fact
+        AND CONVERT(NVARCHAR, CH_DEP_DATE,112) <= @dt
+        AND Ch_Centre = @centre
+      GROUP BY CH_BALANCE
+      ORDER BY MAX(CH_CHALLAN) DESC`;
+
+    const closingSql = `
+      SELECT TOP 1 MAX(CH_CHALLAN) AS CH_CHALLAN, ISNULL(CH_BALANCE,0) AS CH_BALANCE
+      FROM CHALLAN_FINAL
+      WHERE Ch_Cancel = 0
+        AND CH_FACTORY = @fact
+        AND CONVERT(NVARCHAR, CH_DEP_DATE,112) = @dt
+        AND CH_CENTRE = @centre
+      GROUP BY CH_BALANCE
+      ORDER BY CH_CHALLAN DESC`;
+
+    const rows = [];
+    let srno = 0;
+    const round2 = (v) => Number(Number(v || 0).toFixed(2));
+    const fmt2 = (v) => truncateDecimal(v, 2).toFixed(2);
+
+    for (const r of clerkRows) {
+      srno += 1;
+      const clerkCode = String(r.C_CODE || '').trim();
+      const clerkName = String(r.C_NAME || '').trim();
+      const pqty = round2(r.PQTY || 0);
+      const rqty = round2(r.RQTY || 0);
+
+      let obal = 0;
+      let cbal = 0;
+
+      const detailRows = await executeQuery(
+        detailSql,
+        { fact: fcode, dt, clerk: clerkCode },
+        season
+      ).catch(() => []);
+
+      if (detailRows && detailRows.length) {
+        for (const d of detailRows) {
+          const mfrom = String(d.MFrom || '').trim();
+          const till = String(d.Till || '').trim();
+          const centreCode = String(d.c_code || d.C_CODE || '').trim();
+
+          const openDt = addDaysToYyyymmdd(toYyyymmddFromDmy(mfrom), -1);
+          if (openDt) {
+            const ob = await executeQuery(openingSql, { fact: fcode, dt: openDt, centre: centreCode }, season).catch(() => []);
+            if (ob && ob.length && fcode !== '51') {
+              obal += Number(ob[0].CH_BALANCE || 0);
+            }
+          }
+
+          const closeDt = toYyyymmddFromDmy(till);
+          if (closeDt) {
+            const cb = await executeQuery(closingSql, { fact: fcode, dt: closeDt, centre: clerkCode }, season).catch(() => []);
+            if (cb && cb.length && fcode !== '51') {
+              cbal += Number(cb[0].CH_BALANCE || 0);
+            }
+          }
+        }
+      }
+
+      let totqty = (rqty - obal) + cbal;
+      totqty = truncateDecimal(totqty, 2);
+      let drqty = totqty - pqty;
+      drqty = truncateDecimal(drqty, 2);
+      let perc = 0;
+      if (drqty !== 0 && pqty > 0) {
+        perc = truncateDecimal((drqty / pqty) * 100, 2);
+      }
+
+      rows.push({
+        SLNO: String(srno),
+        U_code: clerkCode,
+        U_Name: clerkName,
+        CCode: clerkCode,
+        CName: clerkName,
+        OPBAL: fmt2(obal),
+        PQTY: fmt2(pqty),
+        RQTY: fmt2(rqty - obal),
+        CLBAL: fmt2(cbal),
+        TOTREPT: fmt2(totqty),
+        DRQTY: fmt2(drqty),
+        PERC: fmt2(perc),
+        F_code: Number(fcode),
+        Date: dateInfo.dmy
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: rows,
+      recordsets: [rows]
+    });
+  } catch (error) {
+    if (typeof next === 'function') return next(error);
+    throw error;
+  }
+};
+
+// ============================================================================
+// Driage Summary (Centre-wise)
+// ============================================================================
+exports.DriageSummary = async (req, res, next) => {
+  try {
+    const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
+    const fRaw = req.query?.F_code || req.query?.F_Code || req.body?.F_code || req.body?.F_Code || '';
+    const dateRaw = req.query?.Date || req.query?.date || req.body?.Date || req.body?.date || '';
+
+    const fcode = String(fRaw || '').trim();
+    const dateInfo = normalizeDmyInput(dateRaw);
+
+    if (!fcode || fcode === '0' || fcode.toLowerCase() === 'all') {
+      return res.status(200).json({ success: true, data: [], recordsets: [[]], message: 'Please select a Factory' });
+    }
+    if (!dateInfo) {
+      return res.status(200).json({ success: true, data: [], recordsets: [[]], message: 'Invalid Date' });
+    }
+
+    const dt = dateInfo.yyyymmdd;
+
+    const summarySql = `
+      WITH CEN AS (
+        SELECT C_FACTORY, C_CODE, C_NAME FROM CENTRE WHERE C_FACTORY = @fact
+      ),
+      PUR AS (
+        SELECT MC_GCode as M_CENTRE,
+          ISNULL(SUM(ISNULL(M_GROSS,0) - ISNULL(M_TARE,0) - ISNULL(M_JOONA,0)), 0) PQTY
+        FROM PURCHASE
+        JOIN MI_MargeCenter ON MC_CCODE = M_CENTRE AND MC_FACTORY = M_FACTORY
+        WHERE CONVERT(NVARCHAR, M_DATE,112) <= @dt
+          AND M_FACTORY = @fact
+        GROUP BY MC_GCode
+      ),
+      REP AS (
+        SELECT TT_CENTER,
+          ISNULL(SUM(ISNULL(TT_GROSSWEIGHT,0) - ISNULL(TT_TAREWEIGHT,0) - ISNULL(TT_JOONAWEIGHT,0)), 0) RQTY
+        FROM RECEIPT
+        JOIN CENTRE ON C_CODE = TT_CENTER AND C_FACTORY = TT_FACTORY
+        WHERE CONVERT(NVARCHAR, tt_DpDate,112) <= @dt
+          AND TT_FACTORY = @fact
+        GROUP BY TT_CENTER
+      )
+      SELECT C_FACTORY, C_CODE, C_NAME, ISNULL(PQTY,0) PQTY, ISNULL(RQTY,0) RQTY
+      FROM CEN
+      JOIN PUR ON C_CODE = M_CENTRE
+      LEFT JOIN REP ON M_CENTRE = TT_CENTER
+      WHERE C_CODE != 100
+      ORDER BY C_CODE`;
+
+    const closingSql = `
+      SELECT MAX(CH_CHALLAN) AS CH_CHALLAN, ISNULL(CH_BALANCE,0) AS CH_BALANCE
+      FROM CHALLAN_FINAL
+      WHERE Ch_Cancel = 0
+        AND CH_FACTORY = @fact
+        AND CONVERT(NVARCHAR, CH_DEP_DATE,112) = @dt
+        AND CH_CENTRE = @centre
+      GROUP BY CH_BALANCE
+      ORDER BY CH_CHALLAN DESC`;
+
+    const rowsRaw = await executeQuery(summarySql, { fact: fcode, dt }, season).catch(() => []);
+    if (!rowsRaw || rowsRaw.length === 0) {
+      return res.status(200).json({ success: true, data: [], recordsets: [[]], message: 'No data found' });
+    }
+
+    const rows = [];
+    let srno = 0;
+    const fmt2 = (v) => truncateDecimal(v, 2).toFixed(2);
+
+    for (const r of rowsRaw) {
+      srno += 1;
+      const centre = String(r.C_CODE || '').trim();
+      const pqty = Number(r.PQTY || 0);
+      const rqty = Number(r.RQTY || 0);
+      let clbal = 0;
+
+      const cb = await executeQuery(closingSql, { fact: fcode, dt, centre }, season).catch(() => []);
+      if (cb && cb.length) clbal = Number(cb[0].CH_BALANCE || 0);
+
+      let totrqty = rqty + clbal;
+      totrqty = truncateDecimal(totrqty, 2);
+      let drqty = totrqty - pqty;
+      drqty = truncateDecimal(drqty, 2);
+      let perc = 0;
+      if (drqty !== 0 && pqty > 0) {
+        perc = truncateDecimal((drqty / pqty) * 100, 2);
+      }
+
+      rows.push({
+        F_code: Number(r.C_FACTORY || fcode),
+        Date: dateInfo.dmy,
+        SLNO: String(srno),
+        C_CODE: centre,
+        C_NAME: String(r.C_NAME || ''),
+        PQTY: fmt2(pqty),
+        RQTY: fmt2(rqty),
+        CLBAL: fmt2(clbal),
+        TOTREPT: fmt2(totrqty),
+        DRQTY: fmt2(drqty),
+        PERC: fmt2(perc)
+      });
+    }
+
+    return res.status(200).json({ success: true, data: rows, recordsets: [rows] });
+  } catch (error) {
+    if (typeof next === 'function') return next(error);
+    throw error;
+  }
+};
+
+// ============================================================================
+// Driage Detail (Centre-wise)
+// ============================================================================
+exports.DriageDetail = async (req, res, next) => {
+  try {
+    const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
+    const fRaw = req.query?.FACT || req.query?.F_code || req.query?.F_Code || req.body?.FACT || req.body?.F_code || req.body?.F_Code || '';
+    const dateRaw = req.query?.DATE || req.query?.Date || req.query?.date || req.body?.DATE || req.body?.Date || req.body?.date || '';
+    const centerRaw = req.query?.CENTER || req.query?.center || req.body?.CENTER || req.body?.center || '';
+
+    const fcode = String(fRaw || '').trim();
+    const center = String(centerRaw || '').trim();
+    const dateInfo = normalizeDmyInput(dateRaw);
+    if (!fcode || fcode === '0') return res.status(200).json({ success: true, data: [], recordsets: [[]], message: 'Please select a Factory' });
+    if (!center || center === '0') return res.status(200).json({ success: true, data: [], recordsets: [[]], message: 'Please select a Center' });
+    if (!dateInfo) return res.status(200).json({ success: true, data: [], recordsets: [[]], message: 'Invalid Date' });
+
+    const dt = dateInfo.yyyymmdd;
+    const edt = addDaysToYyyymmdd(dt, -10);
+
+    const detailBeforeSql = `
+      WITH PUR AS (
+        SELECT MAX(CAST(M_DATE as Date)) MDATE,
+          ISNULL(SUM(ISNULL(M_GROSS,0) - ISNULL(M_TARE,0) - ISNULL(M_JOONA,0)), 0) PQTY
+        FROM PURCHASE
+        JOIN MI_MargeCenter ON MC_CCODE = M_CENTRE AND MC_FACTORY = M_FACTORY
+        WHERE CONVERT(NVARCHAR, M_DATE,112) < @edt
+          AND M_FACTORY = @fact
+          AND MC_GCode = @center
+          AND M_CENTRE != 100
+      ),
+      REP AS (
+        SELECT MAX(CAST(tt_DpDate as Date)) TDATE,
+          ISNULL(SUM(ISNULL(TT_GROSSWEIGHT,0) - ISNULL(TT_TAREWEIGHT,0) - ISNULL(TT_JOONAWEIGHT,0)), 0) RQTY
+        FROM RECEIPT
+        JOIN CENTRE ON C_CODE = TT_CENTER AND C_FACTORY = TT_FACTORY
+        WHERE CONVERT(NVARCHAR, tt_DpDate,112) < @edt
+          AND TT_FACTORY = @fact
+          AND TT_CENTER = @center
+      )
+      SELECT
+        CASE WHEN MDATE is null THEN CONVERT(varchar, TDATE,103) ELSE CONVERT(varchar, MDATE,103) END AS DATE,
+        CASE WHEN PQTY is null THEN 0 ELSE PQTY END PQTY,
+        CASE WHEN RQTY is null THEN 0 ELSE RQTY END RQTY
+      FROM PUR FULL OUTER JOIN REP ON PUR.MDATE = REP.TDATE
+      WHERE MDATE is not null
+      ORDER BY MDATE ASC`;
+
+    const detailRangeSql = `
+      WITH PUR AS (
+        SELECT CAST(M_DATE as Date) MDATE,
+          ISNULL(SUM(ISNULL(M_GROSS,0) - ISNULL(M_TARE,0) - ISNULL(M_JOONA,0)), 0) PQTY
+        FROM PURCHASE
+        JOIN MI_MargeCenter ON MC_CCODE = M_CENTRE AND MC_FACTORY = M_FACTORY
+        WHERE CONVERT(NVARCHAR, M_DATE,112) BETWEEN @edt AND @dt
+          AND M_FACTORY = @fact
+          AND MC_GCode = @center
+          AND M_CENTRE != 100
+        GROUP BY CAST(M_DATE as Date)
+      ),
+      REP AS (
+        SELECT CAST(tt_DpDate as Date) TDATE,
+          ISNULL(SUM(ISNULL(TT_GROSSWEIGHT,0) - ISNULL(TT_TAREWEIGHT,0) - ISNULL(TT_JOONAWEIGHT,0)), 0) RQTY
+        FROM RECEIPT
+        JOIN CENTRE ON C_CODE = TT_CENTER AND C_FACTORY = TT_FACTORY
+        WHERE CONVERT(NVARCHAR, tt_DpDate,112) BETWEEN @edt AND @dt
+          AND TT_FACTORY = @fact
+          AND TT_CENTER = @center
+        GROUP BY CAST(tt_DpDate as Date)
+      )
+      SELECT
+        CASE WHEN MDATE is null THEN CONVERT(varchar, TDATE,103) ELSE CONVERT(varchar, MDATE,103) END AS DATE,
+        CASE WHEN PQTY is null THEN 0 ELSE PQTY END PQTY,
+        CASE WHEN RQTY is null THEN 0 ELSE RQTY END RQTY
+      FROM PUR FULL OUTER JOIN REP ON PUR.MDATE = REP.TDATE
+      ORDER BY MDATE ASC`;
+
+    const openingSql = `
+      SELECT TOP 1 MAX(CH_CHALLAN) AS CH_CHALLAN, ISNULL(CH_BALANCE,0) AS CH_BALANCE
+      FROM CHALLAN_FINAL
+      WHERE Ch_Cancel = 0
+        AND CH_FACTORY = @fact
+        AND CONVERT(NVARCHAR, CH_DEP_DATE,112) <= @dt
+        AND CH_CENTRE = @center
+      GROUP BY CH_BALANCE
+      ORDER BY MAX(CH_CHALLAN) DESC`;
+
+    const closingSql = `
+      SELECT MAX(CH_CHALLAN) AS CH_CHALLAN, ISNULL(CH_BALANCE,0) AS CH_BALANCE
+      FROM CHALLAN_FINAL
+      WHERE Ch_Cancel = 0
+        AND CH_FACTORY = @fact
+        AND CONVERT(NVARCHAR, CH_DEP_DATE,112) = @dt
+        AND CH_CENTRE = @center
+      GROUP BY CH_BALANCE
+      ORDER BY CH_CHALLAN DESC`;
+
+    const beforeRows = await executeQuery(detailBeforeSql, { fact: fcode, edt, center }, season).catch(() => []);
+    const rangeRows = await executeQuery(detailRangeSql, { fact: fcode, edt, dt, center }, season).catch(() => []);
+
+    const rows = [];
+    let srno = 0;
+    const fmt2 = (v) => truncateDecimal(v, 2).toFixed(2);
+
+    const buildRow = async (labelDate, pqty, rqty, dateForBal) => {
+      const openDt = addDaysToYyyymmdd(toYyyymmddFromDmy(dateForBal), -1);
+      let opbal = 0;
+      if (openDt) {
+        const ob = await executeQuery(openingSql, { fact: fcode, dt: openDt, center }, season).catch(() => []);
+        if (ob && ob.length) opbal = Number(ob[0].CH_BALANCE || 0);
+      }
+
+      let clbal = 0;
+      const cb = await executeQuery(closingSql, { fact: fcode, dt: toYyyymmddFromDmy(dateForBal), center }, season).catch(() => []);
+      if (cb && cb.length) clbal = Number(cb[0].CH_BALANCE || 0);
+
+      let tot = Number(rqty || 0) + clbal - opbal;
+      tot = truncateDecimal(tot, 2);
+      let dr = tot - Number(pqty || 0);
+      dr = truncateDecimal(dr, 2);
+      let perc = 0;
+      if (dr !== 0 && Number(pqty || 0) > 0) perc = truncateDecimal((dr / Number(pqty || 0)) * 100, 2);
+
+      rows.push({
+        SLNO: String(++srno),
+        DATE: labelDate,
+        OQty: fmt2(opbal),
+        PQty: fmt2(pqty),
+        RQty: fmt2(rqty),
+        CLBal: fmt2(clbal),
+        TRQty: fmt2(tot),
+        DRQty: fmt2(dr),
+        PER: fmt2(perc)
+      });
+    };
+
+    for (const r of beforeRows || []) {
+      await buildRow(`Up To ${r.DATE}`, Number(r.PQTY || 0), Number(r.RQTY || 0), r.DATE);
+    }
+    for (const r of rangeRows || []) {
+      await buildRow(String(r.DATE || ''), Number(r.PQTY || 0), Number(r.RQTY || 0), r.DATE);
+    }
+
+    return res.status(200).json({ success: true, data: rows, recordsets: [rows] });
+  } catch (error) {
+    if (typeof next === 'function') return next(error);
+    throw error;
+  }
+};
+
+// ============================================================================
+// Driage Clerk Detail
+// ============================================================================
+exports.DriageClerkDetail = async (req, res, next) => {
+  try {
+    const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
+    const fRaw = req.query?.FACT || req.query?.F_code || req.query?.F_Code || req.body?.FACT || req.body?.F_code || req.body?.F_Code || '';
+    const dateRaw = req.query?.DATE || req.query?.Date || req.query?.date || req.body?.DATE || req.body?.Date || req.body?.date || '';
+    const clerkRaw = req.query?.CLERK || req.query?.clerk || req.body?.CLERK || req.body?.clerk || '';
+
+    const fcode = String(fRaw || '').trim();
+    const clerk = String(clerkRaw || '').trim();
+    const dateInfo = normalizeDmyInput(dateRaw);
+    if (!fcode || fcode === '0') return res.status(200).json({ success: true, data: [], recordsets: [[]], message: 'Please select a Factory' });
+    if (!clerk || clerk === '0') return res.status(200).json({ success: true, data: [], recordsets: [[]], message: 'Please select a Clerk' });
+    if (!dateInfo) return res.status(200).json({ success: true, data: [], recordsets: [[]], message: 'Invalid Date' });
+
+    const dt = dateInfo.yyyymmdd;
+
+    const detailSql = `
+      WITH PUR AS (
+        SELECT M_CENTRE, MIN(CAST(M_DATE as Date)) Mfrom, MAX(CAST(M_DATE as Date)) MTill,
+          ISNULL(SUM(ISNULL(M_GROSS,0) - ISNULL(M_TARE,0) - ISNULL(M_JOONA,0)), 0) PQTY
+        FROM PURCHASE
+        WHERE CONVERT(NVARCHAR, M_DATE,112) <= @dt
+          AND M_FACTORY = @fact
+          AND M_TARE_OPR = @clerk
+        GROUP BY M_CENTRE
+      ),
+      REP AS (
+        SELECT tt_center, MIN(CAST(tt_DpDate as Date)) TFrom, MAX(CAST(tt_DpDate as Date)) TTill,
+          ISNULL(SUM(ISNULL(TT_GROSSWEIGHT,0) - ISNULL(TT_TAREWEIGHT,0) - ISNULL(TT_JOONAWEIGHT,0)), 0) RQTY
+        FROM RECEIPT
+        WHERE CONVERT(NVARCHAR, tt_DpDate,112) <= @dt
+          AND TT_FACTORY = @fact
+          AND tt_Clerk = @clerk
+        GROUP BY tt_center
+      )
+      SELECT c_factory as factory, c_code, C_Name,
+        CONVERT(varchar, (case when Mfrom > TFrom then TFrom else Mfrom end),103) MFrom,
+        CONVERT(varchar, (case when MTill > TTill then MTill else TTill end),103) Till,
+        ISNULL(SUM(PQTY),0) PQTY, ISNULL(SUM(RQTY),0) RQTY
+      FROM PUR
+      FULL OUTER JOIN REP ON M_CENTRE = tt_center
+      JOIN Centre on c_code = M_CENTRE and c_code = tt_center
+      WHERE c_factory = @fact
+      GROUP BY c_factory, c_code, C_Name, Mfrom, MTill, TFrom, TTill
+      ORDER BY (case when Mfrom > TFrom then TFrom else Mfrom end),
+               (case when MTill > TTill then MTill else TTill end)`;
+
+    const openingSql = `
+      SELECT TOP 1 MAX(CH_CHALLAN) AS CH_CHALLAN, ISNULL(CH_BALANCE,0) AS CH_BALANCE
+      FROM CHALLAN_FINAL
+      WHERE Ch_Cancel = 0
+        AND CH_FACTORY = @fact
+        AND CONVERT(NVARCHAR, CH_DEP_DATE,112) <= @dt
+        AND Ch_Centre = @centre
+      GROUP BY CH_BALANCE
+      ORDER BY MAX(CH_CHALLAN) DESC`;
+
+    const closingSql = `
+      SELECT TOP 1 MAX(CH_CHALLAN) AS CH_CHALLAN, ISNULL(CH_BALANCE,0) AS CH_BALANCE
+      FROM CHALLAN_FINAL
+      WHERE Ch_Cancel = 0
+        AND CH_FACTORY = @fact
+        AND CONVERT(NVARCHAR, CH_DEP_DATE,112) = @dt
+        AND CH_CENTRE = @centre
+      GROUP BY CH_BALANCE
+      ORDER BY CH_CHALLAN DESC`;
+
+    const rowsRaw = await executeQuery(detailSql, { fact: fcode, dt, clerk }, season).catch(() => []);
+    const rows = [];
+    let srno = 0;
+    const fmt2 = (v) => truncateDecimal(v, 2).toFixed(2);
+
+    for (const r of rowsRaw || []) {
+      srno += 1;
+      const mfrom = String(r.MFrom || '').trim();
+      const till = String(r.Till || '').trim();
+      const centreCode = String(r.c_code || r.C_CODE || '').trim();
+      const pqty = Number(r.PQTY || 0);
+      const rqty = Number(r.RQTY || 0);
+
+      let opbal = 0;
+      const openDt = addDaysToYyyymmdd(toYyyymmddFromDmy(mfrom), -1);
+      if (openDt) {
+        const ob = await executeQuery(openingSql, { fact: fcode, dt: openDt, centre: centreCode }, season).catch(() => []);
+        if (ob && ob.length && fcode !== '51') opbal = Number(ob[0].CH_BALANCE || 0);
+      }
+
+      let clbal = 0;
+      const closeDt = toYyyymmddFromDmy(till);
+      if (closeDt) {
+        const cb = await executeQuery(closingSql, { fact: fcode, dt: closeDt, centre: clerk }, season).catch(() => []);
+        if (cb && cb.length && fcode !== '51') clbal = Number(cb[0].CH_BALANCE || 0);
+      }
+
+      let totrqty = rqty + clbal - opbal;
+      totrqty = truncateDecimal(totrqty, 2);
+      let drqty = totrqty - pqty;
+      drqty = truncateDecimal(drqty, 2);
+      let perc = 0;
+      if (drqty !== 0 && pqty > 0) perc = truncateDecimal((drqty / pqty) * 100, 2);
+
+      rows.push({
+        SLNO: String(srno),
+        clerk,
+        CCode: centreCode,
+        CName: String(r.C_Name || ''),
+        MFrom: mfrom,
+        Till: till,
+        OQty: fmt2(opbal),
+        PQty: fmt2(pqty),
+        RQty: fmt2(rqty),
+        CLBal: fmt2(clbal),
+        TRQty: fmt2(totrqty),
+        DRQty: fmt2(drqty),
+        ToDRQty: fmt2(drqty),
+        PER: fmt2(perc)
+      });
+    }
+
+    return res.status(200).json({ success: true, data: rows, recordsets: [rows] });
+  } catch (error) {
+    if (typeof next === 'function') return next(error);
+    throw error;
+  }
+};
+
+// ============================================================================
+// Driage Centre Detail
+// ============================================================================
+exports.DriageCentreDetail = async (req, res, next) => {
+  try {
+    const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
+    const fRaw = req.query?.FACT || req.query?.F_code || req.query?.F_Code || req.body?.FACT || req.body?.F_code || req.body?.F_Code || '';
+    const dateRaw = req.query?.DATE || req.query?.Date || req.query?.date || req.body?.DATE || req.body?.Date || req.body?.date || '';
+    const centerRaw = req.query?.CENTER || req.query?.center || req.body?.CENTER || req.body?.center || '';
+
+    const fcode = String(fRaw || '').trim();
+    const center = String(centerRaw || '').trim();
+    const dateInfo = normalizeDmyInput(dateRaw);
+    if (!fcode || fcode === '0') return res.status(200).json({ success: true, data: [], recordsets: [[]], message: 'Please select a Factory' });
+    if (!center || center === '0') return res.status(200).json({ success: true, data: [], recordsets: [[]], message: 'Please select a Center' });
+    if (!dateInfo) return res.status(200).json({ success: true, data: [], recordsets: [[]], message: 'Invalid Date' });
+
+    const dt = dateInfo.yyyymmdd;
+
+    const centreSql = `
+      WITH PUR AS (
+        SELECT CAST(M_DATE as Date) MDATE,
+          ISNULL(SUM(ISNULL(M_GROSS,0) - ISNULL(M_TARE,0) - ISNULL(M_JOONA,0)), 0) PQTY
+        FROM PURCHASE
+        JOIN CENTRE ON C_CODE = M_CENTRE AND C_FACTORY = M_FACTORY
+        WHERE CONVERT(NVARCHAR, M_DATE,112) <= @dt
+          AND M_FACTORY = @fact
+          AND M_CENTRE = @center
+          AND M_CENTRE != 100
+        GROUP BY CAST(M_DATE as Date)
+      ),
+      REP AS (
+        SELECT CAST(tt_DpDate as Date) TDATE,
+          ISNULL(SUM(ISNULL(TT_GROSSWEIGHT,0) - ISNULL(TT_TAREWEIGHT,0) - ISNULL(TT_JOONAWEIGHT,0)), 0) RQTY
+        FROM RECEIPT
+        JOIN CENTRE ON C_CODE = TT_CENTER AND C_FACTORY = TT_FACTORY
+        WHERE CONVERT(NVARCHAR, tt_DpDate,112) <= @dt
+          AND TT_FACTORY = @fact
+          AND TT_CENTER = @center
+        GROUP BY CAST(tt_DpDate as Date)
+      )
+      SELECT
+        CASE WHEN MDATE is null THEN CONVERT(varchar, TDATE,103) ELSE CONVERT(varchar, MDATE,103) END AS DATE,
+        CASE WHEN PQTY is null THEN 0 ELSE PQTY END PQTY,
+        CASE WHEN RQTY is null THEN 0 ELSE RQTY END RQTY
+      FROM PUR FULL OUTER JOIN REP ON PUR.MDATE = REP.TDATE
+      ORDER BY MDATE ASC`;
+
+    const openingSql = `
+      SELECT TOP 1 MAX(CH_CHALLAN) AS CH_CHALLAN, ISNULL(CH_BALANCE,0) AS CH_BALANCE
+      FROM CHALLAN_FINAL
+      WHERE Ch_Cancel = 0
+        AND CH_FACTORY = @fact
+        AND CONVERT(NVARCHAR, CH_DEP_DATE,112) <= @dt
+        AND CH_CENTRE = @center
+      GROUP BY CH_BALANCE
+      ORDER BY MAX(CH_CHALLAN) DESC`;
+
+    const closingSql = `
+      SELECT MAX(CH_CHALLAN) AS CH_CHALLAN, ISNULL(CH_BALANCE,0) AS CH_BALANCE
+      FROM CHALLAN_FINAL
+      WHERE Ch_Cancel = 0
+        AND CH_FACTORY = @fact
+        AND CONVERT(NVARCHAR, CH_DEP_DATE,112) = @dt
+        AND CH_CENTRE = @center
+      GROUP BY CH_BALANCE
+      ORDER BY CH_CHALLAN DESC`;
+
+    const rowsRaw = await executeQuery(centreSql, { fact: fcode, dt, center }, season).catch(() => []);
+    const rows = [];
+    let srno = 0;
+    const fmt2 = (v) => truncateDecimal(v, 2).toFixed(2);
+
+    for (const r of rowsRaw || []) {
+      srno += 1;
+      const cdate = String(r.DATE || '').trim();
+      const pqty = Number(r.PQTY || 0);
+      const rqty = Number(r.RQTY || 0);
+
+      let opbal = 0;
+      const openDt = addDaysToYyyymmdd(toYyyymmddFromDmy(cdate), -1);
+      if (openDt) {
+        const ob = await executeQuery(openingSql, { fact: fcode, dt: openDt, center }, season).catch(() => []);
+        if (ob && ob.length && fcode !== '51') opbal = Number(ob[0].CH_BALANCE || 0);
+      }
+
+      let clbal = 0;
+      const closeDt = toYyyymmddFromDmy(cdate);
+      if (closeDt) {
+        const cb = await executeQuery(closingSql, { fact: fcode, dt: closeDt, center }, season).catch(() => []);
+        if (cb && cb.length && fcode !== '51') clbal = Number(cb[0].CH_BALANCE || 0);
+      }
+
+      let totrqty = rqty + clbal - opbal;
+      totrqty = truncateDecimal(totrqty, 2);
+      let drqty = totrqty - pqty;
+      drqty = truncateDecimal(drqty, 2);
+      let perc = 0;
+      if (drqty !== 0 && pqty > 0) perc = truncateDecimal((drqty / pqty) * 100, 2);
+
+      rows.push({
+        SLNO: String(srno),
+        DATE: cdate,
+        OQty: fmt2(opbal),
+        PQty: fmt2(pqty),
+        RQty: fmt2(rqty),
+        CLBal: fmt2(clbal),
+        TRQty: fmt2(totrqty),
+        DRQty: fmt2(drqty),
+        PER: fmt2(perc)
+      });
+    }
+
+    return res.status(200).json({ success: true, data: rows, recordsets: [rows] });
+  } catch (error) {
+    if (typeof next === 'function') return next(error);
+    throw error;
+  }
+};
+
+// ============================================================================
+// Driage Centre Clerk Detail
+// ============================================================================
+exports.DriageCentreClerkDetail = async (req, res, next) => {
+  try {
+    const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
+    const fRaw = req.query?.F_code || req.query?.F_Code || req.body?.F_code || req.body?.F_Code || '';
+    const dateRaw = req.query?.Date || req.query?.date || req.body?.Date || req.body?.date || '';
+
+    const fcode = String(fRaw || '').trim();
+    const dateInfo = normalizeDmyInput(dateRaw);
+    if (!fcode || fcode === '0' || fcode.toLowerCase() === 'all') {
+      return res.status(200).json({ success: true, data: [], recordsets: [[]], message: 'Please select a Factory' });
+    }
+    if (!dateInfo) {
+      return res.status(200).json({ success: true, data: [], recordsets: [[]], message: 'Invalid Date' });
+    }
+
+    const dt = dateInfo.yyyymmdd;
+
+    const centreBaseSql = `
+      WITH PUR AS (
+        SELECT M_CENTRE, MIN(CAST(M_DATE as Date)) Mfrom, MAX(CAST(M_DATE as Date)) MTill,
+          ISNULL(SUM(ISNULL(M_GROSS,0) - ISNULL(M_TARE,0) - ISNULL(M_JOONA,0)), 0) PQTY
+        FROM PURCHASE
+        WHERE CONVERT(NVARCHAR, M_DATE,112) <= @dt
+          AND M_FACTORY = @fact
+        GROUP BY M_CENTRE
+      ),
+      REP AS (
+        SELECT tt_center, MIN(CAST(tt_DpDate as Date)) TFrom, MAX(CAST(tt_DpDate as Date)) TTill,
+          ISNULL(SUM(ISNULL(TT_GROSSWEIGHT,0) - ISNULL(TT_TAREWEIGHT,0) - ISNULL(TT_JOONAWEIGHT,0)), 0) RQTY
+        FROM RECEIPT
+        WHERE CONVERT(NVARCHAR, tt_DpDate,112) <= @dt
+          AND TT_FACTORY = @fact
+        GROUP BY tt_center
+      )
+      SELECT c_factory as factory, c_code, C_Name,
+        CONVERT(varchar, MIN(MFrom),103) MFrom,
+        CONVERT(varchar, MAX(MTill),103) Till,
+        ISNULL(SUM(PQTY),0) PQTY, ISNULL(SUM(RQTY),0) RQTY
+      FROM PUR
+      FULL OUTER JOIN REP ON M_CENTRE = tt_center
+      JOIN Centre on c_code = M_CENTRE and c_code = tt_center
+      WHERE c_factory = @fact
+      GROUP BY c_factory, c_code, C_Name
+      ORDER BY c_code, MIN(MFrom), MAX(MTill)`;
+
+    const openingSql = `
+      SELECT TOP 1 MAX(CH_CHALLAN) AS CH_CHALLAN, ISNULL(CH_BALANCE,0) AS CH_BALANCE
+      FROM CHALLAN_FINAL
+      WHERE Ch_Cancel = 0
+        AND CH_FACTORY = @fact
+        AND CONVERT(NVARCHAR, CH_DEP_DATE,112) <= @dt
+        AND Ch_Centre = @centre
+      GROUP BY CH_BALANCE
+      ORDER BY MAX(CH_CHALLAN) DESC`;
+
+    const closingCentreSql = `
+      SELECT TOP 1 MAX(CH_CHALLAN) AS CH_CHALLAN, ISNULL(CH_BALANCE,0) AS CH_BALANCE
+      FROM CHALLAN_FINAL
+      WHERE Ch_Cancel = 0
+        AND CH_FACTORY = @fact
+        AND CONVERT(NVARCHAR, CH_DEP_DATE,112) = @dt
+        AND ch_centre = @centre
+      GROUP BY CH_BALANCE
+      ORDER BY MAX(CH_CHALLAN) DESC`;
+
+    const clerkSummarySql = `
+      WITH CEN AS (
+        SELECT U_factory as Factory, u_code SUPVCODE, u_name as SUPVNAME
+        FROM Users WHERE U_factory = @fact
+      ),
+      PUR AS (
+        SELECT M_TARE_OPR, MIN(M_DATE) FM_DATE, MAX(M_DATE) TM_DATE,
+          ISNULL(SUM(ISNULL(M_GROSS,0) - ISNULL(M_TARE,0) - ISNULL(M_JOONA,0)), 0) PQTY
+        FROM PURCHASE
+        WHERE CONVERT(NVARCHAR, M_DATE,112) <= @dt
+          AND M_FACTORY = @fact
+          AND M_CENTRE != 100
+          AND M_CENTRE = @center
+        GROUP BY M_TARE_OPR
+      ),
+      REP AS (
+        SELECT tt_Clerk, MIN(tt_DpDate) Ftt_DpDate, MAX(tt_DpDate) Ttt_DpDate,
+          ISNULL(SUM(ISNULL(TT_GROSSWEIGHT,0) - ISNULL(TT_TAREWEIGHT,0) - ISNULL(TT_JOONAWEIGHT,0)), 0) RQTY
+        FROM RECEIPT
+        WHERE CONVERT(NVARCHAR, tt_DpDate,112) <= @dt
+          AND TT_FACTORY = @fact
+          AND tt_center = @center
+        GROUP BY tt_Clerk
+      )
+      SELECT Factory as C_FACTORY, SUPVCODE as C_CODE, SUPVNAME as C_NAME,
+        CONVERT(varchar, FM_DATE,103) FM_DATE,
+        CONVERT(varchar, TM_DATE,103) TM_DATE,
+        ISNULL(PQTY,0) PQTY, ISNULL(RQTY,0) RQTY
+      FROM CEN
+      JOIN PUR on SUPVCODE = M_TARE_OPR
+      FULL OUTER JOIN REP on M_TARE_OPR = tt_Clerk
+      WHERE SUPVCODE is not null
+      ORDER BY PUR.FM_DATE, PUR.TM_DATE asc`;
+
+    const centres = await executeQuery(centreBaseSql, { fact: fcode, dt }, season).catch(() => []);
+    const rows = [];
+    let srno = 0;
+    const fmt2 = (v) => truncateDecimal(v, 2).toFixed(2);
+
+    for (const c of centres || []) {
+      srno += 1;
+      const centreCode = String(c.c_code || c.C_CODE || '').trim();
+      const mfrom = String(c.MFrom || '').trim();
+      const till = String(c.Till || '').trim();
+      const pqty = Number(c.PQTY || 0);
+      const rqty = Number(c.RQTY || 0);
+
+      let opbal = 0;
+      const openDt = addDaysToYyyymmdd(toYyyymmddFromDmy(mfrom), -1);
+      if (openDt) {
+        const ob = await executeQuery(openingSql, { fact: fcode, dt: openDt, centre: centreCode }, season).catch(() => []);
+        if (ob && ob.length && fcode !== '51') opbal = Number(ob[0].CH_BALANCE || 0);
+      }
+
+      let clbal = 0;
+      const closeDt = toYyyymmddFromDmy(till);
+      if (closeDt) {
+        const cb = await executeQuery(closingCentreSql, { fact: fcode, dt: closeDt, centre: centreCode }, season).catch(() => []);
+        if (cb && cb.length && fcode !== '51') clbal = Number(cb[0].CH_BALANCE || 0);
+      }
+
+      let totrqty = rqty + clbal - opbal;
+      totrqty = truncateDecimal(totrqty, 2);
+      let drqty = totrqty - pqty;
+      drqty = truncateDecimal(drqty, 2);
+      let perc = 0;
+      if (drqty !== 0 && pqty > 0) perc = truncateDecimal((drqty / pqty) * 100, 2);
+
+      rows.push({
+        SLNO: String(srno),
+        Clerk: '',
+        ClerkName: '',
+        c_code: centreCode,
+        C_Name: String(c.C_Name || ''),
+        MFrom: mfrom,
+        Till: till,
+        PQty: fmt2(pqty),
+        RQty: fmt2(rqty),
+        TRQty: fmt2(totrqty),
+        DRQty: fmt2(drqty),
+        TODRQty: fmt2(drqty),
+        PER: fmt2(perc)
+      });
+
+      const clerks = await executeQuery(clerkSummarySql, { fact: fcode, dt, center: centreCode }, season).catch(() => []);
+      (clerks || []).forEach((k) => {
+        const cpqty = Number(k.PQTY || 0);
+        const crqty = Number(k.RQTY || 0);
+        const cdr = truncateDecimal(crqty - cpqty, 2);
+        let cperc = 0;
+        if (cdr !== 0 && cpqty > 0) cperc = truncateDecimal((cdr / cpqty) * 100, 2);
+
+        rows.push({
+          SLNO: '',
+          Clerk: String(k.C_CODE || ''),
+          ClerkName: String(k.C_NAME || ''),
+          c_code: '',
+          C_Name: '',
+          MFrom: String(k.FM_DATE || ''),
+          Till: String(k.TM_DATE || ''),
+          PQty: fmt2(cpqty),
+          RQty: fmt2(crqty),
+          TRQty: fmt2(crqty),
+          DRQty: fmt2(cdr),
+          TODRQty: fmt2(cdr),
+          PER: fmt2(cperc)
+        });
+      });
+    }
+
+    return res.status(200).json({ success: true, data: rows, recordsets: [rows] });
+  } catch (error) {
+    if (typeof next === 'function') return next(error);
+    throw error;
+  }
+};
+
+// ============================================================================
+// Budget Vs Actual (Distillery)
+// ============================================================================
+exports.BudgetVSActual = async (req, res, next) => {
+  try {
+    const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
+    const fRaw = req.query?.F_code || req.query?.F_Code || req.body?.F_code || req.body?.F_Code || '0';
+    const dateRaw = req.query?.date || req.query?.Date || req.body?.date || req.body?.Date || '';
+
+    const fcode = String(fRaw || '0').trim();
+    const dateInfo = normalizeDmyInput(dateRaw);
+    if (!dateInfo) return res.status(200).json({ success: true, data: [], recordsets: [[]], message: 'Invalid Date' });
+
+    const CDate = dateInfo.ymd; // yyyy-MM-dd
+
+    const unitSql = fcode && fcode !== '0'
+      ? `select f_Code,f_Name + ' (' + F_Short + ')' As F_Name,f_Name as FName from MI_Factory where ISDist=1 and f_code=@fcode`
+      : `select f_Code,f_Name + ' (' + F_Short + ')' As F_Name,f_Name as FName from MI_Factory where ISDist=1 ORDER BY SN ASC`;
+
+    const units = await executeQuery(unitSql, { fcode }, season).catch(() => []);
+    if (!units || units.length === 0) {
+      return res.status(200).json({ success: true, data: [], recordsets: [[]], message: 'Data Not Found' });
+    }
+
+    const weeklyDateSql = `
+      select top 1
+        CONVERT(varchar,WB_FromDate,103) fromdate,
+        CONVERT(varchar,WB_ToDate,103) ToDate,
+        CONVERT(varchar, cast(@cdate as date), 6) CDate
+      from MI_WeeklyBudget
+      where cast(WB_FromDate as Date) <= @cdate
+        and cast(WB_ToDate as Date) >= @cdate`;
+
+    let bfrom = '';
+    let bto = '';
+    const dtd = await executeQuery(weeklyDateSql, { cdate: CDate }, season).catch(() => []);
+    if (dtd && dtd.length) {
+      bfrom = String(dtd[0].fromdate || '').trim();
+      bto = String(dtd[0].ToDate || '').trim();
+    }
+
+    if (!bfrom || !bto) {
+      try {
+        const proc = await executeProcedure('getFirstDate', { CDate }, season);
+        const v = proc?.rows?.[0];
+        const val = v ? Object.values(v)[0] : null;
+        bfrom = String(val || CDate).trim();
+      } catch {
+        bfrom = CDate;
+      }
+      bto = CDate;
+    }
+
+    const fmtDMYtoDMMM = (dmy) => {
+      const parsed = normalizeDmyInput(dmy);
+      if (!parsed) return dmy;
+      const [dd, mm, yyyy] = parsed.dmy.split('/');
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const mmm = months[Number(mm) - 1] || mm;
+      return `${dd}-${mmm}-${yyyy}`;
+    };
+
+    const bfromLabel = fmtDMYtoDMMM(bfrom);
+    const btoLabel = fmtDMYtoDMMM(bto);
+    const bfromSql = (normalizeDmyInput(bfrom)?.ymd) || (normalizeDmyInput(bfromLabel)?.ymd) || bfrom || CDate;
+    const monLabel = fmtDMYtoDMMM(dateInfo.dmy);
+
+    const toNum = (v) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    };
+    const fmt2 = (v) => Number(toNum(v)).toFixed(2);
+
+    const weeklyBudgetSql = `
+      select isnull(WB_BudgetAmount,0) WB_BudgetAmount
+      from MI_WeeklyBudget
+      where WB_Factory=@fact and cast(WB_FromDate as Date)<=@cdate and cast(WB_ToDate as Date)>=@cdate`;
+
+    const weeklyActualSql = `
+      select isnull(sum(Dist_RSProd_OnDate)+sum(Dist_AAProd_OnDate),0) as ABWeekly
+      from MI_Distillery_Report
+      where Dist_Unit=@fact and cast(Dist_Date as date) between @from and @to`;
+
+    const monthlyBudgetSql = `
+      select isnull(sum(WB_BudgetAmount),0) BMonthly
+      from MI_WeeklyBudget
+      where WB_Factory=@fact
+        and cast(WB_FromDate as Date)>= (select dateadd(mm, -1, dateadd(dd, +1, eomonth(@cdate))))
+        and cast(WB_ToDate as Date)<= (select eomonth(@cdate))`;
+
+    const monthlyActualSql = `
+      select isnull(sum(Dist_RSProd_OnDate)+sum(Dist_AAProd_OnDate),0) as ABWeekly
+      from MI_Distillery_Report
+      where Dist_Unit=@fact
+        and cast(Dist_Date as date) between (select dateadd(mm, -1, dateadd(dd, +1, eomonth(@cdate))))
+        and (select eomonth(@cdate))`;
+
+    const yearlyBudgetSql = `
+      select isnull(sum(WB_BudgetAmount),0) BMonthly
+      from MI_WeeklyBudget
+      where WB_Factory=@fact and cast(WB_FromDate as Date)>='2021-11-01' and cast(WB_ToDate as Date)<='2022-10-31'`;
+
+    const yearlyActualSql = `
+      select isnull(sum(Dist_RSProd_OnDate)+sum(Dist_AAProd_OnDate),0) as ABWeekly
+      from MI_Distillery_Report
+      where Dist_Unit=@fact and cast(Dist_Date as date) between '2021-11-01' and '2022-10-31'`;
+
+    const preYearSql = `
+      select isnull(ActualAmt,0) ActualAmt
+      from MI_Distillery_PreY_Actual
+      where F_Code=@fact`;
+
+    const remarkSql = `
+      select Dist_Remark
+      from MI_Distillery_Report
+      where Dist_Unit=@fact and cast(Dist_Date as date)=@cdate`;
+
+    const rows = [];
+    // Header row
+    rows.push({
+      FACTORY: 'Distillery Unit',
+      BudgetWeeklys: `(${bfromLabel} To ${btoLabel})`,
+      ActualWeeklys: `(${bfromLabel} To ${btoLabel})`,
+      BudgetMonthlys: `(${monLabel})`,
+      ActualMonthlys: `(${monLabel})`,
+      BudgetYearlys: '(Nav-Oct)',
+      ActualYearlys: '(Nav-Oct)',
+      ActualPreYearlys: '(Nav-Oct)',
+      Remark: ''
+    });
+
+    for (let a = 0; a < units.length; a++) {
+      const unit = units[a];
+      const fact = String(unit.f_Code || unit.F_Code || '').trim();
+      const name = String(unit.FName || unit.F_NAME || unit.F_Name || '').trim();
+
+      const wb = await executeQuery(weeklyBudgetSql, { fact, cdate: CDate }, season).catch(() => []);
+      const wa = await executeQuery(weeklyActualSql, { fact, from: bfromSql, to: CDate }, season).catch(() => []);
+      const mb = await executeQuery(monthlyBudgetSql, { fact, cdate: CDate }, season).catch(() => []);
+      const ma = await executeQuery(monthlyActualSql, { fact, cdate: CDate }, season).catch(() => []);
+      const yb = await executeQuery(yearlyBudgetSql, { fact }, season).catch(() => []);
+      const ya = await executeQuery(yearlyActualSql, { fact }, season).catch(() => []);
+      const py = await executeQuery(preYearSql, { fact }, season).catch(() => []);
+      const rm = await executeQuery(remarkSql, { fact, cdate: CDate }, season).catch(() => []);
+
+      const row = {
+        FACTORY: name,
+        BudgetWeeklys: fmt2(wb?.[0]?.WB_BudgetAmount || 0),
+        ActualWeeklys: fmt2(wa?.[0]?.ABWeekly || 0),
+        BudgetMonthlys: fmt2(mb?.[0]?.BMonthly || 0),
+        ActualMonthlys: fmt2(ma?.[0]?.ABWeekly || 0),
+        BudgetYearlys: fmt2(yb?.[0]?.BMonthly || 0),
+        ActualYearlys: fmt2(ya?.[0]?.ABWeekly || 0),
+        ActualPreYearlys: fmt2(py?.[0]?.ActualAmt || 0),
+        Remark: String(rm?.[0]?.Dist_Remark || '')
+      };
+      rows.push(row);
+
+      const sumRange = (startIdx) => {
+        const sum = { bw: 0, aw: 0, bm: 0, am: 0, by: 0, ay: 0, py: 0 };
+        for (let i = startIdx; i < rows.length; i++) {
+          const r = rows[i];
+          sum.bw += toNum(r.BudgetWeeklys);
+          sum.aw += toNum(r.ActualWeeklys);
+          sum.bm += toNum(r.BudgetMonthlys);
+          sum.am += toNum(r.ActualMonthlys);
+          sum.by += toNum(r.BudgetYearlys);
+          sum.ay += toNum(r.ActualYearlys);
+          sum.py += toNum(r.ActualPreYearlys);
+        }
+        return sum;
+      };
+
+      if (a === 1) {
+        const s = sumRange(1);
+        rows.push({
+          FACTORY: 'Sub Total- West',
+          BudgetWeeklys: fmt2(s.bw),
+          ActualWeeklys: fmt2(s.aw),
+          BudgetMonthlys: fmt2(s.bm),
+          ActualMonthlys: fmt2(s.am),
+          BudgetYearlys: fmt2(s.by),
+          ActualYearlys: fmt2(s.ay),
+          ActualPreYearlys: fmt2(s.py),
+          Remark: ''
+        });
+      }
+
+      if (a === 4) {
+        const s = sumRange(4);
+        rows.push({
+          FACTORY: 'Sub Total- Central',
+          BudgetWeeklys: fmt2(s.bw),
+          ActualWeeklys: fmt2(s.aw),
+          BudgetMonthlys: fmt2(s.bm),
+          ActualMonthlys: fmt2(s.am),
+          BudgetYearlys: fmt2(s.by),
+          ActualYearlys: fmt2(s.ay),
+          ActualPreYearlys: fmt2(s.py),
+          Remark: ''
+        });
+      }
+
+      if (a === 5) {
+        const s = sumRange(8);
+        rows.push({
+          FACTORY: 'Sub Total- East',
+          BudgetWeeklys: fmt2(s.bw),
+          ActualWeeklys: fmt2(s.aw),
+          BudgetMonthlys: fmt2(s.bm),
+          ActualMonthlys: fmt2(s.am),
+          BudgetYearlys: fmt2(s.by),
+          ActualYearlys: fmt2(s.ay),
+          ActualPreYearlys: fmt2(s.py),
+          Remark: ''
+        });
+
+        const pickIdx = [3, 7, 9];
+        const g = { bw: 0, aw: 0, bm: 0, am: 0, by: 0, ay: 0, py: 0 };
+        pickIdx.forEach((i) => {
+          const r = rows[i];
+          if (!r) return;
+          g.bw += toNum(r.BudgetWeeklys);
+          g.aw += toNum(r.ActualWeeklys);
+          g.bm += toNum(r.BudgetMonthlys);
+          g.am += toNum(r.ActualMonthlys);
+          g.by += toNum(r.BudgetYearlys);
+          g.ay += toNum(r.ActualYearlys);
+          g.py += toNum(r.ActualPreYearlys);
+        });
+        rows.push({
+          FACTORY: 'G.Total- Total',
+          BudgetWeeklys: fmt2(g.bw),
+          ActualWeeklys: fmt2(g.aw),
+          BudgetMonthlys: fmt2(g.bm),
+          ActualMonthlys: fmt2(g.am),
+          BudgetYearlys: fmt2(g.by),
+          ActualYearlys: fmt2(g.ay),
+          ActualPreYearlys: fmt2(g.py),
+          Remark: ''
+        });
+      }
+    }
+
+    return res.status(200).json({ success: true, data: rows, recordsets: [rows] });
+  } catch (error) {
+    if (typeof next === 'function') return next(error);
+    throw error;
+  }
+};
+
+// ============================================================================
+// Driage Clerk + Centre Detail (ported from BajajMic ReportController)
+// ============================================================================
+exports.DriageClerkCentreDetail = async (req, res, next) => {
+  try {
+    const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
+    const fRaw = req.query?.F_code || req.query?.F_Code || req.query?.unit || req.body?.F_code || req.body?.F_Code || req.body?.unit || '';
+    const dateRaw = req.query?.Date || req.query?.date || req.body?.Date || req.body?.date || '';
+
+    const fcode = String(fRaw || '').trim();
+    const dateInfo = normalizeDmyInput(dateRaw);
+
+    if (!fcode || fcode === '0' || fcode.toLowerCase() === 'all') {
+      return res.status(200).json({
+        API_STATUS: 'ERROR',
+        Message: 'Please Select Factory !!',
+        Data: [],
+        success: false,
+        data: []
+      });
+    }
+    if (!dateInfo) {
+      return res.status(200).json({
+        API_STATUS: 'ERROR',
+        Message: 'Invalid Date',
+        Data: [],
+        success: false,
+        data: []
+      });
+    }
+
+    const dt = dateInfo.yyyymmdd;
+
+    const clerkSql = `
+      WITH PUR AS (
+        SELECT M_TARE_OPR,
+          MIN(CAST(M_DATE as date)) MFrom,
+          MAX(CAST(M_DATE as date)) MTill,
+          ISNULL(SUM(ISNULL(M_GROSS,0) - ISNULL(M_TARE,0) - ISNULL(M_JOONA,0)), 0) PQTY
+        FROM PURCHASE
+        WHERE CONVERT(NVARCHAR, M_DATE,112) <= @dt
+          AND M_FACTORY = @fact
+          AND M_CENTRE != 100
+        GROUP BY M_TARE_OPR
+      ),
+      REP AS (
+        SELECT tt_Clerk,
+          MAX(CAST(tt_DpDate as date)) TFrom,
+          MAX(CAST(tt_DpDate as date)) TTill,
+          ISNULL(SUM(ISNULL(TT_GROSSWEIGHT,0) - ISNULL(TT_TAREWEIGHT,0) - ISNULL(TT_JOONAWEIGHT,0)), 0) RQTY
+        FROM RECEIPT
+        WHERE CONVERT(NVARCHAR, tt_DpDate,112) <= @dt
+          AND TT_FACTORY = @fact
+        GROUP BY tt_Clerk
+      )
+      SELECT u_factory as factory, u_code, u_Name,
+        CONVERT(varchar, MIN(MFrom),103) MFrom,
+        CONVERT(varchar, MAX(MTill),103) Till,
+        ISNULL(SUM(PQTY),0) PQTY,
+        ISNULL(SUM(RQTY),0) RQTY
+      FROM PUR
+      FULL OUTER JOIN REP ON M_TARE_OPR = tt_Clerk
+      JOIN users ON u_code = M_TARE_OPR AND u_code = tt_Clerk
+      WHERE U_factory = @fact
+      GROUP BY u_factory, u_code, u_Name
+      ORDER BY MIN(MFrom), MAX(MTill)`;
+
+    const clerkRows = await executeQuery(clerkSql, { fact: fcode, dt }, season).catch(() => []);
+    if (!clerkRows || clerkRows.length === 0) {
+      return res.status(200).json({
+        API_STATUS: 'ERROR',
+        Message: 'Data Not Found !!',
+        Data: [],
+        success: false,
+        data: []
+      });
+    }
+
+    const centreSql = `
+      WITH CEN AS (
+        SELECT C_factory as Factory, C_code SUPVCODE, C_name as SUPVNAME
+        FROM Centre
+        WHERE C_factory = @fact
+      ),
+      PUR AS (
+        SELECT M_Centre,
+          MIN(M_DATE) FM_DATE,
+          MAX(M_DATE) TM_DATE,
+          ISNULL(SUM(ISNULL(M_GROSS,0) - ISNULL(M_TARE,0) - ISNULL(M_JOONA,0)), 0) PQTY
+        FROM PURCHASE
+        WHERE CONVERT(NVARCHAR, M_DATE,112) <= @dt
+          AND M_FACTORY = @fact
+          AND M_CENTRE != 100
+          AND M_TARE_OPR = @clerk
+        GROUP BY M_Centre
+      ),
+      REP AS (
+        SELECT tt_center,
+          MIN(tt_DpDate) Ftt_DpDate,
+          MAX(tt_DpDate) Ttt_DpDate,
+          ISNULL(SUM(ISNULL(TT_GROSSWEIGHT,0) - ISNULL(TT_TAREWEIGHT,0) - ISNULL(TT_JOONAWEIGHT,0)), 0) RQTY
+        FROM RECEIPT
+        WHERE CONVERT(NVARCHAR, tt_DpDate,112) <= @dt
+          AND TT_FACTORY = @fact
+          AND tt_Clerk = @clerk
+        GROUP BY tt_center
+      )
+      SELECT Factory as C_FACTORY, SUPVCODE as C_CODE, SUPVNAME as C_NAME,
+        CONVERT(varchar, FM_DATE,103) FM_DATE,
+        CONVERT(varchar, TM_DATE,103) TM_DATE,
+        ISNULL(PQTY,0) PQTY,
+        ISNULL(RQTY,0) RQTY
+      FROM CEN
+      JOIN PUR on SUPVCODE = M_Centre
+      FULL OUTER JOIN REP on tt_center = M_Centre
+      WHERE SUPVCODE is not null
+      ORDER BY PUR.FM_DATE, PUR.TM_DATE asc`;
+
+    const results = [];
+    const fmt = (v) => truncateDecimal(v, 2).toFixed(2);
+
+    for (const row of clerkRows) {
+      const clerkCode = String(row.u_code || row.U_code || row.U_CODE || '').trim();
+      const clerkName = String(row.u_Name || row.U_Name || row.U_NAME || '').trim();
+      if (!clerkCode) continue;
+
+      const centres = await executeQuery(
+        centreSql,
+        { fact: fcode, clerk: clerkCode, dt },
+        season
+      ).catch(() => []);
+
+      (centres || []).forEach((c) => {
+        const pqty = Number(c.PQTY || 0);
+        const rqty = Number(c.RQTY || 0);
+        const dqty = truncateDecimal(rqty - pqty, 2);
+        const perc = (dqty !== 0 && pqty > 0) ? truncateDecimal((dqty / pqty) * 100, 2) : 0;
+
+        results.push({
+          clerkCode,
+          clerkName,
+          centreCode: String(c.C_CODE || '').trim(),
+          centreName: String(c.C_NAME || '').trim(),
+          weighed: fmt(pqty),
+          crushed: fmt(rqty),
+          driage: fmt(dqty),
+          percent: fmt(perc)
+        });
+      });
+    }
+
+    if (!results.length) {
+      return res.status(200).json({
+        API_STATUS: 'ERROR',
+        Message: 'Data Not Found !!',
+        Data: [],
+        success: false,
+        data: []
+      });
+    }
+
+    return res.status(200).json({
+      API_STATUS: 'OK',
+      Message: 'Success',
+      Data: results,
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    if (typeof next === 'function') return next(error);
+    throw error;
+  }
+};
 
 /**
  * HourlyCaneArrival - mirrors ReportController.HourlyCaneArrivalReport (BajajMIS)

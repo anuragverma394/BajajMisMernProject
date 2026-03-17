@@ -1,11 +1,18 @@
 {
   "name": "bajaj-backend",
   "version": "1.0.0",
+  "description": "Bajaj MIS Backend - Microservices Architecture",
   "private": true,
   "workspaces": [
     "shared",
     "services/*"
   ],
+  "scripts": {
+    "start": "node server.js",
+    "start:all": "node server.js",
+    "dev": "node server.js",
+    "debug": "node --inspect server.js"
+  },
   "dependencies": {
     "msnodesqlv8": "^5.1.5",
     "redis": "^4.7.1",

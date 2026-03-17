@@ -164,14 +164,18 @@ exports.next = createProcedureHandler(CONTROLLER, 'next', 'string Date');
 exports.prev = createProcedureHandler(CONTROLLER, 'prev', 'string Date');
 // DriageSummary - use handler from repository with full logic (no stored proc)
 exports.DriageSummary = reportControllerRepository.DriageSummary;
-exports.DriageDetail = createProcedureHandler(CONTROLLER, 'DriageDetail', 'string FACT, string DATE, string CENTER');
+// DriageDetail - use handler from repository with full logic (no stored proc)
+exports.DriageDetail = reportControllerRepository.DriageDetail;
 // DriageClerkSummary - use handler from repository with full logic (no stored proc)
 exports.DriageClerkSummary = reportControllerRepository.DriageClerkSummary;
-exports.DriageClerkDetail = createProcedureHandler(CONTROLLER, 'DriageClerkDetail', 'string FACT, string DATE, string CLERK');
-exports.DriageCentreDetail = createProcedureHandler(CONTROLLER, 'DriageCentreDetail', 'string FACT, string DATE, string CLERK, string CENTER');
+// DriageClerkDetail - use handler from repository with full logic (no stored proc)
+exports.DriageClerkDetail = reportControllerRepository.DriageClerkDetail;
+// DriageCentreDetail - use handler from repository with full logic (no stored proc)
+exports.DriageCentreDetail = reportControllerRepository.DriageCentreDetail;
 // DriageCentreClerkDetail - use handler from repository with full logic (no stored proc)
 exports.DriageCentreClerkDetail = reportControllerRepository.DriageCentreClerkDetail;
-exports.DriageClerkCentreDetail = createProcedureHandler(CONTROLLER, 'DriageClerkCentreDetail', '');
+// DriageClerkCentreDetail - use handler from repository with full logic (no stored proc)
+exports.DriageClerkCentreDetail = reportControllerRepository.DriageClerkCentreDetail;
 // BudgetVSActual - use handler from repository with full logic (no stored proc)
 exports.BudgetVSActual = reportControllerRepository.BudgetVSActual;
 exports.IndentFailSummaryNew = createProcedureHandler(CONTROLLER, 'IndentFailSummaryNew', '');

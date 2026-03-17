@@ -1,48 +1,37 @@
-require('dotenv').config();
+const { initialize, shutdown, getLogger, config } = require('@bajaj/shared');
 
 const app = require('./app');
 const connectDatabase = require('./src/config/database');
-
-const port = Number(process.env.PORT || 5005);
-let server;
+const logger = getLogger('lab-service');
 
 async function bootstrap() {
   try {
+    await initialize('lab-service');
+
     if (String(process.env.SKIP_DB_CONNECT || 'false').toLowerCase() !== 'true') {
       await connectDatabase();
     }
 
-    server = app.listen(port, () => {
-      console.log(`lab-service listening on port ${port}`);
+    const port = config.SERVICE_PORT || 5005;
+    app.listen(port, () => {
+      logger.info('lab-service started', { port });
     });
   } catch (error) {
-    console.error('lab-service failed to start', error);
+    logger.error('lab-service failed to start', { error: error.message });
     process.exit(1);
   }
 }
 
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down');
-  if (server) {
-    server.close(() => {
-      console.log('lab-service shut down');
-      process.exit(0);
-    });
-  } else {
-    process.exit(0);
-  }
+process.on('SIGTERM', async () => {
+  logger.info('SIGTERM received, shutting down');
+  await shutdown();
+  process.exit(0);
 });
 
-process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down');
-  if (server) {
-    server.close(() => {
-      console.log('lab-service shut down');
-      process.exit(0);
-    });
-  } else {
-    process.exit(0);
-  }
+process.on('SIGINT', async () => {
+  logger.info('SIGINT received, shutting down');
+  await shutdown();
+  process.exit(0);
 });
 
 bootstrap();
