@@ -56,7 +56,7 @@ export const accountReportsService = {
 
     getLoanSummaryReport: async (params) => {
         const response = await apiClient.get('/report/loansummary-rpt', { params });
-        return response.data;
+        return response.data?.data ?? response.data;
     }
 };
 
@@ -68,15 +68,34 @@ export const distilleryService = {
 };
 
 export const transferUnitService = {
-    getList: async (factoryCode = '') => (await apiClient.get('/account-reports/transferand-recieved-unit', { params: { factoryCode } })).data,
-    getById: async (id) => (await apiClient.get('/account-reports/transferand-recieved-unit', { params: { Rid: id } })).data,
-    create: async (payload) => (await apiClient.post('/account-reports/transferand-recieved-unit-2', { ...payload, Command: 'btninsert' })).data,
-    update: async (id, payload) => (await apiClient.post('/account-reports/transferand-recieved-unit-2', { ...payload, id, Command: 'btupdate' })).data,
-    deleteRecord: async (id) => (await apiClient.post('/account-reports/transferand-recieved-unit-2', { id, Command: 'delete' })).data
+    getList: async (factoryCode = '') => {
+        const res = await apiClient.get('/account-reports/transferand-recieved-unit', { params: { factoryCode } });
+        return res.data?.data ?? res.data;
+    },
+    getById: async (id) => {
+        const res = await apiClient.get('/account-reports/transferand-recieved-unit', { params: { Rid: id } });
+        return res.data?.data ?? res.data;
+    },
+    create: async (payload) => {
+        const res = await apiClient.post('/account-reports/transferand-recieved-unit-2', { ...payload, Command: 'btninsert' });
+        return res.data?.data ?? res.data;
+    },
+    update: async (id, payload) => {
+        const res = await apiClient.post('/account-reports/transferand-recieved-unit-2', { ...payload, id, Command: 'btupdate' });
+        return res.data?.data ?? res.data;
+    },
+    deleteRecord: async (id) => {
+        const res = await apiClient.post('/account-reports/transferand-recieved-unit-2', { id, Command: 'delete' });
+        return res.data?.data ?? res.data;
+    }
 };
 
 export const dailyCaneEntryService = {
     getList: async (params = {}) => (await apiClient.get('/main/sugar-whats-app-report-view', { params })).data,
+    getProdTypes: async () => {
+        const res = await apiClient.get('/main/distillery-prod-types');
+        return res.data?.data ?? res.data;
+    },
     getNewReportData: async (params = {}) => {
         const date = params.C_date || params.Cn_Date || params.Date || params.date || '';
         const factory = params.F_code || params.factoryCode || params.Cn_Unit || '';
@@ -102,11 +121,26 @@ export const dailyRainfallService = {
 };
 
 export const distilleryEntryService = {
-    getList: async (params = {}) => (await apiClient.get('/main/distillery-report-entry-view', { params })).data,
-    getById: async (id) => (await apiClient.get('/main/distillery-report-entry', { params: { sid: id } })).data,
-    create: async (payload) => (await apiClient.post('/main/distillery-report-entry-2', { ...payload, Command: 'btninsert' })).data,
-    update: async (id, payload) => (await apiClient.post('/main/distillery-report-entry-2', { ...payload, id, Command: 'btupdate' })).data,
-    deleteRecord: async (id) => (await apiClient.get('/main/distillery-report-entry-delete', { params: { id } })).data
+    getList: async (params = {}) => {
+        const res = await apiClient.get('/main/distillery-report-entry-view', { params });
+        return res.data?.data ?? res.data;
+    },
+    getById: async (id) => {
+        const res = await apiClient.get('/main/distillery-report-entry', { params: { sid: id } });
+        return res.data?.data ?? res.data;
+    },
+    create: async (payload) => {
+        const res = await apiClient.post('/main/distillery-report-entry-2', { ...payload, Command: 'btninsert' });
+        return res.data?.data ?? res.data;
+    },
+    update: async (id, payload) => {
+        const res = await apiClient.post('/main/distillery-report-entry-2', { ...payload, id, Command: 'btupdate' });
+        return res.data?.data ?? res.data;
+    },
+    deleteRecord: async (id) => {
+        const res = await apiClient.get('/main/distillery-report-entry-delete', { params: { id } });
+        return res.data?.data ?? res.data;
+    }
 };
 
 export const addBudgetService = {

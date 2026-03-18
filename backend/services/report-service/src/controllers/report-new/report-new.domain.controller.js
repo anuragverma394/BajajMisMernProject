@@ -10,7 +10,7 @@ function getParams(req) {
 }
 
 function success(res, message, data) {
-  return res.status(200).json({ success: true, message, data });
+  return res.status(200).json({ success: true, status: 'success', message, data });
 }
 
 exports.HourlyCaneArrivalWieght = catchAsync(async (req, res) => {
@@ -65,7 +65,14 @@ exports.centerBind = catchAsync(async (req, res) => {
 
 exports.CanePurchaseReport = catchAsync(async (req, res) => {
   const data = await service.getCanePurchaseReport(getParams(req), getSeason(req));
-  return success(res, 'Cane purchase report', data);
+  return res.status(200).json({
+    success: true,
+    status: 'success',
+    message: 'Cane purchase report',
+    data: data?.rows || [],
+    totals: data?.totals || null,
+    extraRows: data?.extraRows || []
+  });
 });
 
 exports.CanePurchaseReport_2 = catchAsync(async (req, res) => {

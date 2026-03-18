@@ -1236,6 +1236,8 @@ exports.TargetActualMISView = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'factoryCode/FACTORY must be zero or a positive number' });
     }
 
+    const tableName = await resolveLabTable(season, 'CANETARGET');
+
     const rows = await executeQuery(
       `SELECT
           ID,
@@ -1281,7 +1283,7 @@ exports.TargetActualMISView = async (req, res, next) => {
           ISNULL(P_PETarget, 0) AS P_PETarget,
           ISNULL(P_PEOnDate, 0) AS P_PEOnDate,
           ISNULL(P_PEToDate, 0) AS P_PEToDate
-       FROM MI_CANETARGET
+       FROM ${tableName}
        WHERE (@factoryCode = 0 OR FACTORY = @factoryCode)
          AND (@fromDate IS NULL OR CAST(TM_DATE AS date) >= @fromDate)
          AND (@toDate IS NULL OR CAST(TM_DATE AS date) <= @toDate)

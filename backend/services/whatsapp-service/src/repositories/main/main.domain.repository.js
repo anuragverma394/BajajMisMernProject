@@ -1677,7 +1677,7 @@ exports.distilleryReportEntryView = async (req, res, next) => {
       capOnDate: pickExistingColumnFromList(tableColumnList, ['Dist_Cap_OnDate', 'Cap_OnDate']),
       capToDate: pickExistingColumnFromList(tableColumnList, ['Dist_Cap_ToDate', 'Cap_ToDate']),
       financialYear: pickExistingColumnFromList(tableColumnList, ['Dist_FinancialYear', 'FinancialYear']),
-      prod: pickExistingColumnFromList(tableColumnList, ['Dist_Prod', 'Prod']),
+      prod: pickExistingColumnFromList(tableColumnList, ['Dist_FYProd', 'Dist_Prod', 'Prod']),
       stoppage: pickExistingColumnFromList(tableColumnList, ['Dist_Stoppage', 'Stoppage']),
       remark: pickExistingColumnFromList(tableColumnList, ['Dist_Remark', 'Remark']),
       userId: pickExistingColumnFromList(tableColumnList, ['Dist_UserID', 'Userid', 'UserID'])
@@ -1746,7 +1746,7 @@ exports.distilleryReportEntryView = async (req, res, next) => {
       Dist_Cap_OnDate: num(pick(r, ['Dist_Cap_OnDate', 'Cap_OnDate'], 0)),
       Dist_Cap_ToDate: num(pick(r, ['Dist_Cap_ToDate', 'Cap_ToDate'], 0)),
       Dist_FinancialYear: txt(pick(r, ['Dist_FinancialYear', 'FinancialYear'], '')),
-      Dist_Prod: txt(pick(r, ['Dist_Prod', 'Prod'], '')),
+      Dist_Prod: txt(pick(r, ['Dist_FYProd', 'Dist_Prod', 'Prod'], '')),
       Dist_Stoppage: txt(pick(r, ['Dist_Stoppage', 'Stoppage'], '')),
       Dist_Remark: txt(pick(r, ['Dist_Remark', 'Remark'], '')),
       Dist_UserID: txt(pick(r, ['Dist_UserID', 'Userid', 'UserID'], ''))
@@ -1805,7 +1805,7 @@ exports.distilleryReportEntry_2 = async (req, res, next) => {
       capOnDate: pickExistingColumnFromList(tableColumnList, ['Dist_Cap_OnDate', 'Cap_OnDate']),
       capToDate: pickExistingColumnFromList(tableColumnList, ['Dist_Cap_ToDate', 'Cap_ToDate']),
       financialYear: pickExistingColumnFromList(tableColumnList, ['Dist_FinancialYear', 'FinancialYear']),
-      prod: pickExistingColumnFromList(tableColumnList, ['Dist_Prod', 'Prod']),
+      prod: pickExistingColumnFromList(tableColumnList, ['Dist_FYProd', 'Dist_Prod', 'Prod']),
       stoppage: pickExistingColumnFromList(tableColumnList, ['Dist_Stoppage', 'Stoppage']),
       remark: pickExistingColumnFromList(tableColumnList, ['Dist_Remark', 'Remark']),
       userId: pickExistingColumnFromList(tableColumnList, ['Dist_UserID', 'Userid', 'UserID'])

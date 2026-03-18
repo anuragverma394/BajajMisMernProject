@@ -22,16 +22,35 @@ function notImplemented(res, name) {
   return respondSuccess(res, `${name} not implemented`, []);
 }
 
+function createServiceHandler(fn, message) {
+  return catchAsync(async (req, res) => {
+    const result = await fn(req);
+    return respondServiceResult(res, message, result);
+  });
+}
+
 exports.Index = catchAsync(async (req, res) => {
   return respondSuccess(res, 'Account reports index', []);
 });
 
 exports.VarietyWiseCanePurchase = catchAsync(async (req, res) => {
-  return notImplemented(res, 'Variety wise cane purchase');
+  const result = await service.getVarietyWiseCanePurchase(req);
+  if (result?.error) {
+    const err = new Error(result.error.message || 'Request failed');
+    err.statusCode = result.error.status || 500;
+    throw err;
+  }
+  return res.status(200).json(result);
 });
 
 exports.VarietyWiseCanePurchase_2 = catchAsync(async (req, res) => {
-  return notImplemented(res, 'Variety wise cane purchase save');
+  const result = await service.getVarietyWiseCanePurchase(req);
+  if (result?.error) {
+    const err = new Error(result.error.message || 'Request failed');
+    err.statusCode = result.error.status || 500;
+    throw err;
+  }
+  return res.status(200).json(result);
 });
 
 exports.Capasityutilisation = catchAsync(async (req, res) => {
@@ -63,15 +82,15 @@ exports.TransferandRecievedUnit = catchAsync(async (req, res) => {
   return respondServiceResult(res, 'Transfer and received units', result);
 });
 
-exports.TransferandRecievedUnit_2 = catchAsync(async (req, res) => {
-  const result = await service.mutateTransferData(req);
-  return respondServiceResult(res, 'Transfer and received units updated', result);
-});
+exports.TransferandRecievedUnit_2 = createServiceHandler(
+  service.mutateTransferData,
+  'Transfer and received units updated'
+);
 
-exports.DELETEData = catchAsync(async (req, res) => {
-  const result = await service.deleteTransferById(req);
-  return respondServiceResult(res, 'Transfer deleted', result);
-});
+exports.DELETEData = createServiceHandler(
+  service.deleteTransferById,
+  'Transfer deleted'
+);
 
 exports.SugarReport = catchAsync(async (req, res) => {
   return notImplemented(res, 'Sugar report');
@@ -106,9 +125,21 @@ exports.DistilleryReportA_2 = catchAsync(async (req, res) => {
 });
 
 exports.VarietyWiseCanePurchaseAmt = catchAsync(async (req, res) => {
-  return notImplemented(res, 'Variety wise cane purchase amount');
+  const result = await service.getVarietyWiseCanePurchaseAmt(req);
+  if (result?.error) {
+    const err = new Error(result.error.message || 'Request failed');
+    err.statusCode = result.error.status || 500;
+    throw err;
+  }
+  return res.status(200).json(result);
 });
 
 exports.VarietyWiseCanePurchaseAmt_2 = catchAsync(async (req, res) => {
-  return notImplemented(res, 'Variety wise cane purchase amount save');
+  const result = await service.getVarietyWiseCanePurchaseAmt(req);
+  if (result?.error) {
+    const err = new Error(result.error.message || 'Request failed');
+    err.statusCode = result.error.status || 500;
+    throw err;
+  }
+  return res.status(200).json(result);
 });

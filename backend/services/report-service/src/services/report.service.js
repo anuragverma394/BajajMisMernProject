@@ -102,6 +102,15 @@ async function getSummaryReportUnitWise(req) {
   return repository.getSummaryReportUnitWise({ factoryCode, userCode, date }, season);
 }
 
+async function getTruckDispatchWeighed(req) {
+  const season = getSeason(req);
+  const params = { ...(req.query || {}), ...(req.body || {}) };
+  if (req.user?.userId || req.user?.userid) {
+    params.userId = params.userId || params.userid || req.user.userId || req.user.userid;
+  }
+  return repository.getTruckDispatchWeighedData(params, season);
+}
+
 // Crushing Report - Load Factory Data
 async function loadFactoryData(req) {
   const season = getSeason(req);
@@ -215,6 +224,7 @@ module.exports = {
   getCentreCode,
   getDiseaseList,
   getSummaryReportUnitWise,
+  getTruckDispatchWeighed,
   loadFactoryData,
   loadModeWiseData,
   getAnalysisData,

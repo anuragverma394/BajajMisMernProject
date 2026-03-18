@@ -303,9 +303,36 @@ async function getZoneCentreWiseTruckDetails(zone, centre, season) {
 /**
  * Get Center Balance Report
  */
-async function getCenterBalanceReport(season) {
+async function getCenterBalanceReport(params = {}, season) {
   try {
-    const result = await executeProcedure('sp_GetCenterBalanceReport', { Season: season });
+    const fCodeRaw = String(
+      params.F_code ??
+      params.F_Code ??
+      params.fcode ??
+      params.FACT ??
+      params.fact ??
+      ''
+    ).trim();
+    const cCode = String(
+      params.c_code ??
+      params.C_code ??
+      params.C_Code ??
+      params.center ??
+      params.centre ??
+      '0'
+    ).trim();
+
+    const fCode = (!fCodeRaw || fCodeRaw.toLowerCase() === 'all') ? '' : fCodeRaw;
+
+    let sqlText = 'EXEC getCentBalAll @fact';
+    const queryParams = { fact: fCode };
+
+    if (cCode && cCode !== '0' && String(cCode).toLowerCase() !== 'all') {
+      sqlText = 'EXEC getCentBal @fact, @cent';
+      queryParams.cent = cCode;
+    }
+
+    const result = await executeQuery(sqlText, queryParams, season, { timeoutMs: 9000000 });
     return result || [];
   } catch (error) {
     console.error('[ReportNewRepository] getCenterBalanceReport error:', error.message);
@@ -330,10 +357,15 @@ async function mutateCenterBalanceReport(model, command) {
 /**
  * Get Centers for Factory
  */
-async function getCentersForFactory(factoryCode) {
+async function getCentersForFactory(factoryCode, season) {
   try {
-    const result = await executeProcedure('sp_GetCentersForFactory', { FactoryCode: factoryCode });
-    return result || [];
+    const factory = String(factoryCode || '').trim();
+    if (!factory) {
+      return [];
+    }
+    const sqlText = `select distinct convert(nvarchar(12),c_code)c_code,c_name from Centre where c_factory=@fact`;
+    const rows = await executeQuery(sqlText, { fact: factory }, season);
+    return rows || [];
   } catch (error) {
     console.error('[ReportNewRepository] getCentersForFactory error:', error.message);
     throw error;
@@ -343,10 +375,55 @@ async function getCentersForFactory(factoryCode) {
 /**
  * Get Cane Purchase Report
  */
-async function getCanePurchaseReport(season) {
+async function getCanePurchaseReport(params, season) {
   try {
-    const result = await executeProcedure('sp_GetCanePurchaseReport', { Season: season });
-    return result || [];
+    const factory = String(params?.F_code ?? params?.F_Code ?? params?.factory ?? '').trim();
+    const fromRaw = String(params?.FromDate ?? params?.fromDate ?? '').trim();
+    const toRaw = String(params?.ToDate ?? params?.toDate ?? '').trim();
+
+    if (!factory || factory === '0' || factory.toLowerCase() === 'all') {
+      return { rows: [], extraRows: [] };
+    }
+
+    const FDate = toSqlDate(fromRaw);
+    const TDate = toSqlDate(toRaw);
+    if (!FDate || !TDate) {
+      return { rows: [], extraRows: [] };
+    }
+
+    const queryParams = { Factory: factory, FDate, TDate };
+
+    const mainSql = `select ROW_NUMBER() OVER (ORDER BY c_code) AS SrNo,c_code,c_name,
+sum(case when CAST(m_date AS DATE) < @FDate then m_gross - m_tare - m_joona else 0 end )OpeningBalance,
+sum(case when CAST(m_date AS DATE) BETWEEN @FDate AND @TDate then m_gross - m_tare - m_joona else 0 end )Period,
+(sum(case when CAST(m_date AS DATE) < @FDate then m_gross - m_tare - m_joona else 0 end )+
+sum(case when CAST(m_date AS DATE)  BETWEEN @FDate AND @TDate then m_gross - m_tare - m_joona else 0 end ))GrandTotal
+from purchase join centre on c_code=m_centre and c_factory=m_factory
+where M_FACTORY=@Factory
+group by c_code,c_name
+order by c_Code;`;
+
+    const extraSql = `select c_code,c_name,
+sum(case when CAST(m_date AS DATE) < @FDate then m_gross - m_tare - m_joona else 0 end )OpeningBalance,
+sum(case when CAST(m_date AS DATE) between @FDate and @TDate then m_gross - m_tare - m_joona else 0 end )Period,
+(sum(case when CAST(m_date AS DATE) < @FDate then m_gross - m_tare - m_joona else 0 end )+
+sum(case when CAST(m_date AS DATE)  between @FDate and @TDate then m_gross - m_tare - m_joona else 0 end ))GrandTotal
+from purchase join centre on c_code=m_centre and c_factory=m_factory
+where M_FACTORY=@Factory and C_flag=1
+group by c_code,c_name
+union all
+select ''c_code,'Out Centre'c_name,
+sum(case when CAST(m_date AS DATE) < @FDate then m_gross - m_tare - m_joona else 0 end )OpeningBalance,
+sum(case when CAST(m_date AS DATE)  between  @FDate and @TDate then m_gross - m_tare - m_joona else 0 end )Period,
+(sum(case when CAST(m_date AS DATE) < @FDate then m_gross - m_tare - m_joona else 0 end )+
+sum(case when CAST(m_date AS DATE)  between  @FDate and @TDate then m_gross - m_tare - m_joona else 0 end ))GrandTotal
+from purchase join centre on c_code=m_centre and c_factory=m_factory
+where M_FACTORY=@Factory and C_flag=0;`;
+
+    const rows = await executeQuery(mainSql, queryParams, season);
+    const extraRows = await executeQuery(extraSql, queryParams, season);
+
+    return { rows: rows || [], extraRows: extraRows || [] };
   } catch (error) {
     console.error('[ReportNewRepository] getCanePurchaseReport error:', error.message);
     throw error;

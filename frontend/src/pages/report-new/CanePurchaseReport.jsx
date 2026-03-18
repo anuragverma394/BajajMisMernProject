@@ -7,6 +7,7 @@ import '../../styles/base.css';
 const CanePurchaseReport = () => {const navigate = useNavigate();
 const [units, setUnits] = useState([]);const [loading, setLoading] = useState(false);
 const [reportData, setReportData] = useState([]);const [totals, setTotals] = useState(null);
+const [extraRows, setExtraRows] = useState([]);
 const [filters, setFilters] = useState({
     F_code: 'All',
     FromDate: new Date().toLocaleDateString('en-GB').replace(/\//g, '-'),
@@ -32,6 +33,7 @@ const [filters, setFilters] = useState({
       if (response.status === 'success' || response.data) {
         setReportData(response.data || []);
         setTotals(response.totals);
+        setExtraRows(response.extraRows || []);
         toast.success("Procurement data synchronized.");
       } else {
         toast.error(response.message || "No records found.");
@@ -234,17 +236,25 @@ const [filters, setFilters] = useState({
                                             <td className="p-[8px] text-right font-bold">{row.GrandTotal}</td>
                                         </tr>
                 )}
-                                </tbody>
-                                {totals &&
-              <tfoot className="bg-[#fff5f7] font-bold">
-                                        <tr>
+                                    {totals &&
+                  <tr className="bg-[#fff5f7] font-bold">
                                             <td colSpan="3" className="p-[10px] border border-[#cbd5e1] text-right">TOTAL</td>
                                             <td className="p-[10px] border border-[#cbd5e1] text-right">{totals.OpeningBalance}</td>
                                             <td className="p-[10px] border border-[#cbd5e1] text-right">{totals.Period}</td>
                                             <td className="p-[10px] border border-[#cbd5e1] text-right">{totals.GrandTotal}</td>
                                         </tr>
-                                    </tfoot>
-              }
+                  }
+                                    {extraRows.map((row, index) =>
+                  <tr key={`extra-${index}`} className="border-b border-b-[#f1f5f9]">
+                                            <td className="p-[8px] text-center"></td>
+                                            <td className="p-[8px] text-center">{row.c_code}</td>
+                                            <td className="p-[8px]">{row.c_name}</td>
+                                            <td className="p-[8px] text-right">{row.OpeningBalance}</td>
+                                            <td className="p-[8px] text-right">{row.Period}</td>
+                                            <td className="p-[8px] text-right font-bold">{row.GrandTotal}</td>
+                                        </tr>
+                  )}
+                                </tbody>
                             </table>
                         </div>
           }

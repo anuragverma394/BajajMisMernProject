@@ -52,7 +52,11 @@ exports.TargetActualMISData = catchAsync(async (req, res) => {
 });
 
 exports.TargetActualMisSapNew = catchAsync(async (req, res) => {
-  const data = await service.getTargetActualMisSapNew(getSeason(req));
+  const params = getParams(req);
+  const factoryCode = params.FactoryCode || params.factoryCode || params.F_Code || params.F_code || params.F_Name || params.F_name || params.FactoryName;
+  const date = params.Date || params.date || params.CP_Date || params.CPDate || params.cpDate;
+  const userCode = params.UserId || params.userId || req.user?.userId;
+  const data = await service.getTargetActualMisSapNew(factoryCode, date, userCode, getSeason(req));
   return sendSuccess(res, 'Target actual MIS SAP', data);
 });
 

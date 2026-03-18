@@ -31,6 +31,11 @@ export const reportNewService = {
         return response.data;
     },
 
+    getCenterBind: async (params) => {
+        const response = await apiClient.get('/report-new/center-bind', { params });
+        return response.data;
+    },
+
     getIndentFailSummary: async (params) => {
         const response = await apiClient.get('/report/indent-fail-summary-new', { params });
         return response.data;

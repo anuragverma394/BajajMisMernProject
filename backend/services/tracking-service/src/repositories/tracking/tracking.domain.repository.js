@@ -943,40 +943,45 @@ exports.TrackingReport = async (req, res, next) => {
       return res.status(200).json([]);
     }
 
-    const staffRows = await executeQuery(
-              `SELECT DISTINCT
-              CAST(z.z_code AS varchar(20)) AS zoneCode,
-              ISNULL(z.z_name, '') AS zoneName,
-              CAST(b.bl_code AS varchar(20)) AS blockCode,
-              ISNULL(b.bl_name, '') AS blockName,
-              ISNULL(
-              CAST(
-              COALESCE(mu.userid, bc.cdo_sapcode, bc.cdo_code, b.bl_inchargecode) AS varchar(50)
-              ),
-              ''
-              ) AS empCode,
-              ISNULL(mu.name, ISNULL(bc.cdo_name, '-')) AS empName
-              FROM zone z
-              JOIN block b
-              ON CAST(b.bl_zonecode AS varchar(20)) = CAST(z.z_code AS varchar(20))
-              AND CAST(b.bl_factcode AS varchar(20)) = CAST(z.z_factory AS varchar(20))
-              AND ISNULL(b.b_type, 1) = 1
-              LEFT JOIN cdo_mst bc
-              ON CAST(bc.cdo_code AS varchar(50)) = CAST(b.bl_inchargecode AS varchar(50))
-              AND CAST(bc.CDO_Factcode AS varchar(20)) = CAST(b.bl_factcode AS varchar(20))
-              LEFT JOIN MI_UserFact uf
-              ON uf.userid = CAST(COALESCE(bc.cdo_sapcode, bc.cdo_code, b.bl_inchargecode) AS varchar(50))
-              AND CAST(uf.factid AS varchar(20)) = CAST(z.z_factory AS varchar(20))
-              LEFT JOIN MI_User mu
-              ON mu.userid = uf.userid
-              WHERE CAST(z.z_factory AS varchar(20)) = @unit
-              AND ISNULL(z.z_type, 1) = 1
-              AND (@zone = '0' OR @zone = '' OR CAST(z.z_code AS varchar(20)) = @zone)
-              AND (@block = '0' OR @block = '' OR CAST(b.bl_code AS varchar(20)) = @block)
-              ORDER BY z.z_name, b.bl_name, empName`,
-      { unit, zone, block },
-      season
-    );
+    let staffRows = [];
+    try {
+      staffRows = await executeQuery(
+                `SELECT DISTINCT
+                CAST(z.z_code AS varchar(20)) AS zoneCode,
+                ISNULL(z.z_name, '') AS zoneName,
+                CAST(b.bl_code AS varchar(20)) AS blockCode,
+                ISNULL(b.bl_name, '') AS blockName,
+                ISNULL(
+                CAST(
+                COALESCE(mu.userid, bc.cdo_sapcode, bc.cdo_code, b.bl_inchargecode) AS varchar(50)
+                ),
+                ''
+                ) AS empCode,
+                ISNULL(mu.name, ISNULL(bc.cdo_name, '-')) AS empName
+                FROM zone z
+                JOIN block b
+                ON CAST(b.bl_zonecode AS varchar(20)) = CAST(z.z_code AS varchar(20))
+                AND CAST(b.bl_factcode AS varchar(20)) = CAST(z.z_factory AS varchar(20))
+                AND ISNULL(b.b_type, 1) = 1
+                LEFT JOIN cdo_mst bc
+                ON CAST(bc.cdo_code AS varchar(50)) = CAST(b.bl_inchargecode AS varchar(50))
+                AND CAST(bc.CDO_Factcode AS varchar(20)) = CAST(b.bl_factcode AS varchar(20))
+                LEFT JOIN MI_UserFact uf
+                ON uf.userid = CAST(COALESCE(bc.cdo_sapcode, bc.cdo_code, b.bl_inchargecode) AS varchar(50))
+                AND CAST(uf.factid AS varchar(20)) = CAST(z.z_factory AS varchar(20))
+                LEFT JOIN MI_User mu
+                ON mu.userid = uf.userid
+                WHERE CAST(z.z_factory AS varchar(20)) = @unit
+                AND ISNULL(z.z_type, 1) = 1
+                AND (@zone = '0' OR @zone = '' OR CAST(z.z_code AS varchar(20)) = @zone)
+                AND (@block = '0' OR @block = '' OR CAST(b.bl_code AS varchar(20)) = @block)
+                ORDER BY z.z_name, b.bl_name, empName`,
+        { unit, zone, block },
+        season
+      );
+    } catch (queryError) {
+      staffRows = [];
+    }
 
     let effectiveStaffRows = Array.isArray(staffRows) ? staffRows : [];
 
@@ -1021,7 +1026,8 @@ exports.TrackingReport = async (req, res, next) => {
         season
       );
     } catch (primaryError) {
-      gpsRows = await executeQuery(
+      try {
+        gpsRows = await executeQuery(
             `SELECT
             gd.USERCODE AS userCode,
             CONVERT(varchar(5), MIN(gd.CREATEDAT), 108) AS startTime,
@@ -1034,9 +1040,12 @@ exports.TrackingReport = async (req, res, next) => {
             AND (@date = '' OR CAST(ISNULL(t.trg_updt, t.trg_crdate) AS date) = @date)
             WHERE (@date = '' OR CAST(gd.CREATEDAT AS date) = @date)
             GROUP BY gd.USERCODE`,
-        { date },
-        season
-      );
+          { date },
+          season
+        );
+      } catch (fallbackError) {
+        gpsRows = [];
+      }
     }
 
     const gpsMap = new Map(

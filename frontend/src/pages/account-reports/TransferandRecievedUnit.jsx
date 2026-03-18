@@ -26,7 +26,8 @@ function normalizeDateInput(value) {
 function normalizeRows(rows = []) {
   return rows.map((item) => ({
     id: item.id ?? null,
-    factory: item.T_FactoryName || item.T_Factory || '-',
+    transferFactory: item.T_FactoryName || item.T_Factory || '-',
+    receivedFactory: item.R_FactoryName || item.R_Factory || '-',
     receivedInterUnit: parseAmount(item.ReceivedfromInterUnit),
     transferInterUnit: parseAmount(item.TransferInterUnit),
     date: item.R_TDate || '-',
@@ -238,7 +239,8 @@ export default function AccountReports_TransferandRecievedUnit() {
             <table className="w-[100%] min-w-[960px]">
               <thead>
                 <tr className="bg-[#4fd1a1]">
-                  <th className={thStyle}>Factory</th>
+                  <th className={thStyle}>Transfer Unit</th>
+                  <th className={thStyle}>Received Unit</th>
                   <th className={thStyle}>Recieved Inter Unit</th>
                   <th className={thStyle}>Transfer Inter Unit</th>
                   <th className={thStyle}>Date</th>
@@ -249,7 +251,8 @@ export default function AccountReports_TransferandRecievedUnit() {
                 {rows.length ?
                 rows.map((row, idx) =>
                 <tr key={`${row.id ?? 'row'}-${idx}`}>
-                      <td className={tdStyle}>{row.factory}</td>
+                      <td className={tdStyle}>{row.transferFactory}</td>
+                      <td className={tdStyle}>{row.receivedFactory}</td>
                       <td className={tdStyle}>{row.receivedInterUnit}</td>
                       <td className={tdStyle}>{row.transferInterUnit}</td>
                       <td className={tdStyle}>{row.date}</td>
@@ -258,7 +261,7 @@ export default function AccountReports_TransferandRecievedUnit() {
                 ) :
 
                 <tr>
-                    <td colSpan={5} className={__cx(tdStyle, "text-center text-[#6b7280]")}>
+                    <td colSpan={6} className={__cx(tdStyle, "text-center text-[#6b7280]")}>
                       {isSearching ? 'Loading...' : 'No records found.'}
                     </td>
                   </tr>

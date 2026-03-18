@@ -44,7 +44,8 @@ import '../../styles/base.css';const __cx = (...vals) => vals.filter(Boolean).jo
       dailyCaneEntryService.getProdTypes()]
       );
       setUnits(unitsData || []);
-      setProdTypes(typesData?.data || []);
+      const prodTypeRows = typesData?.data ?? typesData ?? [];
+      setProdTypes(Array.isArray(prodTypeRows) ? prodTypeRows : []);
     } catch (error) {
       console.error("Error fetching initial data", error);
     }

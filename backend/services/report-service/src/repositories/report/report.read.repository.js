@@ -5,6 +5,13 @@ async function runProcedure(name, params, season) {
   return result.rows || [];
 }
 
+const crushingReportCache = new Map();
+const CRUSHING_CACHE_TTL_MS = 2 * 60 * 1000;
+
+function getCrushingCacheKey(season, factCode, dbDate) {
+  return `${season || ''}::${String(factCode || '')}::${String(dbDate || '')}`;
+}
+
 function normalizeDateToDb(raw) {
   const value = String(raw || '').trim();
   if (!value) return '';
@@ -170,6 +177,152 @@ async function getLatestCrushingDate(params, season) {
   return rows?.[0]?.latestDate || null;
 }
 
+function toSqlDateOrEmpty(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  return normalizeDateToDb(raw);
+}
+
+async function getCdoRow(fCode, userId, season) {
+  if (!fCode || !userId) return null;
+  const rows = await executeQuery(
+    `SELECT TOP 1 * FROM cdo_mst
+     WHERE CDO_Factcode = @fact
+       AND CDO_MOBILENO IN (SELECT Mobile FROM MI_User WHERE Type = 1 AND Userid = @userId)`,
+    { fact: fCode, userId: String(userId) },
+    season
+  );
+  return rows?.[0] || null;
+}
+
+async function getBlockCodesForUser(fCode, userId, cdoRow, season) {
+  if (!cdoRow) return [];
+  const mobile = String(cdoRow.CDO_MOBILENO || '').trim();
+  const grp = String(cdoRow.CDO_GRP_CODE || '').trim();
+  if (!mobile || !grp) return [];
+
+  let sql = '';
+  if (grp === 'BI') {
+    sql = `SELECT bl_code
+           FROM block
+           WHERE bl_factcode = @fact
+             AND bl_inchargecode IN (
+               SELECT CDO_CODE FROM cdo_mst
+               WHERE CDO_Factcode = @fact
+                 AND CDO_MOBILENO IN (
+                   SELECT Mobile FROM MI_User
+                   WHERE Type = 1 AND Userid = @userId AND Mobile = @mobile
+                 )
+             )`;
+  } else if (grp === 'DI') {
+    sql = `SELECT bl_code
+           FROM block
+           WHERE bl_factcode = @fact
+             AND bl_Zonecode IN (
+               SELECT Z_CODE FROM ZONE
+               WHERE z_factory = @fact
+                 AND z_div_code IN (
+                   SELECT Div_Code FROM Division
+                   WHERE factory = @fact
+                     AND Div_OfficerCode IN (
+                       SELECT CDO_CODE FROM cdo_mst
+                       WHERE CDO_Factcode = @fact
+                         AND CDO_MOBILENO IN (
+                           SELECT Mobile FROM MI_User
+                           WHERE Type = 1 AND Userid = @userId AND Mobile = @mobile
+                         )
+                     )
+                 )
+             )`;
+  } else if (grp === 'ZI') {
+    sql = `SELECT bl_code
+           FROM block
+           WHERE bl_factcode = @fact
+             AND bl_Zonecode IN (
+               SELECT Z_CODE FROM ZONE
+               WHERE z_factory = @fact
+                 AND Z_ZoneOfficerCode IN (
+                   SELECT CDO_CODE FROM cdo_mst
+                   WHERE CDO_Factcode = @fact
+                     AND CDO_MOBILENO IN (
+                       SELECT Mobile FROM MI_User
+                       WHERE Type = 1 AND Userid = @userId AND Mobile = @mobile
+                     )
+                 )
+             )`;
+  }
+
+  if (!sql) return [];
+  const rows = await executeQuery(sql, { fact: fCode, userId: String(userId), mobile }, season);
+  return (rows || []).map((r) => Number(r.bl_code)).filter((n) => Number.isFinite(n));
+}
+
+async function getTruckDispatchWeighedData(params, season) {
+  const fCode = String(params.F_Code || params.F_code || params.fcode || params.FACT || '').trim();
+  const dateRaw = params.Date || params.date || '';
+  const filterType = String(params.filterType || params.type || 'all').toLowerCase();
+  const userId = params.userId || params.userid || params.UserId || params.UserID || params.userID;
+
+  if (!fCode || !dateRaw) return [];
+
+  const tDate = toSqlDateOrEmpty(dateRaw);
+  if (!tDate) return [];
+
+  const cdoRow = await getCdoRow(fCode, userId, season);
+  const blockCodes = await getBlockCodesForUser(fCode, userId, cdoRow, season);
+  const blockIn = blockCodes.length ? blockCodes.join(',') : '';
+
+  const baseSelect = `
+    SELECT Ch_Centre AS C_Code, c_name, ch_challan AS ChalanNo,
+           Tr_Code, t.TR_NAME Transporter, Ch_truck_no AS TruckNo,
+           CONVERT(varchar, ISNULL(Ch_dep_date,'01/01/1900'), 103) + ' ' + CONVERT(varchar, ISNULL(Ch_dep_date,'01/01/1900'), 8) AS DepartureTime,
+           CONVERT(varchar, (CASE WHEN ISNULL(tt_TokDatetime,'01/01/1900')='01/01/1900' THEN ISNULL(TT_CRDATE,'01/01/1900') ELSE ISNULL(tt_TokDatetime,'01/01/1900') END), 103)
+             + ' ' + CONVERT(varchar, (CASE WHEN ISNULL(tt_TokDatetime,'01/01/1900')='01/01/1900' THEN ISNULL(TT_CRDATE,'01/01/1900') ELSE ISNULL(tt_TokDatetime,'01/01/1900') END), 8) AS ArrivalTime,
+           CONVERT(varchar, ISNULL(tt_TARE_DT,'01/01/1900'), 103) + ' ' + CONVERT(varchar, ISNULL(tt_TARE_DT,'01/01/1900'), 8) AS WeighmentTime,
+           CONVERT(varchar(5), DATEADD(minute, DATEDIFF(minute,
+             CONVERT(varchar, ISNULL(Ch_dep_date,'01/01/1900'), 8),
+             CONVERT(varchar, (CASE WHEN ISNULL(tt_TokDatetime,'01/01/1900')='01/01/1900' THEN ISNULL(TT_CRDATE,Ch_dep_date) ELSE ISNULL(tt_TokDatetime,'01/01/1900') END), 8)
+           ), 0), 114) AS TravelTime,
+           CONVERT(varchar(5), DATEADD(minute, DATEDIFF(minute,
+             CONVERT(varchar, (CASE WHEN ISNULL(tt_TokDatetime,'01/01/1900')='01/01/1900' THEN ISNULL(TT_CRDATE,'01/01/1900') ELSE ISNULL(tt_TokDatetime,'01/01/1900') END), 8),
+             CONVERT(varchar, (CASE WHEN ISNULL(tt_TARE_DT,'1900-01-01 00:00:00')='1900-01-01 00:00:00' THEN ISNULL(TT_CRDATE,ISNULL(tt_TokDatetime,'01/01/1900')) ELSE ISNULL(tt_TARE_DT,'1900-01-01 00:00:00') END), 8)
+           ), 0), 114) AS WailtTime
+    FROM challan_final cf
+    LEFT JOIN Receipt r ON r.tt_factory = cf.ch_Factory AND r.tt_center = cf.Ch_Centre AND r.tt_chalanNo = cf.ch_challan
+    JOIN centre c ON c.c_factory = cf.ch_Factory AND c.C_Code = cf.Ch_Centre
+    JOIN Transporter t ON t.TR_FACTORY = cf.ch_Factory AND t.TR_CODE = cf.ch_trans
+    LEFT JOIN T_TOKEN TK ON TK.TT_FACTORY = CH_FACTORY AND TK.TT_CHLN = CH_CHALLAN
+    WHERE Ch_Cancel = 0`;
+
+  let conditions = ` AND CAST(Ch_dep_date AS date) = @tDate AND ch_Factory = @fact`;
+  let wrapperFilter = '';
+
+  if (filterType === 'yesterday-transit') {
+    conditions = ` AND CAST(Ch_dep_date AS date) < @tDate AND ch_Factory = @fact`;
+    wrapperFilter = `WHERE ArrivalTime = '01/01/1900 00:00:00'`;
+  } else if (filterType === 'transit') {
+    wrapperFilter = `WHERE ArrivalTime = '01/01/1900 00:00:00'`;
+  } else if (filterType === 'at-yard') {
+    conditions += ` AND ch_challan IN (SELECT TT_CHLN FROM T_Token WHERE TT_FACTORY = @fact AND CAST(TT_DATE AS date) <= @tDate)`;
+  } else if (filterType === 'at-donga') {
+    conditions += ` AND ISNULL(r.tt_tareWeight, 0) = 0`;
+  } else if (filterType === 'weighed') {
+    conditions += ` AND ISNULL(r.tt_tareWeight, 0) > 0`;
+  } else if (filterType === 'all') {
+    // keep default
+  }
+
+  if (blockIn) {
+    conditions += ` AND C_block IN (${blockIn})`;
+  }
+
+  const sql = `SELECT ROW_NUMBER() OVER (ORDER BY C_Code) AS SN, * FROM (
+      ${baseSelect} ${conditions}
+    ) AS Temp ${wrapperFilter} ORDER BY C_Code`;
+
+  return executeQuery(sql, { fact: fCode, tDate }, season);
+}
+
 // Get crushing report data for factory on given date
 async function getCrushingReportData(params, season) {
   const { factCode, date } = params;
@@ -180,6 +333,13 @@ async function getCrushingReportData(params, season) {
       throw new Error('Invalid date format');
     }
 
+    const cacheKey = getCrushingCacheKey(season, factCode, dbDate);
+    const cached = crushingReportCache.get(cacheKey);
+    if (cached && (Date.now() - cached.ts) < CRUSHING_CACHE_TTL_MS) {
+      return cached.data;
+    }
+
+    const startTime = Date.now();
     const response = {
       dtpDate: date,
       FACTCODE: factCode,
@@ -290,7 +450,7 @@ async function getCrushingReportData(params, season) {
     for (const group of [1, 2, 3, 4]) {
       const key = groupKey[group];
       const groupInfo = modeGroups.get(group) || { codes: [], qty: 0 };
-      const codes = groupInfo.codes.map((c) => `'${c}'`).join(',') || "'-1'";
+      const codes = groupInfo.codes.map((c) => `'${c}'`).join(',') || "'0'";
       const qty = Number(groupInfo.qty || 0);
 
       const odcRow = await scalar(
@@ -718,6 +878,12 @@ async function getCrushingReportData(params, season) {
     const nhour = crushRate > 0 ? (Number(response.lblGtCenOYWt || 0) + Number(response.lblGtCenAtDWt || 0)) / crushRate : 0;
     response.lblNHour = Math.round(nhour).toString();
 
+    crushingReportCache.set(cacheKey, { ts: Date.now(), data: response });
+    console.log('[CrushingReport] timings(ms)', {
+      total: Date.now() - startTime,
+      factCode,
+      dbDate
+    });
     return response;
   } catch (error) {
     console.error('[getCrushingReportData Error]', error.message);
@@ -963,6 +1129,7 @@ module.exports = {
   getDiseaseList,
   getSummaryReportUnitWise,
   getLatestCrushingDate,
+  getTruckDispatchWeighedData,
   getCrushingReportData,
   getAnalysisData
 };

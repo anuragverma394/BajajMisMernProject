@@ -1,5 +1,6 @@
 const { executeProcedure, executeQuery } = require('../../core/db/query-executor');
 const reportService = require('../../services/report.service');
+const readRepository = require('./report.read.repository');
 
 const CONTROLLER = 'Report';
 
@@ -87,6 +88,30 @@ function addDaysToYyyymmdd(yyyymmdd, days) {
   return `${yyyy}${mm}${dd}`;
 }
 
+function parseDmyToDate(raw) {
+  const parsed = normalizeDmyInput(raw);
+  if (!parsed) return null;
+  const [dd, mm, yyyy] = parsed.dmy.split('/');
+  const dt = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+  return Number.isNaN(dt.getTime()) ? null : dt;
+}
+
+function formatYyyymmdd(dateObj) {
+  if (!dateObj || Number.isNaN(dateObj.getTime())) return '';
+  const yyyy = dateObj.getFullYear();
+  const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const dd = String(dateObj.getDate()).padStart(2, '0');
+  return `${yyyy}${mm}${dd}`;
+}
+
+function formatDmy(dateObj) {
+  if (!dateObj || Number.isNaN(dateObj.getTime())) return '';
+  const dd = String(dateObj.getDate()).padStart(2, '0');
+  const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const yyyy = dateObj.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
 // ── Stored-procedure whitelist (security) ─────────────────────────────────────
 // Only procedures listed here may be executed via createProcedureHandler.
 // Add new procedures here before wiring up a new export.
@@ -117,7 +142,17 @@ return async (req, res, next) => {
 try {
 const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
 const params = { ...(req.query || {}), ...(req.body || {}) };
-const result = await executeProcedure(action, params, season);
+let result;
+try {
+  result = await executeProcedureWithSchema(action, params, season);
+} catch (error) {
+  const msg = String(error?.message || '').toLowerCase();
+  if (action === 'Imagesblub' && msg.includes('could not find stored procedure')) {
+    result = { rows: [], recordsets: [], rowsAffected: [] };
+  } else {
+    throw error;
+  }
+}
 return res.status(200).json({
 success: true,
 message: `${controller}.${action} executed`,
@@ -129,6 +164,39 @@ if (typeof next === 'function') return next(error);
 throw error;
 }
 };
+}
+
+function normalizeDateToDb(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(raw)) {
+    const [dd, mm, yyyy] = raw.split('/');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  if (/^\d{2}-\d{2}-\d{4}$/.test(raw)) {
+    const [dd, mm, yyyy] = raw.split('-');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  const dt = new Date(raw);
+  if (Number.isNaN(dt.getTime())) return '';
+  const dd = String(dt.getDate()).padStart(2, '0');
+  const mm = String(dt.getMonth() + 1).padStart(2, '0');
+  const yyyy = dt.getFullYear();
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+async function executeProcedureWithSchema(procName, params, season) {
+  const schema = String(process.env.DB_SCHEMA || '').trim();
+  const qualified = schema ? `${schema}.${procName}` : procName;
+  try {
+    return await executeProcedure(qualified, params, season);
+  } catch (error) {
+    if (schema && String(error?.message || '').includes('Could not find stored procedure')) {
+      return await executeProcedure(procName, params, season);
+    }
+    throw error;
+  }
 }
 
 // ------------------------------------------------------------
@@ -1554,13 +1622,59 @@ exports.DriageClerkCentreDetail = async (req, res, next) => {
       WHERE SUPVCODE is not null
       ORDER BY PUR.FM_DATE, PUR.TM_DATE asc`;
 
+    const openingSql = `
+      SELECT TOP 1 MAX(CH_CHALLAN) AS CH_CHALLAN, ISNULL(CH_BALANCE,0) AS CH_BALANCE
+      FROM CHALLAN_FINAL
+      WHERE Ch_Cancel = 0
+        AND CH_FACTORY = @fact
+        AND CONVERT(NVARCHAR, CH_DEP_DATE,112) <= @dt
+        AND ch_op_code = @clerk
+      GROUP BY CH_BALANCE
+      ORDER BY MAX(CH_CHALLAN) DESC`;
+
+    const closingSql = `
+      SELECT TOP 1 MAX(CH_CHALLAN) AS CH_CHALLAN, ISNULL(CH_BALANCE,0) AS CH_BALANCE
+      FROM CHALLAN_FINAL
+      WHERE Ch_Cancel = 0
+        AND CH_FACTORY = @fact
+        AND CONVERT(NVARCHAR, CH_DEP_DATE,112) = @dt
+        AND ch_op_code = @clerk
+      GROUP BY CH_BALANCE
+      ORDER BY MAX(CH_CHALLAN) DESC`;
+
     const results = [];
     const fmt = (v) => truncateDecimal(v, 2).toFixed(2);
 
     for (const row of clerkRows) {
       const clerkCode = String(row.u_code || row.U_code || row.U_CODE || '').trim();
       const clerkName = String(row.u_Name || row.U_Name || row.U_NAME || '').trim();
+      const mFrom = String(row.MFrom || row.mfrom || '').trim();
+      const mTill = String(row.Till || row.till || '').trim();
       if (!clerkCode) continue;
+
+      const opRows = await executeQuery(openingSql, { fact: fcode, clerk: clerkCode, dt: addDaysToYyyymmdd(dt, -1) }, season).catch(() => []);
+      const clRows = await executeQuery(closingSql, { fact: fcode, clerk: clerkCode, dt }, season).catch(() => []);
+      const opBal = Number(opRows?.[0]?.CH_BALANCE || 0);
+      const clBal = Number(clRows?.[0]?.CH_BALANCE || 0);
+
+      const pqty = truncateDecimal(Number(row.PQTY || 0), 2);
+      const rqty = truncateDecimal(Number(row.RQTY || 0), 2);
+      const totRqty = truncateDecimal(rqty + clBal - opBal, 2);
+      const dqty = truncateDecimal(totRqty - pqty, 2);
+      const perc = (dqty !== 0 && pqty > 0) ? truncateDecimal((dqty / pqty) * 100, 2) : 0;
+
+      results.push({
+        clerkCode,
+        clerkName,
+        centreCode: '',
+        centreName: '',
+        weighed: fmt(pqty),
+        crushed: fmt(rqty),
+        driage: fmt(dqty),
+        percent: fmt(perc),
+        MFrom: mFrom,
+        Till: mTill
+      });
 
       const centres = await executeQuery(
         centreSql,
@@ -1569,20 +1683,20 @@ exports.DriageClerkCentreDetail = async (req, res, next) => {
       ).catch(() => []);
 
       (centres || []).forEach((c) => {
-        const pqty = Number(c.PQTY || 0);
-        const rqty = Number(c.RQTY || 0);
-        const dqty = truncateDecimal(rqty - pqty, 2);
-        const perc = (dqty !== 0 && pqty > 0) ? truncateDecimal((dqty / pqty) * 100, 2) : 0;
+        const cpqty = truncateDecimal(Number(c.PQTY || 0), 2);
+        const crqty = truncateDecimal(Number(c.RQTY || 0), 2);
+        const cdqty = truncateDecimal(crqty - cpqty, 2);
+        const cperc = (cdqty !== 0 && cpqty > 0) ? truncateDecimal((cdqty / cpqty) * 100, 2) : 0;
 
         results.push({
           clerkCode,
           clerkName,
           centreCode: String(c.C_CODE || '').trim(),
           centreName: String(c.C_NAME || '').trim(),
-          weighed: fmt(pqty),
-          crushed: fmt(rqty),
-          driage: fmt(dqty),
-          percent: fmt(perc)
+          weighed: fmt(cpqty),
+          crushed: fmt(crqty),
+          driage: fmt(cdqty),
+          percent: fmt(cperc)
         });
       });
     }
@@ -1846,8 +1960,243 @@ exports.HourlyCaneArrival = async (req, res, next) => {
   }
 };
 
-exports.LoansummaryRpt = createProcedureHandler(CONTROLLER, 'LoansummaryRpt', '');
-exports.LoansummaryRpt_2 = createProcedureHandler(CONTROLLER, 'LoansummaryRpt', 'LoanSummaryModel model');
+exports.LoansummaryRpt = async (req, res, next) => {
+  try {
+    const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
+    const params = { ...(req.query || {}), ...(req.body || {}) };
+    const fCodeRaw = String(params.F_code || params.F_Code || params.FACT || params.factory || '0').trim();
+    const reportType = String(params.ReportType || params.reportType || '1').trim();
+    const fromRaw = String(params.FromDate || params.fromDate || '').trim();
+    const toRaw = String(params.ToDate || params.toDate || '').trim();
+
+    const fromDmy = normalizeDmyInput(fromRaw)?.dmy || '';
+    const toDmy = normalizeDmyInput(toRaw)?.dmy || '';
+    const fcode = Number(fCodeRaw || 0);
+
+    const list1 = [];
+    const list2 = [];
+    const list3 = [];
+
+    if (reportType === '1') {
+      const factWiseSql = `
+        SELECT  
+          f.f_code,
+          f.f_Name,
+          SUM(CASE WHEN lt.lt_StdLoanHeadCode IN (103, 105,109) THEN l.Lo_Amount ELSE 0 END) AS NeedySugarLoan,
+          SUM(CASE WHEN lt.lt_StdLoanHeadCode IN (103, 105,109) THEN l.Lo_RecAmount ELSE 0 END) AS NeedySugarDeduct,
+          SUM(CASE WHEN lt.lt_StdLoanHeadCode = 104 AND l.lo_factory = 58 THEN (l.Lo_Amount - l.Lo_RecAmount) ELSE 0 END) AS NonDeductible,
+          SUM(CASE 
+                  WHEN l.lo_factory = 58 AND lt.lt_StdLoanHeadCode NOT IN (103, 105,104,109) THEN l.Lo_Amount
+                  WHEN l.lo_factory != 58 AND lt.lt_StdLoanHeadCode NOT IN (103, 105,109) THEN l.Lo_Amount
+                  ELSE 0 
+              END) AS AgriInputsOther,
+          SUM(CASE 
+                  WHEN l.lo_factory = 58 AND lt.lt_StdLoanHeadCode NOT IN (103, 105,104,109) THEN l.Lo_RecAmount
+                  WHEN l.lo_factory != 58 AND lt.lt_StdLoanHeadCode NOT IN (103, 105,109) THEN l.Lo_RecAmount
+                  ELSE 0 
+              END) AS AgriInputsOtherDeduct
+        FROM loan l
+        LEFT JOIN LoanType lt 
+          ON l.Lo_Type = lt.LT_LoanTCode AND l.lo_factory = lt.Lt_factory
+        LEFT JOIN Factory f 
+          ON f.f_code = l.lo_factory
+        WHERE (lt.LT_LoanTypeGroup = 0 OR (lt.lt_StdLoanHeadCode = 104 AND l.lo_factory = 58))
+          AND (@fcode = 0 OR l.lo_factory = @fcode)
+          AND (@fromDate = '' OR @toDate = '' OR convert(date,l.Lo_LoanDate) BETWEEN convert(date,@fromDate,103) AND convert(date,@toDate,103))
+        GROUP BY f.f_Name, f.f_code
+        ORDER BY f.f_code`;
+
+      const factRows = await executeQuery(
+        factWiseSql,
+        { fcode, fromDate: fromDmy, toDate: toDmy },
+        season
+      ).catch(() => []);
+
+      const factoryBalances = new Map();
+      factRows.forEach((dr) => {
+        const fcodeRow = Number(dr.f_code || dr.F_Code || dr.fcode || 0) || 0;
+        const needyTotal = Number(dr.NeedySugarLoan ?? 0);
+        const needyDeduct = Number(dr.NeedySugarDeduct ?? 0);
+        const agriTotal = Number(dr.AgriInputsOther ?? 0);
+        const agriDeduct = Number(dr.AgriInputsOtherDeduct ?? 0);
+        const nonDeductible = Number(dr.NonDeductible ?? 0);
+        factoryBalances.set(fcodeRow, {
+          fcode: fcodeRow,
+          name: String(dr.f_Name || dr.F_Name || ''),
+          needyBalance: needyTotal - needyDeduct,
+          agriBalance: agriTotal - agriDeduct,
+          nonDeductible
+        });
+        list1.push({
+          Fname: String(dr.f_Name || dr.F_Name || ''),
+          NeedySugarLoan: String(dr.NeedySugarLoan ?? '0'),
+          NeedySugarDeduct: String(dr.NeedySugarDeduct ?? '0'),
+          NonDeductible: String(dr.NonDeductible ?? '0'),
+          AgriInputsOther: String(dr.AgriInputsOther ?? '0'),
+          AgriInputsOtherDeduct: String(dr.AgriInputsOtherDeduct ?? '0')
+        });
+      });
+
+      const factSocSql = `
+        SELECT  
+          f.f_code,
+          f.f_Name,
+          SUM(CASE 
+                  WHEN lt.lt_StdLoanHeadCode IN (103, 105, 109) AND lt.LT_LoanTypeGroup = 0 
+                  THEN (l.Lo_Amount - l.Lo_RecAmount) 
+                  ELSE 0 
+              END) AS NeedySugarLoan,
+          SUM(CASE WHEN lt.lt_StdLoanHeadCode = 104 AND f.f_code = 58 THEN (l.Lo_Amount - l.Lo_RecAmount) ELSE 0 END) AS NonDeductible,
+          SUM(CASE 
+                WHEN f.f_code = 58 AND lt.lt_StdLoanHeadCode NOT IN (103, 105, 109,104)  AND lt.LT_LoanTypeGroup = 0 
+                     THEN (l.Lo_Amount - l.Lo_RecAmount)
+                WHEN f.f_code != 58 AND lt.lt_StdLoanHeadCode NOT IN (103, 105, 109) 
+                     AND lt.LT_LoanTypeGroup = 0 
+                     THEN (l.Lo_Amount - l.Lo_RecAmount)
+                ELSE 0 
+            END) AS AgriInputsOther,
+          SUM(CASE 
+                  WHEN lt.LT_LoanTypeGroup = 1 
+                    OR (lt.lt_StdLoanHeadCode = 104 AND f.f_code = 58) 
+                  THEN ((l.Lo_Amount + l.lo_intAmt + l.lo_DegreeAmt) 
+                       - (l.Lo_RecAmount + l.lo_intRec + l.lo_degreeRecAmt)) 
+                  ELSE 0 
+              END) AS SocietyTotal
+        FROM loan l
+        LEFT JOIN LoanType lt 
+          ON l.Lo_Type = lt.LT_LoanTCode AND l.lo_factory = lt.Lt_factory
+        LEFT JOIN Factory f 
+          ON f.f_code = l.lo_factory
+        WHERE 1 = 1
+          AND (@fcode = 0 OR l.lo_factory = @fcode)
+          AND (@fromDate = '' OR @toDate = '' OR convert(date,l.Lo_LoanDate) BETWEEN convert(date,@fromDate,103) AND convert(date,@toDate,103))
+        GROUP BY f.f_Name, f.f_code
+        ORDER BY f.f_code`;
+
+      const factSocRows = await executeQuery(
+        factSocSql,
+        { fcode, fromDate: fromDmy, toDate: toDmy },
+        season
+      ).catch(() => []);
+
+      if (factSocRows && factSocRows.length) {
+        factSocRows.forEach((dr) => {
+          list2.push({
+            Fname: String(dr.f_Name || dr.F_Name || ''),
+            NeedySugarLoan: String(dr.NeedySugarLoan ?? '0'),
+            AgriInputsOther: String(dr.AgriInputsOther ?? '0'),
+            NonDeductible: String(dr.NonDeductible ?? '0'),
+            SocietyTotal: String(dr.SocietyTotal ?? '0')
+          });
+        });
+      } else if (factoryBalances.size) {
+        // Fallback: derive factory balances from list1 aggregation and fetch society totals separately.
+        const societySql = `
+          SELECT  
+            f.f_code,
+            f.f_Name,
+            SUM(CASE 
+                  WHEN lt.LT_LoanTypeGroup = 1 
+                    OR (lt.lt_StdLoanHeadCode = 104 AND f.f_code = 58) 
+                  THEN ((l.Lo_Amount + l.lo_intAmt + l.lo_DegreeAmt) 
+                       - (l.Lo_RecAmount + l.lo_intRec + l.lo_degreeRecAmt)) 
+                  ELSE 0 
+                END) AS SocietyTotal
+          FROM loan l
+          LEFT JOIN LoanType lt 
+            ON l.Lo_Type = lt.LT_LoanTCode AND l.lo_factory = lt.Lt_factory
+          LEFT JOIN Factory f 
+            ON f.f_code = l.lo_factory
+          WHERE 1 = 1
+            AND (@fcode = 0 OR l.lo_factory = @fcode)
+            AND (@fromDate = '' OR @toDate = '' OR convert(date,l.Lo_LoanDate) BETWEEN convert(date,@fromDate,103) AND convert(date,@toDate,103))
+          GROUP BY f.f_Name, f.f_code
+          ORDER BY f.f_code`;
+
+        const societyRows = await executeQuery(
+          societySql,
+          { fcode, fromDate: fromDmy, toDate: toDmy },
+          season
+        ).catch(() => []);
+
+        const societyByCode = new Map();
+        societyRows.forEach((dr) => {
+          const code = Number(dr.f_code || dr.F_Code || dr.fcode || 0) || 0;
+          societyByCode.set(code, {
+            name: String(dr.f_Name || dr.F_Name || ''),
+            total: Number(dr.SocietyTotal ?? 0)
+          });
+        });
+
+        factoryBalances.forEach((row) => {
+          const society = societyByCode.get(row.fcode);
+          list2.push({
+            Fname: String(row.name || society?.name || ''),
+            NeedySugarLoan: String(row.needyBalance ?? 0),
+            AgriInputsOther: String(row.agriBalance ?? 0),
+            NonDeductible: String(row.nonDeductible ?? 0),
+            SocietyTotal: String(society?.total ?? 0)
+          });
+        });
+      }
+    } else {
+      const typeSql = `
+        SELECT  
+          f.f_Name,
+          CASE 
+            WHEN lt.lt_StdLoanHeadCode = 101 THEN 'CaneSeed'
+            WHEN lt.lt_StdLoanHeadCode = 102 THEN 'AgriInputs'
+            ELSE 'Other'
+          END AS LoanCategory,
+          SUM(l.Lo_Amount) AS TotalLoanAmount,
+          SUM(l.Lo_RecAmount) AS TotalDeductedAmount
+        FROM loan l
+        LEFT JOIN LoanType lt 
+          ON l.Lo_Type = lt.LT_LoanTCode AND l.lo_factory = lt.Lt_factory
+        LEFT JOIN Factory f 
+          ON f.f_code = l.lo_factory
+        WHERE lt.LT_LoanTypeGroup = 0
+          AND NOT (lt.lt_StdLoanHeadCode = 104 AND f.f_code = 58)
+          AND (@fcode = 0 OR f.f_code = @fcode)
+          AND (@fromDate = '' OR @toDate = '' OR convert(date,l.Lo_LoanDate) BETWEEN convert(date,@fromDate,103) AND convert(date,@toDate,103))
+        GROUP BY f.f_Name, f.f_code,
+          CASE 
+            WHEN lt.lt_StdLoanHeadCode = 101 THEN 'CaneSeed'
+            WHEN lt.lt_StdLoanHeadCode = 102 THEN 'AgriInputs'
+            ELSE 'Other'
+          END
+        ORDER BY f.f_code, LoanCategory`;
+
+      const typeRows = await executeQuery(
+        typeSql,
+        { fcode, fromDate: fromDmy, toDate: toDmy },
+        season
+      ).catch(() => []);
+
+      typeRows.forEach((dr) => {
+        list3.push({
+          Fname: String(dr.f_Name || dr.F_Name || ''),
+          LoanCategory: String(dr.LoanCategory || ''),
+          AgriInputsOther: String(dr.TotalLoanAmount ?? '0'),
+          NeedySugarLoan: String(dr.TotalDeductedAmount ?? '0')
+        });
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      status: 'success',
+      list1,
+      list2,
+      list3
+    });
+  } catch (error) {
+    if (typeof next === 'function') return next(error);
+    throw error;
+  }
+};
+
+exports.LoansummaryRpt_2 = exports.LoansummaryRpt;
 exports.SurveyPLot = createProcedureHandler(CONTROLLER, 'SurveyPLot', '');
 exports.SurveyPLot_2 = createProcedureHandler(CONTROLLER, 'SurveyPLot', 'Surveyplot model, string Command');
 exports.SurveyPLotDetails = createProcedureHandler(CONTROLLER, 'SurveyPLotDetails', '');
@@ -1871,11 +2220,176 @@ exports.TargetActualMISPeriodReport = createProcedureHandler(CONTROLLER, 'Target
 exports.txtdate_TextChanged = createProcedureHandler(CONTROLLER, 'txtdate_TextChanged', '');
 exports.next = createProcedureHandler(CONTROLLER, 'next', '');
 exports.prev = createProcedureHandler(CONTROLLER, 'prev', '');
-exports.IndentFailSummary = createProcedureHandler(CONTROLLER, 'IndentFailSummary', '');
-exports.IndentFailSummaryData = createProcedureHandler(CONTROLLER, 'IndentFailSummaryData', '');
+exports.IndentFailSummary = async (req, res, next) => {
+  try {
+    const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
+    const fCode = String(req.query?.F_Code || req.query?.F_code || req.query?.fcode || req.query?.FACT || req.body?.F_Code || req.body?.F_code || req.body?.fcode || req.body?.FACT || '').trim();
+    const dateRaw = req.query?.Date || req.query?.date || req.body?.Date || req.body?.date || '';
+    const baseDate = parseDmyToDate(dateRaw);
+
+    if (!fCode || !baseDate) {
+      return res.status(200).json({ success: true, data: [], recordsets: [[]] });
+    }
+
+    const startDate = new Date(baseDate);
+    startDate.setDate(startDate.getDate() - 5);
+    const endDate = new Date(baseDate);
+    endDate.setDate(endDate.getDate() + 5);
+
+    const dt = formatYyyymmdd(startDate);
+    const edt = formatYyyymmdd(endDate);
+
+    const summaryQuery = "WITH CT AS(SELECT IS_FACTORY,IS_DS_DT, ISNULL(SUM(CASE WHEN IS_CATEG in(10,11,12,13) THEN MD_QTY ELSE 0 END),0)ERINDQTY,ISNULL(SUM(CASE WHEN IS_CATEG in (10, 11, 12, 13) and IS_STATUS in (1, 5) THEN MD_QTY ELSE 0 END), 0)EINDWT,ISNULL(SUM(CASE WHEN IS_CATEG not in (10, 11, 12, 13) THEN MD_QTY ELSE 0 END), 0)OTINDQTY  ,ISNULL(SUM(CASE WHEN IS_CATEG not in (10, 11, 12, 13) and IS_STATUS in (1, 5) THEN MD_QTY ELSE 0 END), 0)OTINDWT FROM ISSUED LEFT JOIN MODE ON IS_MODE = MD_CODE AND MD_FACTORY = IS_FACTORY WHERE IS_FACTORY = '" + fCode + "' AND CONVERT(NVARCHAR, IS_DS_DT,112) BETWEEN '" + dt + "' AND '" + edt + "' GROUP BY IS_FACTORY,IS_DS_DT)," +
+      "CTE AS(SELECT M_FACTORY,M_IND_DT, ISNULL(SUM(CASE WHEN M_CATEG not in(10,11,12,13) THEN(M_GROSS - M_TARE - M_JOONA) ELSE 0 END),0)OTACTWT,ISNULL(SUM(CASE WHEN M_CATEG in(10,11,12,13) THEN(M_GROSS - M_TARE - M_JOONA) ELSE 0 END),0)EACTWT      FROM PURCHASE LEFT JOIN MODE ON M_MODE = MD_CODE AND MD_FACTORY = M_FACTORY WHERE M_FACTORY = '" + fCode + "' AND CONVERT(NVARCHAR, M_IND_DT,112) BETWEEN '" + dt + "' AND '" + edt + "' GROUP BY M_FACTORY,M_IND_DT )" +
+      " SELECT IS_FACTORY,CONVERT(NVARCHAR,IS_DS_DT,103)IS_IS_DT ,isnull(ERINDQTY,0)ERINDQTY,isnull(EINDWT,0)EINDWT," +
+      " isnull(EACTWT, 0)EACTWT,'0' AS EPURCHYPERC, '0' AS EWTPERC, isnull(OTINDQTY, 0)OTINDQTY,isnull(OTINDWT, 0)OTINDWT,isnull(OTACTWT, 0)OTACTWT," +
+      " '0' AS OTPURCHYPERC,'0' AS OTWTPERC, (isnull(ERINDQTY, 0) + isnull(OTINDQTY, 0))TOTINDQTY, (isnull(EINDWT, 0) + isnull(OTINDWT, 0))TOTINDWT," +
+      " (isnull(EACTWT, 0) + isnull(OTACTWT, 0))TOTACTWT, '0' AS TOTPURCHYPERC,'0' AS TOTWTPERC, " +
+      "   ((isnull(ERINDQTY, 0) + isnull(OTINDQTY, 0)) - (isnull(EINDWT, 0) + isnull(OTINDWT, 0)))BALTOTINDQTY,'0' AS PIPBALIND,'0' AS TOTBALIND " +
+      " FROM CT left join CTE on CT.IS_DS_DT = CTE.M_IND_DT AND CT.IS_FACTORY = CTE.M_FACTORY  ORDER BY CT.IS_DS_DT";
+
+    const summaryRows = await executeQuery(summaryQuery, season);
+    if (!summaryRows || summaryRows.length === 0) {
+      return res.status(200).json({ success: true, data: [], recordsets: [[]] });
+    }
+
+    const output = [];
+    for (const row of summaryRows) {
+      const rowDate = row.IS_IS_DT ? String(row.IS_IS_DT).trim() : '';
+      let prev = 0;
+      if (rowDate) {
+        const dtRow = parseDmyToDate(rowDate);
+        if (dtRow) {
+          const dtVal = formatYyyymmdd(dtRow);
+          const backQuery = "WITH CT AS(SELECT IS_FACTORY,IS_DS_DT,ISNULL(SUM(CASE WHEN LEFT(IS_CATEG, 1) = 1 THEN MD_QTY ELSE 0 END),0)TDERINDQTY,ISNULL(SUM(CASE WHEN LEFT(IS_CATEG, 1) != 1 THEN MD_QTY ELSE 0 END),0)TDOTINDQTY FROM ISSUED LEFT JOIN MODE ON IS_MODE = MD_CODE AND MD_FACTORY = IS_FACTORY WHERE IS_FACTORY = '" + fCode + "' AND CONVERT(NVARCHAR, IS_DS_DT,112) BETWEEN dateadd(d,-2,'" + dtVal + "') AND dateadd(d,-1,'" + dtVal + "')   GROUP BY IS_FACTORY,IS_DS_DT)," +
+            "CTE AS(SELECT M_FACTORY,M_IND_DT,ISNULL(SUM(CASE WHEN LEFT(M_CATEG, 1) = 1 THEN MD_QTY ELSE 0 END),0)TDEINDWT,ISNULL(SUM(CASE WHEN LEFT(M_CATEG, 1) != 1 THEN MD_QTY ELSE 0 END),0)TDOTINDWT FROM PURCHASE LEFT JOIN MODE ON M_MODE = MD_CODE AND MD_FACTORY = M_FACTORY WHERE M_FACTORY = '" + fCode + "' AND CONVERT(NVARCHAR, M_IND_DT,112) BETWEEN dateadd(d,-2,'" + dtVal + "') AND dateadd(d,-1,'" + dtVal + "') GROUP BY M_FACTORY,M_IND_DT)" +
+            " SELECT CONVERT(NVARCHAR,CT.IS_DS_DT,103)IS_DS_DT,isnull((TDERINDQTY+TDOTINDQTY),0)TDQTY,isnull((TDEINDWT+TDOTINDWT),0)TDWT," +
+            " isnull(((TDERINDQTY + TDOTINDQTY) - (TDEINDWT + TDOTINDWT)), 0)BAL FROM CT left join CTE on CT.IS_DS_DT = CTE.M_IND_DT AND CT.IS_FACTORY = CTE.M_FACTORY  ORDER BY CT.IS_DS_DT";
+          const backRows = await executeQuery(backQuery, season);
+          if (backRows && backRows.length > 0) {
+            for (const bRow of backRows) {
+              prev += Number(bRow.BAL || 0);
+            }
+            prev = truncateDecimal(prev, 2);
+          }
+        }
+      }
+
+      const totalBal = Number(row.BALTOTINDQTY || 0) + Number(prev || 0);
+      output.push({
+        ERINDQTY: row.ERINDQTY,
+        IS_FACTORY: row.IS_FACTORY,
+        IS_IS_DT: row.IS_IS_DT,
+        EINDWT: row.EINDWT,
+        EACTWT: row.EACTWT,
+        OTINDQTY: row.OTINDQTY,
+        OTACTWT: row.OTACTWT,
+        OTINDWT: row.OTINDWT,
+        TOTINDQTY: row.TOTINDQTY,
+        TOTINDWT: row.TOTINDWT,
+        TOTACTWT: row.TOTACTWT,
+        BALTOTINDQTY: row.BALTOTINDQTY,
+        TOTBALIND: totalBal,
+        PIPBALIND: prev
+      });
+    }
+
+    return res.status(200).json({ success: true, data: output, recordsets: [output] });
+  } catch (error) {
+    if (typeof next === 'function') return next(error);
+    throw error;
+  }
+};
+
+exports.IndentFailSummaryData = async (req, res, next) => {
+  try {
+    const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
+    const fCode = String(req.query?.F_Code || req.query?.F_code || req.query?.fcode || req.query?.FACT || req.body?.F_Code || req.body?.F_code || req.body?.fcode || req.body?.FACT || '').trim();
+    const dateRaw = req.query?.Date || req.query?.date || req.body?.Date || req.body?.date || '';
+    const baseDate = parseDmyToDate(dateRaw);
+
+    if (!fCode || !baseDate) {
+      return res.status(200).json({ success: true, data: [], recordsets: [[]] });
+    }
+
+    const dt = formatYyyymmdd(baseDate);
+    const detailQuery = "WITH CT AS(SELECT IS_FACTORY,IS_CNT_CD,C_NAME, ISNULL(SUM(CASE WHEN IS_CATEG in(10,11,12,13) THEN MD_QTY ELSE 0 END),0)ERINDQTY,ISNULL(SUM(CASE WHEN IS_CATEG in (10, 11, 12, 13) and IS_STATUS in (1, 5) THEN MD_QTY ELSE 0 END), 0)EINDWT,ISNULL(SUM(CASE WHEN IS_CATEG not in (10, 11, 12, 13) THEN MD_QTY ELSE 0 END), 0)OTINDQTY  ,ISNULL(SUM(CASE WHEN IS_CATEG not in (10, 11, 12, 13) and IS_STATUS in (1, 5) THEN MD_QTY ELSE 0 END), 0)OTINDWT FROM ISSUED LEFT JOIN MODE ON IS_MODE = MD_CODE AND MD_FACTORY = IS_FACTORY JOIN CENTRE ON IS_CNT_CD=C_CODE AND C_FACTORY=IS_FACTORY WHERE IS_FACTORY = '" + fCode + "' AND CONVERT(NVARCHAR, IS_DS_DT,112) = '" + dt + "'  GROUP BY IS_FACTORY,IS_CNT_CD,C_NAME)," +
+      "CTE AS(SELECT M_FACTORY,IS_CNT_CD,C_NAME,ISNULL(SUM(CASE WHEN M_CATEG not in(10,11,12,13) THEN(M_GROSS - M_TARE - M_JOONA) ELSE 0 END),0)OTACTWT,ISNULL(SUM(CASE WHEN M_CATEG in(10,11,12,13) THEN(M_GROSS - M_TARE - M_JOONA) ELSE 0 END),0)EACTWT FROM PURCHASE p LEFT JOIN MODE ON M_MODE = MD_CODE AND MD_FACTORY = M_FACTORY join ISSUED i on i.IS_FACTORY = p.m_factory and i.IS_SPRNO = p.M_IND_NO JOIN CENTRE ON i.IS_CNT_CD = C_CODE AND i.IS_FACTORY = C_FACTORY   WHERE M_FACTORY = '" + fCode + "' AND CONVERT(NVARCHAR, M_IND_DT,112) = '" + dt + "'  GROUP BY M_FACTORY,IS_CNT_CD,C_NAME)" +
+      " SELECT CT.IS_FACTORY,CT.IS_CNT_CD,CT.C_NAME ,isnull(ERINDQTY,0)ERINDQTY,isnull(EINDWT,0)EINDWT,isnull(EACTWT,0)EACTWT,'0' AS EPURCHYPERC,'0' AS EWTPERC ,isnull(OTINDQTY, 0)OTINDQTY,isnull(OTINDWT, 0)OTINDWT,isnull(OTACTWT, 0)OTACTWT,'0' AS OTPURCHYPERC,'0' AS OTWTPERC, isnull((ERINDQTY + OTINDQTY), 0)TOTINDQTY,isnull((EINDWT + OTINDWT), 0)TOTINDWT,isnull((EACTWT + OTACTWT), 0)TOTACTWT,'0' AS TOTPURCHYPERC,'0' AS TOTWTPERC, isnull(((ERINDQTY + OTINDQTY) - (EINDWT + OTINDWT)), 0)BALTOTINDQTY,'0' AS PIPBALIND,'0' AS TOTBALIND  FROM  CT left join CTE on  CT.IS_CNT_CD = CTE.IS_CNT_CD  AND CT.IS_FACTORY = CTE.M_FACTORY ORDER BY CT.IS_FACTORY,CT.IS_CNT_CD";
+
+    const detailRows = await executeQuery(detailQuery, season);
+    if (!detailRows || detailRows.length === 0) {
+      return res.status(200).json({ success: true, data: [], recordsets: [[]] });
+    }
+
+    const output = [];
+    for (const row of detailRows) {
+      const center = row.IS_CNT_CD ? String(row.IS_CNT_CD).trim() : '';
+      let prev = 0;
+      if (center) {
+        const backQuery = "WITH CT AS(SELECT IS_FACTORY, IS_DS_DT, IS_CNT_CD, ISNULL(SUM(CASE WHEN IS_CATEG in(10,11,12,13) THEN MD_QTY ELSE 0 END),0)TDERINDQTY,ISNULL(SUM(CASE WHEN IS_CATEG in (10, 11, 12, 13) and IS_STATUS in (1, 5) THEN MD_QTY ELSE 0 END), 0)TDEINDWT,ISNULL(SUM(CASE WHEN IS_CATEG not in (10, 11, 12, 13) THEN MD_QTY ELSE 0 END), 0)TDOTINDQTY ,ISNULL(SUM(CASE WHEN IS_CATEG not in (10, 11, 12, 13) and IS_STATUS in (1, 5) THEN MD_QTY ELSE 0 END), 0)TDOTINDWT        FROM ISSUED LEFT JOIN MODE ON IS_MODE = MD_CODE AND MD_FACTORY = IS_FACTORY JOIN CENTRE ON IS_CNT_CD = C_CODE AND C_FACTORY = IS_FACTORY  WHERE IS_FACTORY = '" + fCode + "' AND CONVERT(NVARCHAR, IS_DS_DT,112) BETWEEN dateadd(d,-2,'" + dt + "') AND dateadd(d,-1,'" + dt + "') AND IS_CNT_CD = '" + center + "'  GROUP BY IS_FACTORY,IS_DS_DT,IS_CNT_CD), " +
+          "CTE AS(SELECT M_FACTORY, M_IND_DT, M_CENTRE FROM PURCHASE LEFT JOIN MODE ON M_MODE = MD_CODE AND MD_FACTORY = M_FACTORY JOIN CENTRE ON M_CENTRE = C_CODE AND M_FACTORY = C_FACTORY  WHERE M_FACTORY = '" + fCode + "' AND CONVERT(NVARCHAR, M_IND_DT,112) BETWEEN dateadd(d,-2,'" + dt + "') AND dateadd(d,-1,'" + dt + "') AND M_CENTRE = '" + center + "'  GROUP BY M_FACTORY,M_IND_DT,M_CENTRE) " +
+          "SELECT CT.IS_FACTORY,CONVERT(NVARCHAR,CT.IS_DS_DT,103)IS_DS_DT,CT.IS_CNT_CD,(TDERINDQTY + TDOTINDQTY)TDQTY,(TDEINDWT + TDOTINDWT)TDWT,((TDERINDQTY + TDOTINDQTY) - (TDEINDWT + TDOTINDWT))BAL FROM CT left join  CTE on CT.IS_DS_DT = CTE.M_IND_DT AND CT.IS_CNT_CD = CTE.M_CENTRE AND CT.IS_FACTORY = CTE.M_FACTORY ORDER BY CT.IS_DS_DT";
+        const backRows = await executeQuery(backQuery, season);
+        if (backRows && backRows.length > 0) {
+          for (const bRow of backRows) {
+            prev += Number(bRow.BAL || 0);
+          }
+          prev = truncateDecimal(prev, 2);
+        }
+      }
+
+      const totalBal = Number(row.BALTOTINDQTY || 0) + Number(prev || 0);
+      output.push({
+        ERINDQTY: row.ERINDQTY,
+        IS_CNT_CD: row.IS_CNT_CD,
+        C_NAME: row.C_NAME,
+        IS_FACTORY: row.IS_FACTORY,
+        EINDWT: row.EINDWT,
+        EACTWT: row.EACTWT,
+        OTINDQTY: row.OTINDQTY,
+        OTACTWT: row.OTACTWT,
+        OTINDWT: row.OTINDWT,
+        TOTINDQTY: row.TOTINDQTY,
+        TOTINDWT: row.TOTINDWT,
+        TOTACTWT: row.TOTACTWT,
+        BALTOTINDQTY: row.BALTOTINDQTY,
+        TOTBALIND: totalBal,
+        PIPBALIND: prev
+      });
+    }
+
+    return res.status(200).json({ success: true, data: output, recordsets: [output] });
+  } catch (error) {
+    if (typeof next === 'function') return next(error);
+    throw error;
+  }
+};
 exports.IndentFailSummaryNew = createProcedureHandler(CONTROLLER, 'IndentFailSummaryNew', '');
 exports.IndentFailSummaryNewData = createProcedureHandler(CONTROLLER, 'IndentFailSummaryNewData', '');
-exports.CentrePurchase = createProcedureHandler(CONTROLLER, 'CentrePurchase', '');
+exports.CentrePurchase = async (req, res, next) => {
+  try {
+    const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
+    const fCode = String(req.query?.F_Code || req.query?.F_code || req.query?.fcode || req.query?.FACT || req.body?.F_Code || req.body?.F_code || req.body?.fcode || req.body?.FACT || '').trim();
+    const dateRaw = req.query?.Date || req.query?.date || req.body?.Date || req.body?.date || '';
+    const fromDate = normalizeDateToDb(dateRaw);
+
+    if (!fCode || !fromDate) {
+      return res.status(200).json({ success: true, data: [], recordsets: [[]] });
+    }
+
+    const rows = await readRepository.getCentreCode({ fCode, fromDate }, season);
+    return res.status(200).json({
+      success: true,
+      message: `${CONTROLLER}.CentrePurchase executed`,
+      data: rows || [],
+      recordsets: [rows || []]
+    });
+  } catch (error) {
+    if (typeof next === 'function') return next(error);
+    throw error;
+  }
+};
 
 // Crushing report helper endpoints
 exports.LOADFACTORYDATA = async (req, res, next) => {
@@ -1891,6 +2405,16 @@ exports.LOADFACTORYDATA = async (req, res, next) => {
 exports.LOADMODEWISEDATA = async (req, res, next) => {
   try {
     const data = await reportService.loadModeWiseData(req);
+    return res.status(200).json({ success: true, data });
+  } catch (error) {
+    if (typeof next === 'function') return next(error);
+    throw error;
+  }
+};
+
+exports.TruckDispatchWeighed = async (req, res, next) => {
+  try {
+    const data = await reportService.getTruckDispatchWeighed(req);
     return res.status(200).json({ success: true, data });
   } catch (error) {
     if (typeof next === 'function') return next(error);

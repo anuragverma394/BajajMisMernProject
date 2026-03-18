@@ -278,6 +278,17 @@ function addDaysIso(isoDate, deltaDays) {
   return `${y}-${m}-${day}`;
 }
 
+function getPreviousSeasonCode(season) {
+  const raw = String(season || '').trim();
+  if (!/^\d{4}$/.test(raw)) return null;
+  const start = Number(raw.slice(0, 2));
+  const end = Number(raw.slice(2, 4));
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return null;
+  const prevStart = String((start + 99) % 100).padStart(2, '0');
+  const prevEnd = String((end + 99) % 100).padStart(2, '0');
+  return `${prevStart}${prevEnd}`;
+}
+
 async function resolveLatestDashboardRange(season, spanDays = 15) {
   const candidates = [
     { sql: `SELECT CONVERT(date, MAX([M_DATE])) AS maxDate FROM [Purchase] WITH (NOLOCK)` },
@@ -801,6 +812,62 @@ exports.Units = async (req, res, next) => {
 
 exports.DistilleryUnits = exports.Units;
 
+const buildDistilleryProdTypeRows = async (season, tableSql, rsCol, aaCol) => {
+  const rsSelect = rsCol
+    ? `SELECT LTRIM(RTRIM(CAST(d.${rsCol} AS varchar(100)))) AS Prodty_Name FROM ${tableSql} d WHERE d.${rsCol} IS NOT NULL AND LTRIM(RTRIM(CAST(d.${rsCol} AS varchar(100)))) <> ''`
+    : null;
+  const aaSelect = aaCol
+    ? `SELECT LTRIM(RTRIM(CAST(d.${aaCol} AS varchar(100)))) AS Prodty_Name FROM ${tableSql} d WHERE d.${aaCol} IS NOT NULL AND LTRIM(RTRIM(CAST(d.${aaCol} AS varchar(100)))) <> ''`
+    : null;
+
+  const unionSql = [rsSelect, aaSelect].filter(Boolean).join(' UNION ');
+  if (!unionSql) return [];
+
+  return executeQuery(
+    `WITH Types AS (${unionSql})
+     SELECT Prodty_Name
+     FROM Types
+     GROUP BY Prodty_Name
+     ORDER BY Prodty_Name`,
+    {},
+    season
+  );
+};
+
+const buildProdTypeIndexMap = async (season, tableSql, rsCol, aaCol) => {
+  const rows = await buildDistilleryProdTypeRows(season, tableSql, rsCol, aaCol).catch(() => []);
+  const list = rows.map((r) => String(r.Prodty_Name || '').trim()).filter(Boolean);
+  return list;
+};
+
+exports.DistilleryProdTypes = async (req, res, next) => {
+  try {
+    const season = req.user?.season;
+    const tableName = ensureWhitelistedTable(await resolveDistilleryTable(season), DISTILLERY_TABLES, 'distillery');
+    const tableSql = quoteSqlObjectName(tableName);
+    const tableColumnList = await getTableColumnList(season, tableName);
+    const rsProdType = pickExistingColumnFromList(tableColumnList, ['Dist_RSProd_ProdType', 'RS_Prod_ProdType']);
+    const aaProdType = pickExistingColumnFromList(tableColumnList, ['Dist_AAProd_ProdType', 'AA_Prod_ProdType']);
+
+    if (!rsProdType && !aaProdType) {
+      return res.status(200).json([]);
+    }
+
+    const rsCol = rsProdType ? quoteSqlIdentifier(rsProdType) : null;
+    const aaCol = aaProdType ? quoteSqlIdentifier(aaProdType) : null;
+
+    const rows = await buildDistilleryProdTypeRows(season, tableSql, rsCol, aaCol);
+    const payload = rows.map((r) => {
+      const name = String(r.Prodty_Name || '').trim();
+      return { ID: name, Prodty_Name: name };
+    }).filter((r) => r.Prodty_Name);
+
+    return res.status(200).json(payload);
+  } catch (error) {
+    return next(error);
+  }
+};
+
 exports.ModeBind = async (req, res, next) => {
   try {
     const season = req.user?.season;
@@ -1019,19 +1086,28 @@ exports.AddModeGroupViewID = async (req, res) => {
 exports.AddStopage = async (req, res, next) => {
   try {
     const season = req.user?.season;
-    const sid = String(req.query.sid || '').trim();
+    const sid = String(req.query.sid || req.query.id || '').trim();
 
     if (!sid) {
       return res.status(200).json({ mode: 'insert' });
     }
 
-    const rows = await executeQuery(
+    let rows = await executeQuery(
       `SELECT STPID, STP_Unit, STP_PIO AS STP_PIOR, STP_PIM, STP_Remark
        FROM MI_Stopage
-       WHERE STP_Unit=@sid`,
+       WHERE STPID=@sid`,
       { sid },
       season
     );
+    if (!rows.length) {
+      rows = await executeQuery(
+        `SELECT STPID, STP_Unit, STP_PIO AS STP_PIOR, STP_PIM, STP_Remark
+         FROM MI_Stopage
+         WHERE STP_Unit=@sid`,
+        { sid },
+        season
+      );
+    }
 
     return res.status(200).json(rows[0] || {});
   } catch (error) {
@@ -1043,22 +1119,28 @@ exports.AddStopage_2 = async (req, res, next) => {
   try {
     const season = req.user?.season;
     const id = String(req.body.id || '').trim();
+    const commandRaw = String(req.body.Command || req.body.command || id || '').trim().toLowerCase();
     const STP_Unit = String(req.body.STP_Unit || '').trim();
     const STP_PIO = String(req.body.STP_PIO || '').trim();
     const STP_PIM = String(req.body.STP_PIM || '').trim();
     const STP_Remark = String(req.body.STP_Remark || '').trim();
     const userId = String(req.user?.userId || req.body.Userid || '').trim();
+    const stpId = String(req.body.STPID || req.body.STP_ID || req.body.sid || '').trim();
 
     if (!STP_Unit) {
       return res.status(400).json(false);
     }
 
-    if (id === 'btupdate') {
+    const isUpdate = commandRaw === 'btupdate' || commandRaw === 'update';
+    const isInsert = commandRaw === 'btninsert' || commandRaw === 'insert';
+
+    if (isUpdate) {
+      const whereClause = stpId ? 'STPID=@stpId' : 'STP_Unit=@STP_Unit';
       await executeQuery(
         `UPDATE MI_Stopage
          SET STP_PIO=@STP_PIO, STP_PIM=@STP_PIM, STP_Remark=@STP_Remark, Userid=@userId
-         WHERE STP_Unit=@STP_Unit`,
-        { STP_PIO, STP_PIM, STP_Remark, userId, STP_Unit },
+         WHERE ${whereClause}`,
+        { STP_PIO, STP_PIM, STP_Remark, userId, STP_Unit, stpId },
         season
       );
 
@@ -1072,9 +1154,28 @@ exports.AddStopage_2 = async (req, res, next) => {
       return res.status(200).json(true);
     }
 
-    if (id === 'btninsert') {
-      const exists = await executeQuery('SELECT TOP 1 STPID FROM MI_Stopage WHERE STP_Unit=@STP_Unit', { STP_Unit }, season);
-      if (!exists.length) {
+    if (isInsert) {
+      const exists = await executeQuery(
+        'SELECT TOP 1 STPID FROM MI_Stopage WHERE STP_Unit=@STP_Unit',
+        { STP_Unit },
+        season
+      );
+      if (exists.length) {
+        await executeQuery(
+          `UPDATE MI_Stopage
+           SET STP_PIO=@STP_PIO, STP_PIM=@STP_PIM, STP_Remark=@STP_Remark, Userid=@userId
+           WHERE STP_Unit=@STP_Unit`,
+          { STP_PIO, STP_PIM, STP_Remark, userId, STP_Unit },
+          season
+        );
+
+        const lg = `Factory ${STP_Unit} ,Userid ${userId} ,Plant in Operation ${STP_PIO} ,Plant in Maintenanec ${STP_PIM}, Remark ${STP_Remark} ,Flag Updated`;
+        await executeQuery(
+          'INSERT INTO MI_Stopage_Log(STP_Unit, StopageLog, UserId, Flag) VALUES(@STP_Unit, @lg, @userId, @flag)',
+          { STP_Unit, lg, userId, flag: 'Updated' },
+          season
+        );
+      } else {
         await executeQuery(
           `INSERT INTO MI_Stopage(STP_Unit, STP_PIO, STP_PIM, STP_Remark, Userid)
            VALUES(@STP_Unit, @STP_PIO, @STP_PIM, @STP_Remark, @userId)`,
@@ -1089,7 +1190,6 @@ exports.AddStopage_2 = async (req, res, next) => {
           season
         );
       }
-
       return res.status(200).json(true);
     }
 
@@ -1922,6 +2022,7 @@ exports.SWRD = async (req, res, next) => {
     }
 
     const previousRows = [];
+    const prevSeason = getPreviousSeasonCode(season);
     const unitIds = Array.from(new Set(currentRows.map((r) => Number(r.Cn_Unit)).filter((n) => Number.isFinite(n) && n > 0)));
     if (unitIds.length) {
       const prevParams = { prevDate };
@@ -1931,8 +2032,8 @@ exports.SWRD = async (req, res, next) => {
         return `@${key}`;
       });
 
-      const rows = await executeQuery(
-        `SELECT u.Cn_Unit,
+      const prevQuery = `
+        SELECT u.Cn_Unit,
                 CASE WHEN CAST(c.Cn_Date AS date) = @prevDate THEN ISNULL(c.Cn_MolCatPurity_OnDate, 0) ELSE 0 END AS Cn_MolCatPurity_OnDate,
                 ISNULL(c.Cn_MolCatPurity_ToDate, 0) AS Cn_MolCatPurity_ToDate,
                 CASE WHEN CAST(c.Cn_Date AS date) = @prevDate THEN ISNULL(c.Cn_Rec_ThisYear1, 0) ELSE 0 END AS Cn_Rec_ThisYear1,
@@ -1947,11 +2048,15 @@ exports.SWRD = async (req, res, next) => {
            WHERE c.Cn_Unit = u.Cn_Unit
              AND CAST(c.Cn_Date AS date) <= @prevDate
            ORDER BY CAST(c.Cn_Date AS date) DESC, c.ID DESC
-         ) c`,
-        prevParams,
-        season,
-        { timeoutMs: 120000 }
-      );
+         ) c`;
+
+      let rows = [];
+      if (prevSeason) {
+        rows = await executeQuery(prevQuery, prevParams, prevSeason, { timeoutMs: 120000 }).catch(() => []);
+      }
+      if (!rows.length) {
+        rows = await executeQuery(prevQuery, prevParams, season, { timeoutMs: 120000 }).catch(() => []);
+      }
       previousRows.push(...rows);
     }
 
@@ -2045,7 +2150,7 @@ exports.distilleryReportEntryView = async (req, res, next) => {
       capOnDate: pickExistingColumnFromList(tableColumnList, ['Dist_Cap_OnDate', 'Cap_OnDate']),
       capToDate: pickExistingColumnFromList(tableColumnList, ['Dist_Cap_ToDate', 'Cap_ToDate']),
       financialYear: pickExistingColumnFromList(tableColumnList, ['Dist_FinancialYear', 'FinancialYear']),
-      prod: pickExistingColumnFromList(tableColumnList, ['Dist_Prod', 'Prod']),
+      prod: pickExistingColumnFromList(tableColumnList, ['Dist_FYProd', 'Dist_Prod', 'Prod']),
       stoppage: pickExistingColumnFromList(tableColumnList, ['Dist_Stoppage', 'Stoppage']),
       remark: pickExistingColumnFromList(tableColumnList, ['Dist_Remark', 'Remark']),
       userId: pickExistingColumnFromList(tableColumnList, ['Dist_UserID', 'Userid', 'UserID'])
@@ -2084,6 +2189,13 @@ exports.distilleryReportEntryView = async (req, res, next) => {
       season,
       { timeoutMs: 120000 }
     );
+
+    const rsProdTypeCol = c.rsProdType ? quoteSqlIdentifier(c.rsProdType) : null;
+    const aaProdTypeCol = c.aaProdType ? quoteSqlIdentifier(c.aaProdType) : null;
+    const prodTypeIndex = (rsProdTypeCol || aaProdTypeCol)
+      ? await buildProdTypeIndexMap(season, tableSql, rsProdTypeCol, aaProdTypeCol)
+      : [];
+
     const pick = (row, candidates, defaultValue = null) => {
       for (const key of candidates) {
         if (Object.prototype.hasOwnProperty.call(row, key) && row[key] !== undefined && row[key] !== null) {
@@ -2095,26 +2207,45 @@ exports.distilleryReportEntryView = async (req, res, next) => {
     const fmtDate = (value) => (value ? toDDMMYYYY(value) : '');
     const num = (v) => Number(v || 0);
     const txt = (v) => String(v || '');
+    const toProdTypeName = (value) => {
+      const raw = String(value ?? '').trim();
+      if (!raw) return '';
+      const n = Number(raw);
+      if (Number.isFinite(n) && n > 0 && prodTypeIndex[n - 1]) {
+        return prodTypeIndex[n - 1];
+      }
+      return raw;
+    };
+    const toRestartStatus = (value) => {
+      const raw = String(value ?? '').trim();
+      if (!raw) return '';
+      const n = Number(raw);
+      if (Number.isFinite(n)) {
+        if (n === 1) return 'No';
+        if (n === 2) return 'Yes';
+      }
+      return raw;
+    };
 
     const rows = rawRows.map((r) => ({
       ID: num(pick(r, ['ID', 'Id'], 0)),
       Dist_Unit: num(pick(r, ['Dist_Unit', 'D_Factory', 'F_Code', 'Unit'], 0)),
       Unit: txt(pick(r, ['Unit'], '')),
       Dist_Date: fmtDate(pick(r, ['Dist_Date', 'D_Date', 'Date', 'Dist_RSDate'], '')),
-      Dist_RSStatus: num(pick(r, ['Dist_RSStatus', 'RSStatus'], 0)),
+      Dist_RSStatus: toRestartStatus(pick(r, ['Dist_RSStatus', 'RSStatus'], '')),
       Dist_RSDate: fmtDate(pick(r, ['Dist_RSDate', 'RSDate', 'Dist_Date', 'D_Date', 'Date'], '')),
       Dist_RSProd_OnDate: num(pick(r, ['Dist_RSProd_OnDate', 'RS_Prod_OnDate'], 0)),
       Dist_RSProd_ToDate: num(pick(r, ['Dist_RSProd_ToDate', 'RS_Prod_ToDate'], 0)),
-      Dist_RSProd_ProdType: txt(pick(r, ['Dist_RSProd_ProdType', 'RS_Prod_ProdType'], '')),
+      Dist_RSProd_ProdType: toProdTypeName(pick(r, ['Dist_RSProd_ProdType', 'RS_Prod_ProdType'], '')),
       Dist_AAProd_OnDate: num(pick(r, ['Dist_AAProd_OnDate', 'AA_Prod_OnDate'], 0)),
       Dist_AAProd_ToDate: num(pick(r, ['Dist_AAProd_ToDate', 'AA_Prod_ToDate'], 0)),
-      Dist_AAProd_ProdType: txt(pick(r, ['Dist_AAProd_ProdType', 'AA_Prod_ProdType'], '')),
+      Dist_AAProd_ProdType: toProdTypeName(pick(r, ['Dist_AAProd_ProdType', 'AA_Prod_ProdType'], '')),
       Dist_Rec_OnDate: num(pick(r, ['Dist_Rec_OnDate', 'Rec_OnDate'], 0)),
       Dist_Rec_ToDate: num(pick(r, ['Dist_Rec_ToDate', 'Rec_ToDate'], 0)),
       Dist_Cap_OnDate: num(pick(r, ['Dist_Cap_OnDate', 'Cap_OnDate'], 0)),
       Dist_Cap_ToDate: num(pick(r, ['Dist_Cap_ToDate', 'Cap_ToDate'], 0)),
       Dist_FinancialYear: txt(pick(r, ['Dist_FinancialYear', 'FinancialYear'], '')),
-      Dist_Prod: txt(pick(r, ['Dist_Prod', 'Prod'], '')),
+      Dist_Prod: txt(pick(r, ['Dist_FYProd', 'Dist_Prod', 'Prod'], '')),
       Dist_Stoppage: txt(pick(r, ['Dist_Stoppage', 'Stoppage'], '')),
       Dist_Remark: txt(pick(r, ['Dist_Remark', 'Remark'], '')),
       Dist_UserID: txt(pick(r, ['Dist_UserID', 'Userid', 'UserID'], ''))
@@ -2174,7 +2305,7 @@ exports.distilleryReportEntry_2 = async (req, res, next) => {
       capOnDate: pickExistingColumnFromList(tableColumnList, ['Dist_Cap_OnDate', 'Cap_OnDate']),
       capToDate: pickExistingColumnFromList(tableColumnList, ['Dist_Cap_ToDate', 'Cap_ToDate']),
       financialYear: pickExistingColumnFromList(tableColumnList, ['Dist_FinancialYear', 'FinancialYear']),
-      prod: pickExistingColumnFromList(tableColumnList, ['Dist_Prod', 'Prod']),
+      prod: pickExistingColumnFromList(tableColumnList, ['Dist_FYProd', 'Dist_Prod', 'Prod']),
       stoppage: pickExistingColumnFromList(tableColumnList, ['Dist_Stoppage', 'Stoppage']),
       remark: pickExistingColumnFromList(tableColumnList, ['Dist_Remark', 'Remark']),
       userId: pickExistingColumnFromList(tableColumnList, ['Dist_UserID', 'Userid', 'UserID'])
@@ -2197,26 +2328,31 @@ exports.distilleryReportEntry_2 = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Dist_Unit and Dist_Date are required' });
     }
 
+    const numOrZero = (value) => {
+      const n = Number(value);
+      return Number.isFinite(n) ? n : 0;
+    };
+
     const payload = {
       Dist_Unit,
       Dist_Date,
-      Dist_RSStatus: Number(req.body.Dist_RSStatus || 0),
+      Dist_RSStatus: numOrZero(req.body.Dist_RSStatus),
       Dist_RSDate: Dist_RSDate || Dist_Date,
-      Dist_RSProd_OnDate: Number(req.body.Dist_RSProd_OnDate || 0),
-      Dist_RSProd_ToDate: Number(req.body.Dist_RSProd_ToDate || 0),
+      Dist_RSProd_OnDate: numOrZero(req.body.Dist_RSProd_OnDate),
+      Dist_RSProd_ToDate: numOrZero(req.body.Dist_RSProd_ToDate),
       Dist_RSProd_ProdType: String(req.body.Dist_RSProd_ProdType || req.body.ProdType || ''),
-      Dist_AAProd_OnDate: Number(req.body.Dist_AAProd_OnDate || 0),
-      Dist_AAProd_ToDate: Number(req.body.Dist_AAProd_ToDate || 0),
+      Dist_AAProd_OnDate: numOrZero(req.body.Dist_AAProd_OnDate),
+      Dist_AAProd_ToDate: numOrZero(req.body.Dist_AAProd_ToDate),
       Dist_AAProd_ProdType: String(req.body.Dist_AAProd_ProdType || req.body.ProdType2 || ''),
-      Dist_Rec_OnDate: Number(req.body.Dist_Rec_OnDate || 0),
-      Dist_Rec_ToDate: Number(req.body.Dist_Rec_ToDate || 0),
-      Dist_Cap_OnDate: Number(req.body.Dist_Cap_OnDate || 0),
-      Dist_Cap_ToDate: Number(req.body.Dist_Cap_ToDate || 0),
+      Dist_Rec_OnDate: numOrZero(req.body.Dist_Rec_OnDate),
+      Dist_Rec_ToDate: numOrZero(req.body.Dist_Rec_ToDate),
+      Dist_Cap_OnDate: numOrZero(req.body.Dist_Cap_OnDate),
+      Dist_Cap_ToDate: numOrZero(req.body.Dist_Cap_ToDate),
       Dist_FinancialYear: String(req.body.Dist_FinancialYear || season || ''),
       Dist_Prod: String(req.body.Dist_Prod || ''),
       Dist_Stoppage: String(req.body.Dist_Stoppage || ''),
       Dist_Remark: String(req.body.Dist_Remark || ''),
-      Dist_UserID: String(req.user?.userId || req.body.Dist_UserID || '')
+      Dist_UserID: String(req.user?.userId || req.body.Dist_UserID || '').trim()
     };
 
     const mappedPayload = {};
@@ -2241,9 +2377,30 @@ exports.distilleryReportEntry_2 = async (req, res, next) => {
     add(c.prod, payload.Dist_Prod);
     add(c.stoppage, payload.Dist_Stoppage);
     add(c.remark, payload.Dist_Remark);
-    add(c.userId, payload.Dist_UserID);
+    const addUserId = () => {
+      if (!c.userId) return;
+      const col = String(c.userId || '').toLowerCase();
+      const raw = payload.Dist_UserID;
+      if (!raw) return;
+      if (col.includes('name')) {
+        add(c.userId, raw);
+        return;
+      }
+      if (col.includes('id')) {
+        const num = Number(raw);
+        if (Number.isFinite(num)) {
+          add(c.userId, num);
+        }
+        return;
+      }
+      add(c.userId, raw);
+    };
 
-    if (command === 'btupdate' || command === 'update') {
+    addUserId();
+
+    const isUpdateCommand = command === 'btupdate' || command === 'update';
+
+    if (isUpdateCommand) {
       if (!id) {
         return res.status(400).json({ success: false, message: 'id is required for update' });
       }
@@ -2264,6 +2421,35 @@ exports.distilleryReportEntry_2 = async (req, res, next) => {
         season
       );
       return res.status(200).json({ success: true, message: 'Updated successfully' });
+    }
+
+    // If no explicit update command, upsert by unique (unit + date) to avoid PK violation.
+    if (!id && c.unit && c.date) {
+      const unitCol = quoteSqlIdentifier(c.unit);
+      const dateCol = quoteSqlIdentifier(c.date);
+      const existingRows = await executeQuery(
+        `SELECT TOP 1 ${c.id ? quoteSqlIdentifier(c.id) : '1'} AS RowId
+         FROM ${tableSql}
+         WHERE ${unitCol}=@Dist_Unit AND ${dateCol}=@Dist_Date`,
+        { Dist_Unit: payload.Dist_Unit, Dist_Date: payload.Dist_Date },
+        season
+      );
+
+      if (existingRows && existingRows.length) {
+        const updateCols = Object.keys(mappedPayload);
+        if (!updateCols.length) {
+          return res.status(500).json({ success: false, message: `No writable distillery columns found in ${tableName}` });
+        }
+        const setClause = updateCols.map((col) => `${quoteSqlIdentifier(col)}=@${col}`).join(', ');
+        await executeQuery(
+          `UPDATE ${tableSql}
+           SET ${setClause}
+           WHERE ${unitCol}=@Dist_Unit AND ${dateCol}=@Dist_Date`,
+          { ...mappedPayload, Dist_Unit: payload.Dist_Unit, Dist_Date: payload.Dist_Date },
+          season
+        );
+        return res.status(200).json({ success: true, message: 'Updated successfully' });
+      }
     }
 
     const insertCols = Object.keys(mappedPayload);

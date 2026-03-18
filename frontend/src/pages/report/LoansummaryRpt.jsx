@@ -1,15 +1,37 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaFileExcel, FaSearch, FaArrowLeft, FaPrint, FaMoneyBillWave } from 'react-icons/fa';
 import '../../styles/Report.css';
 import '../../styles/LoansummaryRpt.css';
+import { accountReportsService, masterService } from '../../microservices/api.service';
+import { toast } from 'react-hot-toast';
 
 const Report_LoansummaryRpt = () => {
-  const [formData, setFormData] = useState({
-    factory: '',
-    fromDate: '',
-    toDate: '',
-    reportType: '1'
+  const [units, setUnits] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [reportData, setReportData] = useState({
+    list1: [],
+    list2: [],
+    list3: []
   });
+  const [formData, setFormData] = useState({
+    F_code: '0',
+    FromDate: '2000-01-01',
+    ToDate: new Date().toISOString().split('T')[0],
+    ReportType: '1'
+  });
+
+  useEffect(() => {
+    const fetchUnits = async () => {
+      try {
+        const data = await masterService.getUnits();
+        setUnits(data || []);
+      } catch (error) {
+        console.error('Error fetching units:', error);
+        toast.error('Failed to load units');
+      }
+    };
+    fetchUnits();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -19,10 +41,157 @@ const Report_LoansummaryRpt = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Search with:', formData);
-    // API call logic will go here
+    setIsLoading(true);
+    try {
+      const params = {
+        F_code: formData.F_code,
+        FromDate: formData.FromDate.split('-').reverse().join('/'),
+        ToDate: formData.ToDate.split('-').reverse().join('/'),
+        ReportType: formData.ReportType
+      };
+      const data = await accountReportsService.getLoanSummaryReport(params);
+
+      const list1Raw = data.list1 || [];
+      const list2Raw = data.list2 || [];
+      const list3Raw = data.list3 || [];
+
+      const list1 = list1Raw.map((item) => {
+        const needyTotal = Number(item.NeedySugarLoan || 0);
+        const needyDeducted = Number(item.NeedySugarDeduct || 0);
+        const needyBalance = needyTotal - needyDeducted;
+        const nonDeductible = Number(item.NonDeductible || 0);
+        const agriTotal = Number(item.AgriInputsOther || 0);
+        const agriDeducted = Number(item.AgriInputsOtherDeduct || 0);
+        const agriBalance = agriTotal - agriDeducted;
+        return {
+          F_Name: item.Fname || item.F_Name || '',
+          NeedyTotal: needyTotal,
+          NeedyDeducted: needyDeducted,
+          NeedyBalance: needyBalance,
+          AgriTotal: agriTotal,
+          AgriDeducted: agriDeducted,
+          AgriBalance: agriBalance,
+          GrandTotal: needyTotal + agriTotal,
+          GrandDeducted: needyDeducted + agriDeducted,
+          GrandBalance: needyBalance + agriBalance,
+          NonDeductible: nonDeductible,
+          Remarks: ''
+        };
+      });
+
+      if (list1.length) {
+        const totals = list1.reduce(
+          (acc, r) => {
+            acc.NeedyTotal += r.NeedyTotal;
+            acc.NeedyDeducted += r.NeedyDeducted;
+            acc.NeedyBalance += r.NeedyBalance;
+            acc.AgriTotal += r.AgriTotal;
+            acc.AgriDeducted += r.AgriDeducted;
+            acc.AgriBalance += r.AgriBalance;
+            acc.GrandTotal += r.GrandTotal;
+            acc.GrandDeducted += r.GrandDeducted;
+            acc.GrandBalance += r.GrandBalance;
+            acc.NonDeductible += r.NonDeductible;
+            return acc;
+          },
+          {
+            NeedyTotal: 0,
+            NeedyDeducted: 0,
+            NeedyBalance: 0,
+            AgriTotal: 0,
+            AgriDeducted: 0,
+            AgriBalance: 0,
+            GrandTotal: 0,
+            GrandDeducted: 0,
+            GrandBalance: 0,
+            NonDeductible: 0
+          }
+        );
+        list1.push({
+          F_Name: 'Total',
+          ...totals,
+          NonDeductible: totals.NonDeductible,
+          Remarks: '',
+          isTotal: true
+        });
+      }
+
+      const list2 = list2Raw.map((item) => {
+        const needyBalance = Number(item.NeedySugarLoan || 0);
+        const agriBalance = Number(item.AgriInputsOther || 0);
+        const factoryTotal = needyBalance + agriBalance;
+        const nonDeductible = Number(item.NonDeductible || 0);
+        const societyBalance = Number(item.SocietyTotal || 0);
+        return {
+          F_Name: item.Fname || item.F_Name || '',
+          NeedyBalance: needyBalance,
+          AgriBalance: agriBalance,
+          FactoryTotal: factoryTotal,
+          NonDeductible: nonDeductible,
+          SocietyBalance: societyBalance,
+          GrandTotal: factoryTotal + societyBalance,
+          Remarks: ''
+        };
+      });
+
+      if (list2.length) {
+        const totals = list2.reduce(
+          (acc, r) => {
+            acc.NeedyBalance += r.NeedyBalance;
+            acc.AgriBalance += r.AgriBalance;
+            acc.FactoryTotal += r.FactoryTotal;
+            acc.NonDeductible += r.NonDeductible;
+            acc.SocietyBalance += r.SocietyBalance;
+            acc.GrandTotal += r.GrandTotal;
+            return acc;
+          },
+          {
+            NeedyBalance: 0,
+            AgriBalance: 0,
+            FactoryTotal: 0,
+            NonDeductible: 0,
+            SocietyBalance: 0,
+            GrandTotal: 0
+          }
+        );
+        list2.push({
+          F_Name: 'Total',
+          ...totals,
+          NonDeductible: totals.NonDeductible,
+          Remarks: '',
+          isTotal: true
+        });
+      }
+
+      const list3 = list3Raw.map((item) => {
+        const totalAmount = Number(item.AgriInputsOther || 0);
+        const recoveredAmount = Number(item.NeedySugarDeduct || 0);
+        const balanceAmount = totalAmount - recoveredAmount;
+        return {
+          F_Name: item.Fname || item.F_Name || '',
+          LoanHead: item.LoanCategory || '',
+          TotalAmount: totalAmount,
+          RecoveredAmount: recoveredAmount,
+          BalanceAmount: balanceAmount,
+          NotRecoverable: 0,
+          IsRecoverable: 'Y'
+        };
+      });
+
+      setReportData({ list1, list2, list3 });
+      if (!list1.length && !list2.length && !list3.length) {
+        toast.error('No data found for the selected filters');
+      } else {
+        toast.success('Report generated successfully');
+      }
+    } catch (error) {
+      console.error('Error fetching report:', error);
+      toast.error('Failed to generate report');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleExport = () => {
@@ -49,13 +218,11 @@ const Report_LoansummaryRpt = () => {
                         <div>
                             <label className="block mb-[8px] text-[13px] text-[#111] font-semibold">Factory</label>
                             <select
-
-                value={formData.factory}
+                value={formData.F_code}
                 onChange={handleChange}
-                name="factory" className="w-[100%] py-[10px] px-[12px] text-[13px] border border-[#ddd] rounded text-[#333] bg-white">
-                
-                                <option value="">All</option>
-                                <option value="1">Unit 1</option>
+                name="F_code" className="w-[100%] py-[10px] px-[12px] text-[13px] border border-[#ddd] rounded text-[#333] bg-white">
+                                <option value="0">All</option>
+                                {units.map((u, idx) => <option key={`${u.f_Code}-${idx}`} value={u.f_Code}>{u.F_Name || u.name || u.f_Name}</option>)}
                             </select>
                         </div>
 
@@ -65,9 +232,9 @@ const Report_LoansummaryRpt = () => {
                 type="text"
                 placeholder="01/01/2000"
 
-                value={formData.fromDate}
+                value={formData.FromDate}
                 onChange={handleChange}
-                name="fromDate" className="w-[100%] py-[10px] px-[12px] text-[13px] border border-[#ddd] rounded text-[#666] bg-white" />
+                name="FromDate" className="w-[100%] py-[10px] px-[12px] text-[13px] border border-[#ddd] rounded text-[#666] bg-white" />
               
                         </div>
 
@@ -77,9 +244,9 @@ const Report_LoansummaryRpt = () => {
                 type="text"
                 placeholder="dd/mm/yyyy"
 
-                value={formData.toDate}
+                value={formData.ToDate}
                 onChange={handleChange}
-                name="toDate" className="w-[100%] py-[10px] px-[12px] text-[13px] border border-[#ddd] rounded text-[#666] bg-white" />
+                name="ToDate" className="w-[100%] py-[10px] px-[12px] text-[13px] border border-[#ddd] rounded text-[#666] bg-white" />
               
                         </div>
 
@@ -87,20 +254,19 @@ const Report_LoansummaryRpt = () => {
                             <label className="block mb-[8px] text-[13px] text-[#111] font-semibold">Report Type</label>
                             <select
 
-                value={formData.reportType}
+                value={formData.ReportType}
                 onChange={handleChange}
-                name="reportType" className="w-[100%] py-[10px] px-[12px] text-[13px] border border-[#ddd] rounded text-[#333] bg-white">
+                name="ReportType" className="w-[100%] py-[10px] px-[12px] text-[13px] border border-[#ddd] rounded text-[#333] bg-white">
                 
                                 <option value="1">Loan Summary</option>
                                 <option value="2">Factory Loan Summary</option>
-                                <option value="3">Other Balance Report</option>
                             </select>
                         </div>
                     </div>
 
                     <div className="flex gap-[8px]">
-                        <button onClick={handleSubmit} className="bg-[#1F9E8A] text-white border-0 py-[8px] px-[16px] rounded text-[13px] cursor-pointer">
-                            Search
+                        <button onClick={handleSubmit} disabled={isLoading} className="bg-[#1F9E8A] text-white border-0 py-[8px] px-[16px] rounded text-[13px] cursor-pointer">
+                            {isLoading ? 'Wait...' : 'Search'}
                         </button>
                         <button onClick={handlePrint} className="bg-[#1F9E8A] text-white border-0 py-[8px] px-[16px] rounded text-[13px] cursor-pointer">
                             print
@@ -116,8 +282,9 @@ const Report_LoansummaryRpt = () => {
             </div>
             <div className="report-card-content">
                 <div className="report-table-container">
-                    {formData.reportType === '1' &&
-          <table className="report-table" id="example">
+                    {formData.ReportType === '1' &&
+          <div className="loan-summary-table-wrap">
+            <table className="loan-summary-table" id="example">
                             <thead>
                                 <tr>
                                     <th rowSpan="2" className="align-middle">Sr. No.</th>
@@ -135,17 +302,81 @@ const Report_LoansummaryRpt = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
+                                {reportData.list1.length === 0 &&
+                <tr>
                                     <td colSpan="13" className="text-center py-8 text-slate-400">
                                         No data found. Please select filters and click Search.
                                     </td>
+                                </tr>}
+                                {reportData.list1.map((item, idx) =>
+                <tr key={idx} className={item.isTotal ? 'total-row' : ''}>
+                                    <td>{item.isTotal ? '' : idx + 1}</td>
+                                    <td>{item.F_Name}</td>
+                                    <td align="right">{item.NeedyTotal?.toFixed ? item.NeedyTotal.toFixed(2) : item.NeedyTotal}</td>
+                                    <td align="right">{item.NeedyDeducted?.toFixed ? item.NeedyDeducted.toFixed(2) : item.NeedyDeducted}</td>
+                                    <td align="right">{item.NeedyBalance?.toFixed ? item.NeedyBalance.toFixed(2) : item.NeedyBalance}</td>
+                                    <td align="right">{item.AgriTotal?.toFixed ? item.AgriTotal.toFixed(2) : item.AgriTotal}</td>
+                                    <td align="right">{item.AgriDeducted?.toFixed ? item.AgriDeducted.toFixed(2) : item.AgriDeducted}</td>
+                                    <td align="right">{item.AgriBalance?.toFixed ? item.AgriBalance.toFixed(2) : item.AgriBalance}</td>
+                                    <td align="right">{item.GrandTotal?.toFixed ? item.GrandTotal.toFixed(2) : item.GrandTotal}</td>
+                                    <td align="right">{item.GrandDeducted?.toFixed ? item.GrandDeducted.toFixed(2) : item.GrandDeducted}</td>
+                                    <td align="right">{item.GrandBalance?.toFixed ? item.GrandBalance.toFixed(2) : item.GrandBalance}</td>
+                                    <td align="right">{item.NonDeductible?.toFixed ? item.NonDeductible.toFixed(2) : item.NonDeductible}</td>
+                                    <td></td>
                                 </tr>
+                )}
                             </tbody>
                         </table>
+          </div>
           }
 
-                    {formData.reportType === '2' &&
-          <table className="report-table" id="example">
+                    {formData.ReportType === '1' &&
+          <div className="loan-summary-table-wrap">
+            <table className="loan-summary-table" id="example">
+                            <thead>
+                                <tr>
+                                    <th rowSpan="2" className="align-middle">Sr. No.</th>
+                                    <th rowSpan="2" className="align-middle">Unit Name</th>
+                                    <th colSpan="4" className="text-center">Balance Factory Loan</th>
+                                    <th rowSpan="2" className="align-middle">Balance Society Loan</th>
+                                    <th rowSpan="2" className="align-middle">Grand Total</th>
+                                    <th rowSpan="2" className="align-middle">Remarks</th>
+                                </tr>
+                                <tr>
+                                    <th>Needy & Sugar</th>
+                                    <th>Agri Inputs & Other</th>
+                                    <th>Total</th>
+                                    <th>Cannot be deducted from this year's sugarcane price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {reportData.list2.length === 0 &&
+                <tr>
+                                    <td colSpan="9" className="text-center py-8 text-slate-400">
+                                        No data found. Please select filters and click Search.
+                                    </td>
+                                </tr>}
+                                {reportData.list2.map((item, idx) =>
+                <tr key={idx} className={item.isTotal ? 'total-row' : ''}>
+                                    <td>{item.isTotal ? '' : idx + 1}</td>
+                                    <td>{item.F_Name}</td>
+                                    <td align="right">{item.NeedyBalance?.toFixed ? item.NeedyBalance.toFixed(2) : item.NeedyBalance}</td>
+                                    <td align="right">{item.AgriBalance?.toFixed ? item.AgriBalance.toFixed(2) : item.AgriBalance}</td>
+                                    <td align="right">{item.FactoryTotal?.toFixed ? item.FactoryTotal.toFixed(2) : item.FactoryTotal}</td>
+                                    <td align="right">{item.NonDeductible?.toFixed ? item.NonDeductible.toFixed(2) : item.NonDeductible}</td>
+                                    <td align="right">{item.SocietyBalance?.toFixed ? item.SocietyBalance.toFixed(2) : item.SocietyBalance}</td>
+                                    <td align="right">{item.GrandTotal?.toFixed ? item.GrandTotal.toFixed(2) : item.GrandTotal}</td>
+                                    <td></td>
+                                </tr>
+                )}
+                            </tbody>
+                        </table>
+          </div>
+          }
+
+                    {formData.ReportType === '2' &&
+          <div className="loan-summary-table-wrap">
+            <table className="loan-summary-table" id="example">
                             <thead>
                                 <tr>
                                     <th rowSpan="2" className="align-middle">Sr. No.</th>
@@ -163,38 +394,30 @@ const Report_LoansummaryRpt = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
+                                {reportData.list2.length === 0 &&
+                <tr>
                                     <td colSpan="9" className="text-center py-8 text-slate-400">
                                         No data found. Please select filters and click Search.
                                     </td>
+                                </tr>}
+                                {reportData.list2.map((item, idx) =>
+                <tr key={idx} className={item.isTotal ? 'total-row' : ''}>
+                                    <td>{item.isTotal ? '' : idx + 1}</td>
+                                    <td>{item.F_Name}</td>
+                                    <td align="right">{item.NeedyBalance?.toFixed ? item.NeedyBalance.toFixed(2) : item.NeedyBalance}</td>
+                                    <td align="right">{item.AgriBalance?.toFixed ? item.AgriBalance.toFixed(2) : item.AgriBalance}</td>
+                                    <td align="right">{item.FactoryTotal?.toFixed ? item.FactoryTotal.toFixed(2) : item.FactoryTotal}</td>
+                                    <td align="right">{item.NonDeductible?.toFixed ? item.NonDeductible.toFixed(2) : item.NonDeductible}</td>
+                                    <td align="right">{item.SocietyBalance?.toFixed ? item.SocietyBalance.toFixed(2) : item.SocietyBalance}</td>
+                                    <td align="right">{item.GrandTotal?.toFixed ? item.GrandTotal.toFixed(2) : item.GrandTotal}</td>
+                                    <td></td>
                                 </tr>
+                )}
                             </tbody>
                         </table>
+          </div>
           }
 
-                    {formData.reportType === '3' &&
-          <table className="report-table" id="example">
-                            <thead>
-                                <tr>
-                                    <th>Sr. No.</th>
-                                    <th>Unit Name</th>
-                                    <th>Loan Head</th>
-                                    <th>Total loan Amount (Lac Rs.)</th>
-                                    <th>Amount already Recovered (Lac Rs.)</th>
-                                    <th>Balance Amount to be recovered (Lac Rs.)</th>
-                                    <th>Amount not recoverable (Lac Rs.)</th>
-                                    <th>Recoverable from SS 2024-25? (Y/N)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td colSpan="8" className="text-center py-8 text-slate-400">
-                                        No data found. Please select filters and click Search.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-          }
                 </div>
             </div>
         </div>);

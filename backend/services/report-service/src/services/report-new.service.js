@@ -131,9 +131,9 @@ async function getZoneCentreWiseTruckDetails(zone, centre, season) {
 /**
  * GET: Center Balance Report
  */
-async function getCenterBalanceReport(season) {
+async function getCenterBalanceReport(params, season) {
   try {
-    const data = await repository.getCenterBalanceReport(season);
+    const data = await repository.getCenterBalanceReport(params, season);
     return data || [];
   } catch (error) {
     throw new Error(`Failed to fetch center balance report: ${error.message}`);
@@ -159,12 +159,25 @@ async function mutateCenterBalanceReport(model, command) {
 /**
  * GET: Get Centers for Factory
  */
-async function getCentersForFactory(factoryCode) {
+async function getCentersForFactory(factoryCode, season) {
   try {
-    if (!factoryCode) {
-      throw new Error('Factory code is required');
+    const factory =
+      typeof factoryCode === 'object'
+        ? String(
+            factoryCode.Fact ??
+            factoryCode.fact ??
+            factoryCode.Factory ??
+            factoryCode.factory ??
+            factoryCode.F_code ??
+            factoryCode.F_Code ??
+            ''
+          ).trim()
+        : String(factoryCode || '').trim();
+
+    if (!factory) {
+      return [];
     }
-    const data = await repository.getCentersForFactory(factoryCode);
+    const data = await repository.getCentersForFactory(factory, season);
     return data || [];
   } catch (error) {
     throw new Error(`Failed to fetch centers: ${error.message}`);
@@ -174,10 +187,40 @@ async function getCentersForFactory(factoryCode) {
 /**
  * GET: Cane Purchase Report
  */
-async function getCanePurchaseReport(season) {
+function normalizeDmy(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
+  const dmy = raw.match(/^(\d{2})[-\/](\d{2})[-\/](\d{4})$/);
+  if (dmy) return `${dmy[1]}/${dmy[2]}/${dmy[3]}`;
+  return raw;
+}
+
+async function getCanePurchaseReport(params, season) {
   try {
-    const data = await repository.getCanePurchaseReport(season);
-    return data || [];
+    const rawFactory = String(params?.F_code ?? params?.F_Code ?? params?.factoryCode ?? params?.unitCode ?? '').trim();
+    const factoryCode = (!rawFactory || rawFactory.toLowerCase() === 'all' || rawFactory === '0')
+      ? 0
+      : Number(rawFactory);
+    const payload = {
+      F_code: Number.isFinite(factoryCode) ? factoryCode : 0,
+      FromDate: normalizeDmy(params?.FromDate ?? params?.fromDate ?? ''),
+      ToDate: normalizeDmy(params?.ToDate ?? params?.toDate ?? '')
+    };
+
+    const result = await repository.getCanePurchaseReport(payload, season);
+    const rows = Array.isArray(result?.rows) ? result.rows : Array.isArray(result) ? result : [];
+    const extraRows = Array.isArray(result?.extraRows) ? result.extraRows : [];
+
+    const totals = rows.reduce((acc, row) => {
+      acc.OpeningBalance += Number(row.OpeningBalance || 0);
+      acc.Period += Number(row.Period || 0);
+      acc.GrandTotal += Number(row.GrandTotal || 0);
+      return acc;
+    }, { OpeningBalance: 0, Period: 0, GrandTotal: 0 });
+
+    return { rows, totals, extraRows };
   } catch (error) {
     throw new Error(`Failed to fetch cane purchase report: ${error.message}`);
   }

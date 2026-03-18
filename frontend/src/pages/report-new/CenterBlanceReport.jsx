@@ -5,6 +5,7 @@ import { reportNewService, masterService } from '../../microservices/api.service
 import '../../styles/base.css';const CenterBlanceReport = () => {const navigate = useNavigate();const [units, setUnits] = useState([]);const [loading, setLoading] = useState(false);const [reportData, setReportData] = useState([]);const [filters, setFilters] = useState({ F_code: 'All',
       c_code: '0'
     });
+  const [centers, setCenters] = useState([]);
 
   useEffect(() => {
     masterService.getUnits().then((d) => {
@@ -17,6 +18,19 @@ import '../../styles/base.css';const CenterBlanceReport = () => {const navigate 
     const { name, value } = e.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
+
+  useEffect(() => {
+    if (!filters.F_code || filters.F_code === 'All') {
+      setCenters([]);
+      return;
+    }
+    reportNewService.getCenterBind({ Fact: filters.F_code })
+      .then((d) => {
+        const data = Array.isArray(d) ? d : d.data || [];
+        setCenters(data);
+      })
+      .catch(() => {});
+  }, [filters.F_code]);
 
   const handleSearch = async () => {
     setLoading(true);
@@ -108,6 +122,18 @@ import '../../styles/base.css';const CenterBlanceReport = () => {const navigate 
               )}
                         </select>
                     </div>
+                    <div className="w-[250px] hidden">
+                        <label className={labelStyle}>Center</label>
+                        <select
+              name="c_code"
+              value={filters.c_code}
+              onChange={handleFilterChange} className={inputStyle}>
+                            <option value="0">All</option>
+                            {centers.map((center, idx) =>
+              <option key={`${center.c_code || center.c_Code}-${idx}`} value={center.c_code || center.c_Code}>{center.c_name || center.c_Name}</option>
+              )}
+                        </select>
+                    </div>
                 </div>
 
                 <div className="flex gap-[10px]">
@@ -131,23 +157,31 @@ import '../../styles/base.css';const CenterBlanceReport = () => {const navigate 
                     <table className="w-[100%] text-[11px]">
                         <thead>
                             <tr className="bg-[#f8fafc] font-bold">
-                                <th className="p-[12px] border border-[#cbd5e1] text-center">Sr.No.</th>
-                                <th className="p-[12px] border border-[#cbd5e1] text-left">Center Name</th>
-                                <th className="p-[12px] border border-[#cbd5e1] text-right">Opening Balance</th>
-                                <th className="p-[12px] border border-[#cbd5e1] text-right">Today Purchase</th>
-                                <th className="p-[12px] border border-[#cbd5e1] text-right">Today Dispatch</th>
-                                <th className="p-[12px] border border-[#cbd5e1] text-right">Closing Balance</th>
+                                <th className="p-[12px] border border-[#cbd5e1] text-left">Center</th>
+                                <th className="p-[12px] border border-[#cbd5e1] text-left">Clerk</th>
+                                <th className="p-[12px] border border-[#cbd5e1] text-left">Posting Date</th>
+                                <th className="p-[12px] border border-[#cbd5e1] text-left">Desc</th>
+                                <th className="p-[12px] border border-[#cbd5e1] text-right">Purchase</th>
+                                <th className="p-[12px] border border-[#cbd5e1] text-right">Manual</th>
+                                <th className="p-[12px] border border-[#cbd5e1] text-right">Reciept</th>
+                                <th className="p-[12px] border border-[#cbd5e1] text-right">Transit</th>
+                                <th className="p-[12px] border border-[#cbd5e1] text-right">Center Running Balance</th>
+                                <th className="p-[12px] border border-[#cbd5e1] text-right">Balance</th>
                             </tr>
                         </thead>
                         <tbody>
                             {reportData.map((row, index) =>
             <tr key={index} className="border-b border-b-[#f1f5f9]">
-                                    <td className="py-[8px] px-[12px] text-center">{index + 1}</td>
-                                    <td className="py-[8px] px-[12px] font-bold">{row.c_name || row.C_Name}</td>
-                                    <td className="py-[8px] px-[12px] text-right">{row.OpeningBalance || row.op_bal || 0}</td>
-                                    <td className="py-[8px] px-[12px] text-right">{row.TodayPurchase || row.pur_qty || 0}</td>
-                                    <td className="py-[8px] px-[12px] text-right">{row.TodayDispatch || row.dis_qty || 0}</td>
-                                    <td className="py-[8px] px-[12px] text-right">{row.ClosingBalance || row.cl_bal || 0}</td>
+                                    <td className="py-[8px] px-[12px]">{row.Centre ?? row.Center ?? row.centre ?? ''}</td>
+                                    <td className="py-[8px] px-[12px]">{row.WClerk ?? row.Clerk ?? row.wclerk ?? ''}</td>
+                                    <td className="py-[8px] px-[12px]">{row.PostingDate ?? row.postingdate ?? row.Posting_Date ?? ''}</td>
+                                    <td className="py-[8px] px-[12px]">{row.Desc ?? row.desc ?? ''}</td>
+                                    <td className="py-[8px] px-[12px] text-right">{row.Purchase ?? row.purchase ?? 0}</td>
+                                    <td className="py-[8px] px-[12px] text-right">{row.Manual ?? row.manual ?? 0}</td>
+                                    <td className="py-[8px] px-[12px] text-right">{row.Receipt ?? row.Reciept ?? row.receipt ?? 0}</td>
+                                    <td className="py-[8px] px-[12px] text-right">{row.Transit ?? row.transit ?? 0}</td>
+                                    <td className="py-[8px] px-[12px] text-right">{row.CentreRunningBal ?? row.CenterRunningBal ?? row.centrerunningbal ?? 0}</td>
+                                    <td className="py-[8px] px-[12px] text-right">{row.Balance ?? row.balance ?? 0}</td>
                                 </tr>
             )}
                         </tbody>
