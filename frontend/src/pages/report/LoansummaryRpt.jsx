@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { FaFileExcel, FaSearch, FaArrowLeft, FaPrint, FaMoneyBillWave } from 'react-icons/fa';
 import '../../styles/Report.css';
@@ -61,7 +62,6 @@ const Report_LoansummaryRpt = () => {
         const needyTotal = Number(item.NeedySugarLoan || 0);
         const needyDeducted = Number(item.NeedySugarDeduct || 0);
         const needyBalance = needyTotal - needyDeducted;
-        const nonDeductible = Number(item.NonDeductible || 0);
         const agriTotal = Number(item.AgriInputsOther || 0);
         const agriDeducted = Number(item.AgriInputsOtherDeduct || 0);
         const agriBalance = agriTotal - agriDeducted;
@@ -76,7 +76,7 @@ const Report_LoansummaryRpt = () => {
           GrandTotal: needyTotal + agriTotal,
           GrandDeducted: needyDeducted + agriDeducted,
           GrandBalance: needyBalance + agriBalance,
-          NonDeductible: nonDeductible,
+          NonDeductible: 0,
           Remarks: ''
         };
       });
@@ -93,7 +93,6 @@ const Report_LoansummaryRpt = () => {
             acc.GrandTotal += r.GrandTotal;
             acc.GrandDeducted += r.GrandDeducted;
             acc.GrandBalance += r.GrandBalance;
-            acc.NonDeductible += r.NonDeductible;
             return acc;
           },
           {
@@ -105,14 +104,13 @@ const Report_LoansummaryRpt = () => {
             AgriBalance: 0,
             GrandTotal: 0,
             GrandDeducted: 0,
-            GrandBalance: 0,
-            NonDeductible: 0
+            GrandBalance: 0
           }
         );
         list1.push({
           F_Name: 'Total',
           ...totals,
-          NonDeductible: totals.NonDeductible,
+          NonDeductible: 0,
           Remarks: '',
           isTotal: true
         });
@@ -122,14 +120,13 @@ const Report_LoansummaryRpt = () => {
         const needyBalance = Number(item.NeedySugarLoan || 0);
         const agriBalance = Number(item.AgriInputsOther || 0);
         const factoryTotal = needyBalance + agriBalance;
-        const nonDeductible = Number(item.NonDeductible || 0);
         const societyBalance = Number(item.SocietyTotal || 0);
         return {
           F_Name: item.Fname || item.F_Name || '',
           NeedyBalance: needyBalance,
           AgriBalance: agriBalance,
           FactoryTotal: factoryTotal,
-          NonDeductible: nonDeductible,
+          NonDeductible: 0,
           SocietyBalance: societyBalance,
           GrandTotal: factoryTotal + societyBalance,
           Remarks: ''
@@ -142,7 +139,6 @@ const Report_LoansummaryRpt = () => {
             acc.NeedyBalance += r.NeedyBalance;
             acc.AgriBalance += r.AgriBalance;
             acc.FactoryTotal += r.FactoryTotal;
-            acc.NonDeductible += r.NonDeductible;
             acc.SocietyBalance += r.SocietyBalance;
             acc.GrandTotal += r.GrandTotal;
             return acc;
@@ -151,7 +147,6 @@ const Report_LoansummaryRpt = () => {
             NeedyBalance: 0,
             AgriBalance: 0,
             FactoryTotal: 0,
-            NonDeductible: 0,
             SocietyBalance: 0,
             GrandTotal: 0
           }
@@ -159,7 +154,7 @@ const Report_LoansummaryRpt = () => {
         list2.push({
           F_Name: 'Total',
           ...totals,
-          NonDeductible: totals.NonDeductible,
+          NonDeductible: 0,
           Remarks: '',
           isTotal: true
         });
@@ -283,8 +278,7 @@ const Report_LoansummaryRpt = () => {
             <div className="report-card-content">
                 <div className="report-table-container">
                     {formData.ReportType === '1' &&
-          <div className="loan-summary-table-wrap">
-            <table className="loan-summary-table" id="example">
+          <table className="report-table" id="example">
                             <thead>
                                 <tr>
                                     <th rowSpan="2" className="align-middle">Sr. No.</th>
@@ -309,7 +303,7 @@ const Report_LoansummaryRpt = () => {
                                     </td>
                                 </tr>}
                                 {reportData.list1.map((item, idx) =>
-                <tr key={idx} className={item.isTotal ? 'total-row' : ''}>
+                <tr key={idx} className={item.isTotal ? 'bg-[#37d39a] font-semibold' : ''}>
                                     <td>{item.isTotal ? '' : idx + 1}</td>
                                     <td>{item.F_Name}</td>
                                     <td align="right">{item.NeedyTotal?.toFixed ? item.NeedyTotal.toFixed(2) : item.NeedyTotal}</td>
@@ -321,18 +315,16 @@ const Report_LoansummaryRpt = () => {
                                     <td align="right">{item.GrandTotal?.toFixed ? item.GrandTotal.toFixed(2) : item.GrandTotal}</td>
                                     <td align="right">{item.GrandDeducted?.toFixed ? item.GrandDeducted.toFixed(2) : item.GrandDeducted}</td>
                                     <td align="right">{item.GrandBalance?.toFixed ? item.GrandBalance.toFixed(2) : item.GrandBalance}</td>
-                                    <td align="right">{item.NonDeductible?.toFixed ? item.NonDeductible.toFixed(2) : item.NonDeductible}</td>
+                                    <td align="right">0</td>
                                     <td></td>
                                 </tr>
                 )}
                             </tbody>
                         </table>
-          </div>
           }
 
                     {formData.ReportType === '1' &&
-          <div className="loan-summary-table-wrap">
-            <table className="loan-summary-table" id="example">
+          <table className="report-table" id="example" style={{ marginTop: '16px' }}>
                             <thead>
                                 <tr>
                                     <th rowSpan="2" className="align-middle">Sr. No.</th>
@@ -357,13 +349,13 @@ const Report_LoansummaryRpt = () => {
                                     </td>
                                 </tr>}
                                 {reportData.list2.map((item, idx) =>
-                <tr key={idx} className={item.isTotal ? 'total-row' : ''}>
+                <tr key={idx} className={item.isTotal ? 'bg-[#37d39a] font-semibold' : ''}>
                                     <td>{item.isTotal ? '' : idx + 1}</td>
                                     <td>{item.F_Name}</td>
                                     <td align="right">{item.NeedyBalance?.toFixed ? item.NeedyBalance.toFixed(2) : item.NeedyBalance}</td>
                                     <td align="right">{item.AgriBalance?.toFixed ? item.AgriBalance.toFixed(2) : item.AgriBalance}</td>
                                     <td align="right">{item.FactoryTotal?.toFixed ? item.FactoryTotal.toFixed(2) : item.FactoryTotal}</td>
-                                    <td align="right">{item.NonDeductible?.toFixed ? item.NonDeductible.toFixed(2) : item.NonDeductible}</td>
+                                    <td align="right">0</td>
                                     <td align="right">{item.SocietyBalance?.toFixed ? item.SocietyBalance.toFixed(2) : item.SocietyBalance}</td>
                                     <td align="right">{item.GrandTotal?.toFixed ? item.GrandTotal.toFixed(2) : item.GrandTotal}</td>
                                     <td></td>
@@ -371,12 +363,10 @@ const Report_LoansummaryRpt = () => {
                 )}
                             </tbody>
                         </table>
-          </div>
           }
 
                     {formData.ReportType === '2' &&
-          <div className="loan-summary-table-wrap">
-            <table className="loan-summary-table" id="example">
+          <table className="report-table" id="example">
                             <thead>
                                 <tr>
                                     <th rowSpan="2" className="align-middle">Sr. No.</th>
@@ -401,13 +391,13 @@ const Report_LoansummaryRpt = () => {
                                     </td>
                                 </tr>}
                                 {reportData.list2.map((item, idx) =>
-                <tr key={idx} className={item.isTotal ? 'total-row' : ''}>
+                <tr key={idx} className={item.isTotal ? 'bg-[#37d39a] font-semibold' : ''}>
                                     <td>{item.isTotal ? '' : idx + 1}</td>
                                     <td>{item.F_Name}</td>
                                     <td align="right">{item.NeedyBalance?.toFixed ? item.NeedyBalance.toFixed(2) : item.NeedyBalance}</td>
                                     <td align="right">{item.AgriBalance?.toFixed ? item.AgriBalance.toFixed(2) : item.AgriBalance}</td>
                                     <td align="right">{item.FactoryTotal?.toFixed ? item.FactoryTotal.toFixed(2) : item.FactoryTotal}</td>
-                                    <td align="right">{item.NonDeductible?.toFixed ? item.NonDeductible.toFixed(2) : item.NonDeductible}</td>
+                                    <td align="right">0</td>
                                     <td align="right">{item.SocietyBalance?.toFixed ? item.SocietyBalance.toFixed(2) : item.SocietyBalance}</td>
                                     <td align="right">{item.GrandTotal?.toFixed ? item.GrandTotal.toFixed(2) : item.GrandTotal}</td>
                                     <td></td>
@@ -415,7 +405,6 @@ const Report_LoansummaryRpt = () => {
                 )}
                             </tbody>
                         </table>
-          </div>
           }
 
                 </div>
