@@ -98,16 +98,18 @@ const Lab_AddBudgetview = () => {
                   <thead>
                     <tr>
                       <th>ID</th>
-                      <th>F_Code</th>
+                      <th>Factory</th>
                       <th>Budget Amount</th>
                       <th>Start Date</th>
                       <th>End Date</th>
+                      <th>Week</th>
                     </tr>
                   </thead>
                   <tbody>
                     {rows.length ? (
                       rows.map((item, index) => {
                         const rowKey = `${item?.WB_ID ?? 'row'}-${item?.WB_Factory ?? ''}-${index}`;
+                        const factoryName = item?.F_Name || item?.F_NAME || item?.WB_Factory;
                         return (
                           <tr key={rowKey}>
                             <td>
@@ -119,16 +121,17 @@ const Lab_AddBudgetview = () => {
                                 {item.WB_ID}
                               </button>
                             </td>
-                            <td>{item.WB_Factory}</td>
+                            <td>{factoryName}</td>
                             <td>{item.WB_BudgetAmount}</td>
                             <td>{item.WB_FromDate}</td>
                             <td>{item.WB_ToDate}</td>
+                            <td>{item.WB_Week}</td>
                           </tr>
                         );
                       })
                     ) : (
                       <tr>
-                        <td className="abv-empty" colSpan={5}>
+                        <td className="abv-empty" colSpan={6}>
                           {loading ? 'Loading...' : 'No Record Available'}
                         </td>
                       </tr>

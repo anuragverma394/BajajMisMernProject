@@ -258,11 +258,10 @@ exports.SugarBagProducedView = async (req, res, next) => {
   try {
     const season = req.user?.season;
     const factoryRaw = String(req.query.factory || req.query.FACTORY || req.body?.factory || req.body?.FACTORY || '').trim();
-    const dateRaw = req.query.date || req.query.H_DATE || req.query.DDATE || req.body?.date || req.body?.H_DATE || req.body?.DDATE || '';
-    const dateIso = parseFlexibleDateToIso(dateRaw);
+    const dateRaw = req.query.H_DATE || req.query.date || req.query.DDATE || req.body?.H_DATE || req.body?.date || req.body?.DDATE || '';
 
-    if (!dateIso) {
-      return res.status(400).json({ success: false, message: 'Valid date is required (DD/MM/YYYY or YYYY-MM-DD)' });
+    if (!dateRaw) {
+      return res.status(400).json({ success: false, message: 'H_DATE is required (DD/MM/YYYY)' });
     }
 
     if (!factoryRaw || factoryRaw === '0' || String(factoryRaw).toLowerCase() === 'all') {
@@ -271,25 +270,26 @@ exports.SugarBagProducedView = async (req, res, next) => {
 
     const factoryCode = Number(factoryRaw);
     if (!Number.isFinite(factoryCode) || factoryCode <= 0) {
-      return res.status(400).json({ success: false, message: 'factory/FACTORY must be a positive number' });
+      return res.status(400).json({ success: false, message: 'FACTORY must be a positive number' });
     }
 
+    const labHourTable = await resolveLabTable(season, 'LAB_HOUR');
     const rows = await executeQuery(
       `SELECT
-          ISNULL(lh.TIME, '') AS TIME,
-          ISNULL(h.DIS_HOU, '') AS TIME_IN_HOURS,
-          ISNULL(lh.SHIFT, '') AS SHIFT,
-          CONVERT(varchar(10), lh.H_DATE, 103) AS [DATE],
-          CONVERT(varchar(10), lh.H_DATE, 103) AS H_DATE,
-          ISNULL(lh.MILL_NO, 0) AS MILLNO,
-          ISNULL(lh.MILL_NO, 0) AS MILL_NO,
+          CONVERT(VARCHAR, lh.H_DATE, 103) AS H_DATE,
           lh.FACTORY,
-          ISNULL(lh.COL2, 0) AS COL2,
-          ISNULL(lh.ADD_WATER, 0) AS ADD_WATER,
+          lh.SHIFT,
+          lh.ADD_WATER,
+          lh.TIME,
+          h.DIS_HOU AS TIME_IN_HOURS,
+          lh.MILL_NO,
+          lh.COL2,
+          ISNULL(lh.ADD_TANK, 0) AS ADD_TANK,
           ISNULL(lh.DRAIN_POL1, 0) AS DRAIN_POL1,
           ISNULL(lh.DRAIN_POL2, 0) AS DRAIN_POL2,
           ISNULL(lh.DRAIN_POL3, 0) AS DRAIN_POL3,
           ISNULL(lh.DRAIN_POL4, 0) AS DRAIN_POL4,
+          ISNULL(lh.DRAIN_POL5, 0) AS DRAIN_POL5,
           ISNULL(lh.SPRAY_WATER_POL, 0) AS SPRAY_WATER_POL,
           ISNULL(lh.SPRAY_WATER_POL2, 0) AS SPRAY_WATER_POL2,
           ISNULL(lh.EXHST_PRS_DEVCI, 0) AS EXHST_PRS_DEVCI,
@@ -333,41 +333,223 @@ exports.SugarBagProducedView = async (req, res, next) => {
           ISNULL(lh.SBAG_TEMP, 0) AS SBAG_TEMP,
           ISNULL(lh.BISS, 0) AS BISS,
           ISNULL(lh.BISSCLR, 0) AS BISSCLR,
-          ISNULL(lh.BISSRET, 0) AS BISSRET
-       FROM LAB_HOUR lh
-       LEFT JOIN MI_Hours h ON h.Labsn = lh.TIME
-       WHERE CAST(lh.H_DATE AS date) = @dateIso
-         AND lh.FACTORY = @factoryCode
-       ORDER BY lh.H_DATE DESC, lh.TIME DESC`,
-      { dateIso, factoryCode },
+          ISNULL(lh.BISSRET, 0) AS BISSRET,
+          CONVERT(VARCHAR, lh.H_DATE, 103) AS [DATE],
+          ISNULL(lh.MILL_NO, 0) AS MILLNO
+       FROM ${labHourTable} lh
+       JOIN MI_Hours h ON h.Labsn = lh.Time
+       WHERE CONVERT(NVARCHAR, lh.H_DATE, 103) = @H_DATE
+         AND lh.FACTORY = @FACTORY
+       ORDER BY CONVERT(VARCHAR, lh.H_DATE, 103), lh.TIME DESC`,
+      { H_DATE: dateRaw, FACTORY: factoryCode },
       season
     );
 
-    const data = rows.map((r) => {
-      const total = Number(r.L_31 || 0)
-        + Number(r.L_30 || 0)
-        + Number(r.L_29 || 0)
-        + Number(r.M_31 || 0)
-        + Number(r.M_30 || 0)
-        + Number(r.M_29 || 0)
-        + Number(r.S_31 || 0)
-        + Number(r.S_30 || 0)
-        + Number(r.S_29 || 0)
-        + Number(r.SS_31 || 0);
-
-      return {
-        ...r,
-        GTotal: Number(total.toFixed(2))
-      };
-    });
-
-    return res.status(200).json({ success: true, data });
+    return res.status(200).json({ success: true, data: rows });
   } catch (error) {
     return next(error);
   }
 };
 exports.SugarBagProducedAdd = createProcedureHandler(CONTROLLER, 'SugarBagProducedAdd', '');
-exports.SugarBagProducedAdd_2 = createProcedureHandler(CONTROLLER, 'SugarBagProducedAdd', 'SugarBagProducedView Model,string command');
+exports.SugarBagProducedAdd_2 = async (req, res, next) => {
+  try {
+    const season = req.user?.season;
+    const body = req.body || {};
+    const factoryRaw = String(body.FACTORY || body.factory || '').trim();
+    const dateRaw = body.H_DATE || body.date || body.DDATE || '';
+    const timeRaw = String(body.TIME || '').trim();
+    const shiftRaw = String(body.SHIFT || '').trim();
+    const millRaw = String(body.MILL_NO || body.MILLNO || '').trim();
+
+    if (!factoryRaw || !dateRaw || !timeRaw || !millRaw) {
+      return res.status(400).json({ success: false, message: 'FACTORY, H_DATE, TIME, and MILL_NO are required' });
+    }
+
+    const factoryCode = Number(factoryRaw);
+    const millNo = Number(millRaw);
+    if (!Number.isFinite(factoryCode) || factoryCode <= 0 || !Number.isFinite(millNo) || millNo <= 0) {
+      return res.status(400).json({ success: false, message: 'FACTORY and MILL_NO must be positive numbers' });
+    }
+
+    const dateIso = parseFlexibleDateToIso(dateRaw);
+    if (!dateIso) {
+      return res.status(400).json({ success: false, message: 'Valid H_DATE is required (DD/MM/YYYY or YYYY-MM-DD)' });
+    }
+
+    const labHourTable = await resolveLabTable(season, 'LAB_HOUR');
+
+    const payload = {
+      FACTORY: factoryCode,
+      H_DATE: dateIso,
+      TIME: timeRaw,
+      SHIFT: shiftRaw,
+      MILL_NO: millNo,
+      COL2: normalizeDecimal(body.COL2),
+      ADD_WATER: normalizeDecimal(body.ADD_WATER),
+      ADD_TANK: normalizeDecimal(body.ADD_TANK),
+      DRAIN_POL1: normalizeDecimal(body.DRAIN_POL1),
+      DRAIN_POL2: normalizeDecimal(body.DRAIN_POL2),
+      DRAIN_POL3: normalizeDecimal(body.DRAIN_POL3),
+      DRAIN_POL4: normalizeDecimal(body.DRAIN_POL4),
+      DRAIN_POL5: normalizeDecimal(body.DRAIN_POL5),
+      SPRAY_WATER_POL: normalizeDecimal(body.SPRAY_WATER_POL),
+      SPRAY_WATER_POL2: normalizeDecimal(body.SPRAY_WATER_POL2),
+      EXHST_PRS_DEVCI: normalizeDecimal(body.EXHST_PRS_DEVCI),
+      LIVE_ST_PRS: normalizeDecimal(body.LIVE_ST_PRS),
+      BACK_PRS_DEVCI: normalizeDecimal(body.BACK_PRS_DEVCI),
+      BACK_PRS_DEVCII: normalizeDecimal(body.BACK_PRS_DEVCII),
+      L_31: normalizeDecimal(body.L_31),
+      L_31CLR: normalizeDecimal(body.L_31CLR),
+      L_31RET: normalizeDecimal(body.L_31RET),
+      L_30: normalizeDecimal(body.L_30),
+      L_30CLR: normalizeDecimal(body.L_30CLR),
+      L_30RET: normalizeDecimal(body.L_30RET),
+      L_29: normalizeDecimal(body.L_29),
+      L_29CLR: normalizeDecimal(body.L_29CLR),
+      L_29RET: normalizeDecimal(body.L_29RET),
+      LBAG_TEMP: normalizeDecimal(body.LBAG_TEMP),
+      M_31: normalizeDecimal(body.M_31),
+      M_31CLR: normalizeDecimal(body.M_31CLR),
+      M_31RET: normalizeDecimal(body.M_31RET),
+      M31BAG_TEMP: normalizeDecimal(body.M31BAG_TEMP),
+      M_30: normalizeDecimal(body.M_30),
+      M_30CLR: normalizeDecimal(body.M_30CLR),
+      M_30RET: normalizeDecimal(body.M_30RET),
+      M30BAG_TEMP: normalizeDecimal(body.M30BAG_TEMP),
+      M_29: normalizeDecimal(body.M_29),
+      M_29CLR: normalizeDecimal(body.M_29CLR),
+      M_29RET: normalizeDecimal(body.M_29RET),
+      M29BAG_TEMP: normalizeDecimal(body.M29BAG_TEMP),
+      S_31: normalizeDecimal(body.S_31),
+      S_31CLR: normalizeDecimal(body.S_31CLR),
+      S_31RET: normalizeDecimal(body.S_31RET),
+      S_30: normalizeDecimal(body.S_30),
+      S_30CLR: normalizeDecimal(body.S_30CLR),
+      S_30RET: normalizeDecimal(body.S_30RET),
+      S_29: normalizeDecimal(body.S_29),
+      S_29CLR: normalizeDecimal(body.S_29CLR),
+      S_29RET: normalizeDecimal(body.S_29RET),
+      SS_31: normalizeDecimal(body.SS_31),
+      SS_31CLR: normalizeDecimal(body.SS_31CLR),
+      SS_31RET: normalizeDecimal(body.SS_31RET),
+      SBAG_TEMP: normalizeDecimal(body.SBAG_TEMP),
+      BISS: normalizeDecimal(body.BISS),
+      BISSCLR: normalizeDecimal(body.BISSCLR),
+      BISSRET: normalizeDecimal(body.BISSRET)
+    };
+
+    const existing = await executeQuery(
+      `SELECT 1 AS existsRow
+         FROM ${labHourTable}
+        WHERE FACTORY = @FACTORY
+          AND CAST(H_DATE AS date) = @H_DATE
+          AND TIME = @TIME
+          AND MILL_NO = @MILL_NO`,
+      {
+        FACTORY: payload.FACTORY,
+        H_DATE: payload.H_DATE,
+        TIME: payload.TIME,
+        MILL_NO: payload.MILL_NO
+      },
+      season
+    );
+
+    if (existing.length > 0) {
+      await executeQuery(
+        `UPDATE ${labHourTable}
+            SET SHIFT = @SHIFT,
+                COL2 = @COL2,
+                ADD_WATER = @ADD_WATER,
+                ADD_TANK = @ADD_TANK,
+                DRAIN_POL1 = @DRAIN_POL1,
+                DRAIN_POL2 = @DRAIN_POL2,
+                DRAIN_POL3 = @DRAIN_POL3,
+                DRAIN_POL4 = @DRAIN_POL4,
+                DRAIN_POL5 = @DRAIN_POL5,
+                SPRAY_WATER_POL = @SPRAY_WATER_POL,
+                SPRAY_WATER_POL2 = @SPRAY_WATER_POL2,
+                EXHST_PRS_DEVCI = @EXHST_PRS_DEVCI,
+                LIVE_ST_PRS = @LIVE_ST_PRS,
+                BACK_PRS_DEVCI = @BACK_PRS_DEVCI,
+                BACK_PRS_DEVCII = @BACK_PRS_DEVCII,
+                L_31 = @L_31,
+                L_31CLR = @L_31CLR,
+                L_31RET = @L_31RET,
+                L_30 = @L_30,
+                L_30CLR = @L_30CLR,
+                L_30RET = @L_30RET,
+                L_29 = @L_29,
+                L_29CLR = @L_29CLR,
+                L_29RET = @L_29RET,
+                LBAG_TEMP = @LBAG_TEMP,
+                M_31 = @M_31,
+                M_31CLR = @M_31CLR,
+                M_31RET = @M_31RET,
+                M31BAG_TEMP = @M31BAG_TEMP,
+                M_30 = @M_30,
+                M_30CLR = @M_30CLR,
+                M_30RET = @M_30RET,
+                M30BAG_TEMP = @M30BAG_TEMP,
+                M_29 = @M_29,
+                M_29CLR = @M_29CLR,
+                M_29RET = @M_29RET,
+                M29BAG_TEMP = @M29BAG_TEMP,
+                S_31 = @S_31,
+                S_31CLR = @S_31CLR,
+                S_31RET = @S_31RET,
+                S_30 = @S_30,
+                S_30CLR = @S_30CLR,
+                S_30RET = @S_30RET,
+                S_29 = @S_29,
+                S_29CLR = @S_29CLR,
+                S_29RET = @S_29RET,
+                SS_31 = @SS_31,
+                SS_31CLR = @SS_31CLR,
+                SS_31RET = @SS_31RET,
+                SBAG_TEMP = @SBAG_TEMP,
+                BISS = @BISS,
+                BISSCLR = @BISSCLR,
+                BISSRET = @BISSRET
+          WHERE FACTORY = @FACTORY
+            AND CAST(H_DATE AS date) = @H_DATE
+            AND TIME = @TIME
+            AND MILL_NO = @MILL_NO`,
+        payload,
+        season
+      );
+    } else {
+      await executeQuery(
+        `INSERT INTO ${labHourTable} (
+            FACTORY, H_DATE, TIME, SHIFT, MILL_NO,
+            COL2, ADD_WATER, ADD_TANK,
+            DRAIN_POL1, DRAIN_POL2, DRAIN_POL3, DRAIN_POL4, DRAIN_POL5,
+            SPRAY_WATER_POL, SPRAY_WATER_POL2,
+            EXHST_PRS_DEVCI, LIVE_ST_PRS, BACK_PRS_DEVCI, BACK_PRS_DEVCII,
+            L_31, L_31CLR, L_31RET, L_30, L_30CLR, L_30RET, L_29, L_29CLR, L_29RET, LBAG_TEMP,
+            M_31, M_31CLR, M_31RET, M31BAG_TEMP, M_30, M_30CLR, M_30RET, M30BAG_TEMP, M_29, M_29CLR, M_29RET, M29BAG_TEMP,
+            S_31, S_31CLR, S_31RET, S_30, S_30CLR, S_30RET, S_29, S_29CLR, S_29RET, SS_31, SS_31CLR, SS_31RET,
+            SBAG_TEMP, BISS, BISSCLR, BISSRET
+         ) VALUES (
+            @FACTORY, @H_DATE, @TIME, @SHIFT, @MILL_NO,
+            @COL2, @ADD_WATER, @ADD_TANK,
+            @DRAIN_POL1, @DRAIN_POL2, @DRAIN_POL3, @DRAIN_POL4, @DRAIN_POL5,
+            @SPRAY_WATER_POL, @SPRAY_WATER_POL2,
+            @EXHST_PRS_DEVCI, @LIVE_ST_PRS, @BACK_PRS_DEVCI, @BACK_PRS_DEVCII,
+            @L_31, @L_31CLR, @L_31RET, @L_30, @L_30CLR, @L_30RET, @L_29, @L_29CLR, @L_29RET, @LBAG_TEMP,
+            @M_31, @M_31CLR, @M_31RET, @M31BAG_TEMP, @M_30, @M_30CLR, @M_30RET, @M30BAG_TEMP, @M_29, @M_29CLR, @M_29RET, @M29BAG_TEMP,
+            @S_31, @S_31CLR, @S_31RET, @S_30, @S_30CLR, @S_30RET, @S_29, @S_29CLR, @S_29RET, @SS_31, @SS_31CLR, @SS_31RET,
+            @SBAG_TEMP, @BISS, @BISSCLR, @BISSRET
+         )`,
+        payload,
+        season
+      );
+    }
+
+    return res.status(200).json({ success: true, message: 'Saved successfully' });
+  } catch (error) {
+    return next(error);
+  }
+};
 exports.ShiftSet = createProcedureHandler(CONTROLLER, 'ShiftSet', 'string TIME');
 exports.TestAnurag1 = createProcedureHandler(CONTROLLER, 'TestAnurag1', 'string pol,string brix');
 exports.TestRohit1 = exports.TestAnurag1;
@@ -539,8 +721,196 @@ exports.DailyLabAnalysisView = async (req, res, next) => {
     return next(error);
   }
 };
-exports.DailyLabAnalysisAdd = createProcedureHandler(CONTROLLER, 'DailyLabAnalysisAdd', '');
-exports.DailyLabAnalysisAdd_2 = createProcedureHandler(CONTROLLER, 'DailyLabAnalysisAdd', 'DailyLabAnalysisEntry Model,string command');
+const upsertDailyLabAnalysis = async (req, res, next) => {
+  try {
+    const season = req.user?.season;
+    const body = req.body || {};
+
+    const factoryRaw = String(body.FACTORY || body.factory || '').trim();
+    const dateRaw = body.DDATE || body.date || '';
+    const timeRaw = String(body.TIME1 || body.TIME || '').trim();
+    const shiftRaw = String(body.Shift1 || body.SHIFT || '').trim();
+    const millRaw = String(body.MILL_NO || body.MILLNO || '').trim();
+
+    if (!factoryRaw || !dateRaw || !timeRaw || !millRaw) {
+      return res.status(400).json({ success: false, message: 'FACTORY, DDATE, TIME1, and MILL_NO are required' });
+    }
+
+    const factoryCode = Number(factoryRaw);
+    const millNo = Number(millRaw);
+    if (!Number.isFinite(factoryCode) || factoryCode <= 0 || !Number.isFinite(millNo) || millNo <= 0) {
+      return res.status(400).json({ success: false, message: 'FACTORY and MILL_NO must be positive numbers' });
+    }
+
+    const dateIso = parseFlexibleDateToIso(dateRaw);
+    if (!dateIso) {
+      return res.status(400).json({ success: false, message: 'Valid DDATE is required (DD/MM/YYYY or YYYY-MM-DD)' });
+    }
+
+    const labDailyTable = await resolveLabTable(season, 'Lab_Daily');
+    const payload = {
+      FACTORY: factoryCode,
+      DDATE: dateIso,
+      TIME1: timeRaw,
+      Shift1: shiftRaw,
+      MILL_NO: millNo,
+      PJ_BX: normalizeDecimal(body.PJ_BX),
+      PJ_POL: normalizeDecimal(body.PJ_POL),
+      PJ_PY: normalizeDecimal(body.PJ_PY),
+      MJ_BX: normalizeDecimal(body.MJ_BX),
+      MJ_POL: normalizeDecimal(body.MJ_POL),
+      MJ_PY: normalizeDecimal(body.MJ_PY),
+      LMJ_BX: normalizeDecimal(body.LMJ_BX),
+      LMJ_POL: normalizeDecimal(body.LMJ_POL),
+      LMJ_PY: normalizeDecimal(body.LMJ_PY),
+      FPJU_BX: normalizeDecimal(body.FPJU_BX),
+      FPJU_POL: normalizeDecimal(body.FPJU_POL),
+      FPJU_PY: normalizeDecimal(body.FPJU_PY),
+      FPJT_BX: normalizeDecimal(body.FPJT_BX),
+      FPJT_POL: normalizeDecimal(body.FPJT_POL),
+      FPJT_PY: normalizeDecimal(body.FPJT_PY),
+      CJ_BX: normalizeDecimal(body.CJ_BX),
+      CJ_POL: normalizeDecimal(body.CJ_POL),
+      CJ_PY: normalizeDecimal(body.CJ_PY),
+      DEVC_I_BX: normalizeDecimal(body.DEVC_I_BX),
+      DEVC_II_BX: normalizeDecimal(body.DEVC_II_BX),
+      US_BX: normalizeDecimal(body.US_BX),
+      US_POL: normalizeDecimal(body.US_POL),
+      US_PY: normalizeDecimal(body.US_PY),
+      UST_BX: normalizeDecimal(body.UST_BX),
+      UST_POL: normalizeDecimal(body.UST_POL),
+      UST_PY: normalizeDecimal(body.UST_PY),
+      SS_BX: normalizeDecimal(body.SS_BX),
+      SS_POL: normalizeDecimal(body.SS_POL),
+      SS_PY: normalizeDecimal(body.SS_PY),
+      B_POL: normalizeDecimal(body.B_POL),
+      B_MOIS: normalizeDecimal(body.B_MOIS),
+      PC: normalizeDecimal(body.PC),
+      PC1: normalizeDecimal(body.PC1),
+      PC2: normalizeDecimal(body.PC2),
+      PC3: normalizeDecimal(body.PC3),
+      PC4: normalizeDecimal(body.PC4),
+      PC5: normalizeDecimal(body.PC5),
+      PC6: normalizeDecimal(body.PC6),
+      ADD_WATER: normalizeDecimal(body.ADD_WATER),
+      MAC_FIBRE: normalizeDecimal(body.MAC_FIBRE),
+      USER_CODE: String(body.USER_CODE || req.user?.userId || req.user?.username || '').trim()
+    };
+
+    const existing = await executeQuery(
+      `SELECT 1 AS existsRow
+         FROM ${labDailyTable}
+        WHERE FACTORY = @FACTORY
+          AND CAST(DDATE AS date) = @DDATE
+          AND TIME1 = @TIME1
+          AND MILL_NO = @MILL_NO`,
+      {
+        FACTORY: payload.FACTORY,
+        DDATE: payload.DDATE,
+        TIME1: payload.TIME1,
+        MILL_NO: payload.MILL_NO
+      },
+      season
+    );
+
+    if (existing.length > 0) {
+      await executeQuery(
+        `UPDATE ${labDailyTable}
+            SET Shift1 = @Shift1,
+                PJ_BX = @PJ_BX,
+                PJ_POL = @PJ_POL,
+                PJ_PY = @PJ_PY,
+                MJ_BX = @MJ_BX,
+                MJ_POL = @MJ_POL,
+                MJ_PY = @MJ_PY,
+                LMJ_BX = @LMJ_BX,
+                LMJ_POL = @LMJ_POL,
+                LMJ_PY = @LMJ_PY,
+                FPJU_BX = @FPJU_BX,
+                FPJU_POL = @FPJU_POL,
+                FPJU_PY = @FPJU_PY,
+                FPJT_BX = @FPJT_BX,
+                FPJT_POL = @FPJT_POL,
+                FPJT_PY = @FPJT_PY,
+                CJ_BX = @CJ_BX,
+                CJ_POL = @CJ_POL,
+                CJ_PY = @CJ_PY,
+                DEVC_I_BX = @DEVC_I_BX,
+                DEVC_II_BX = @DEVC_II_BX,
+                US_BX = @US_BX,
+                US_POL = @US_POL,
+                US_PY = @US_PY,
+                UST_BX = @UST_BX,
+                UST_POL = @UST_POL,
+                UST_PY = @UST_PY,
+                SS_BX = @SS_BX,
+                SS_POL = @SS_POL,
+                SS_PY = @SS_PY,
+                B_POL = @B_POL,
+                B_MOIS = @B_MOIS,
+                PC = @PC,
+                PC1 = @PC1,
+                PC2 = @PC2,
+                PC3 = @PC3,
+                PC4 = @PC4,
+                PC5 = @PC5,
+                PC6 = @PC6,
+                ADD_WATER = @ADD_WATER,
+                MAC_FIBRE = @MAC_FIBRE,
+                USER_CODE = @USER_CODE
+          WHERE FACTORY = @FACTORY
+            AND CAST(DDATE AS date) = @DDATE
+            AND TIME1 = @TIME1
+            AND MILL_NO = @MILL_NO`,
+        payload,
+        season
+      );
+    } else {
+      await executeQuery(
+        `INSERT INTO ${labDailyTable} (
+            FACTORY, DDATE, TIME1, Shift1, MILL_NO,
+            PJ_BX, PJ_POL, PJ_PY,
+            MJ_BX, MJ_POL, MJ_PY,
+            LMJ_BX, LMJ_POL, LMJ_PY,
+            FPJU_BX, FPJU_POL, FPJU_PY,
+            FPJT_BX, FPJT_POL, FPJT_PY,
+            CJ_BX, CJ_POL, CJ_PY,
+            DEVC_I_BX, DEVC_II_BX,
+            US_BX, US_POL, US_PY,
+            UST_BX, UST_POL, UST_PY,
+            SS_BX, SS_POL, SS_PY,
+            B_POL, B_MOIS,
+            PC, PC1, PC2, PC3, PC4, PC5, PC6,
+            ADD_WATER, MAC_FIBRE, USER_CODE
+         ) VALUES (
+            @FACTORY, @DDATE, @TIME1, @Shift1, @MILL_NO,
+            @PJ_BX, @PJ_POL, @PJ_PY,
+            @MJ_BX, @MJ_POL, @MJ_PY,
+            @LMJ_BX, @LMJ_POL, @LMJ_PY,
+            @FPJU_BX, @FPJU_POL, @FPJU_PY,
+            @FPJT_BX, @FPJT_POL, @FPJT_PY,
+            @CJ_BX, @CJ_POL, @CJ_PY,
+            @DEVC_I_BX, @DEVC_II_BX,
+            @US_BX, @US_POL, @US_PY,
+            @UST_BX, @UST_POL, @UST_PY,
+            @SS_BX, @SS_POL, @SS_PY,
+            @B_POL, @B_MOIS,
+            @PC, @PC1, @PC2, @PC3, @PC4, @PC5, @PC6,
+            @ADD_WATER, @MAC_FIBRE, @USER_CODE
+         )`,
+        payload,
+        season
+      );
+    }
+
+    return res.status(200).json({ success: true, message: 'Saved successfully' });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+exports.DailyLabAnalysisAdd = upsertDailyLabAnalysis;
+exports.DailyLabAnalysisAdd_2 = upsertDailyLabAnalysis;
 exports.AMassecuiteView = createMassecuiteViewHandler({ tableName: 'LAB_A_MASS' });
 exports.AMassecuite = createProcedureHandler(CONTROLLER, 'AMassecuite', '');
 exports.AMassecuite_2 = createProcedureHandler(CONTROLLER, 'AMassecuite', 'AMassecuiteView Model, string Command');
@@ -1303,12 +1673,10 @@ exports.GetCanePlanDataA = createProcedureHandler(CONTROLLER, 'GetCanePlanDataA'
 exports.CalToDate = createProcedureHandler(CONTROLLER, 'CalToDate', 'string f_code,string Date');
 exports.AddBudgetview = async (req, res, next) => {
   try {
-    const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
-    const userId = String(req.user?.userId || req.query?.userId || req.body?.userId || '').trim();
-    //const userIdInt = Number.isFinite(Number(userId)) ? Number(userId) : null;
-    const utid = String(req.user?.utid || req.query?.utid || req.body?.utid || '').trim();
-    const factIdRaw = String(req.user?.factId || req.query?.factId || req.body?.factId || '').trim();
-    const isAdmin = utid === '1';
+    const season = req.user?.season;
+    const userId = String(req.user?.userId || '').trim();
+    const utid = String(req.user?.utid || '').trim();
+    const isAdmin = utid === '1' || !userId;
     const factoryRaw = String(
       req.query.WB_Factory ||
       req.query.factoryCode ||
@@ -1326,9 +1694,6 @@ exports.AddBudgetview = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'factoryCode/WB_Factory must be zero or a positive number' });
     }
 
-    const factId = Number(factIdRaw || 0);
-    const hasFactId = Number.isFinite(factId) && factId > 0;
-
     const rows = await executeQuery(
       `SELECT
           wb.WB_ID,
@@ -1344,27 +1709,16 @@ exports.AddBudgetview = async (req, res, next) => {
          AND (
            @isAdmin = 1
            OR wb.WB_Factory IN (
-             SELECT uf.FactID
-             FROM MI_UserFact uf
-             WHERE uf.UserID = @userIdInt
-           )
-           OR (
-             @hasFactId = 1
-             AND (@userIdInt IS NULL OR NOT EXISTS (
-               SELECT 1
-               FROM MI_UserFact uf
-               WHERE uf.UserID = @userIdInt
-             ))
-             AND wb.WB_Factory = @factId
+           SELECT uf.FactID
+           FROM MI_UserFact uf
+           WHERE uf.UserID = @userId
            )
          )
        ORDER BY wb.WB_FromDate ASC, wb.WB_ID ASC`,
       {
         factoryCode,
         isAdmin: isAdmin ? 1 : 0,
-        userIdInt,
-        hasFactId: hasFactId ? 1 : 0,
-        factId: hasFactId ? factId : null
+        userId
       },
       season
     );
@@ -1413,12 +1767,10 @@ exports.AddBudget = async (req, res, next) => {
 
 exports.AddBudget_2 = async (req, res, next) => {
   try {
-    const season = req.user?.season || req.body?.season || req.query?.season || process.env.DEFAULT_SEASON || '2526';
-    const userId = String(req.user?.userId || req.body?.userId || req.query?.userId || '').trim();
-    const userIdInt = Number.isFinite(Number(userId)) ? Number(userId) : null;
-    const utid = String(req.user?.utid || req.body?.utid || req.query?.utid || '').trim();
-    const factIdRaw = String(req.user?.factId || req.body?.factId || req.query?.factId || '').trim();
-    const isAdmin = utid === '1';
+    const season = req.user?.season;
+    const userId = String(req.user?.userId || '').trim();
+    const utid = String(req.user?.utid || '').trim();
+    const isAdmin = utid === '1' || !userId;
     const modeRaw = String(req.body?.id || req.body?.Command || req.body?.command || '').trim().toLowerCase();
     const wbIdRaw = String(req.body?.WB_ID || req.body?.wb_id || req.body?.Rid || req.body?.rid || '').trim();
     const factoryRaw = String(req.body?.WB_Factory || req.body?.wB_Factory || req.body?.factoryCode || req.body?.f_Code || '').trim();
@@ -1442,17 +1794,14 @@ exports.AddBudget_2 = async (req, res, next) => {
     }
 
     if (!isAdmin) {
-      const factId = Number(factIdRaw || 0);
-      const hasFactId = Number.isFinite(factId) && factId > 0;
       const accessRows = await executeQuery(
         `SELECT TOP 1 1 AS hasAccess
          FROM MI_UserFact
-         WHERE UserID = @userIdInt AND FactID = @WB_Factory`,
-        { userIdInt, WB_Factory },
+         WHERE UserID = @userId AND FactID = @WB_Factory`,
+        { userId, WB_Factory },
         season
       );
-      const hasAccess = accessRows.length > 0;
-      if (!hasAccess && (!hasFactId || factId !== WB_Factory)) {
+      if (!accessRows.length) {
         return res.status(403).json({ success: false, message: 'You are not allowed to save budget for this factory' });
       }
     }
@@ -1512,12 +1861,10 @@ exports.AddBudget_2 = async (req, res, next) => {
 
 exports.AddBudgetById = async (req, res, next) => {
   try {
-    const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
-    const userId = String(req.user?.userId || req.query?.userId || req.body?.userId || '').trim();
-    const userIdInt = Number.isFinite(Number(userId)) ? Number(userId) : null;
-    const utid = String(req.user?.utid || req.query?.utid || req.body?.utid || '').trim();
-    const factIdRaw = String(req.user?.factId || req.query?.factId || req.body?.factId || '').trim();
-    const isAdmin = utid === '1';
+    const season = req.user?.season;
+    const userId = String(req.user?.userId || '').trim();
+    const utid = String(req.user?.utid || '').trim();
+    const isAdmin = utid === '1' || !userId;
     const wbIdRaw = String(req.query.WB_Id || req.query.WB_ID || req.query.id || req.body?.WB_Id || req.body?.WB_ID || req.body?.id || '').trim();
     const factoryRaw = String(req.query.f_Code || req.query.WB_Factory || req.query.factoryCode || req.body?.f_Code || req.body?.WB_Factory || req.body?.factoryCode || '').trim();
 
@@ -1530,9 +1877,6 @@ exports.AddBudgetById = async (req, res, next) => {
     if (!Number.isFinite(WB_ID) || WB_ID <= 0 || !Number.isFinite(WB_Factory) || WB_Factory <= 0) {
       return res.status(400).json({ success: false, message: 'WB_ID and WB_Factory must be positive numbers' });
     }
-
-    const factId = Number(factIdRaw || 0);
-    const hasFactId = Number.isFinite(factId) && factId > 0;
 
     const rows = await executeQuery(
       `SELECT TOP 1
@@ -1549,25 +1893,14 @@ exports.AddBudgetById = async (req, res, next) => {
            OR WB_Factory IN (
              SELECT uf.FactID
              FROM MI_UserFact uf
-             WHERE uf.UserID = @userIdInt
-           )
-           OR (
-             @hasFactId = 1
-             AND (@userIdInt IS NULL OR NOT EXISTS (
-               SELECT 1
-               FROM MI_UserFact uf
-               WHERE uf.UserID = @userIdInt
-             ))
-             AND WB_Factory = @factId
+             WHERE uf.UserID = @userId
            )
          )`,
       {
         WB_ID,
         WB_Factory,
         isAdmin: isAdmin ? 1 : 0,
-        userIdInt,
-        hasFactId: hasFactId ? 1 : 0,
-        factId: hasFactId ? factId : null
+        userId
       },
       season
     );

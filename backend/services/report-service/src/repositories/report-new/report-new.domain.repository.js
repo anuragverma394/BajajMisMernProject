@@ -306,34 +306,28 @@ async function getZoneCentreWiseTruckDetails(zone, centre, season) {
 async function getCenterBalanceReport(params = {}, season) {
   try {
     const fCodeRaw = String(
-      params.F_code ??
-      params.F_Code ??
-      params.fcode ??
-      params.FACT ??
-      params.fact ??
-      ''
-    ).trim();
-    const cCode = String(
-      params.c_code ??
-      params.C_code ??
-      params.C_Code ??
-      params.center ??
-      params.centre ??
-      '0'
+      params.F_code ?? params.F_Code ?? params.fcode ?? params.FACT ?? params.fact ?? ''
     ).trim();
 
-    const fCode = (!fCodeRaw || fCodeRaw.toLowerCase() === 'all') ? '' : fCodeRaw;
+    const cCodeRaw = String(
+      params.c_code ?? params.C_code ?? params.C_Code ?? params.center ?? params.centre ?? ''
+    ).trim();
 
-    let sqlText = 'EXEC getCentBalAll @fact';
-    const queryParams = { fact: fCode };
+    // Map "All" or "0" to empty string to match C# logic
+    const fCode = (!fCodeRaw || fCodeRaw.toLowerCase() === 'all' || fCodeRaw === '0') ? '' : fCodeRaw;
+    const cCode = (!cCodeRaw || cCodeRaw.toLowerCase() === 'all' || cCodeRaw === '0') ? '' : cCodeRaw;
 
-    if (cCode && cCode !== '0' && String(cCode).toLowerCase() !== 'all') {
-      sqlText = 'EXEC getCentBal @fact, @cent';
-      queryParams.cent = cCode;
+    const options = { timeoutMs: 300000 };
+
+    if (cCode && fCode) {
+      // Specific center + factory
+      const result = await executeProcedure('getCentBal', { fact: fCode, cent: cCode }, season, options);
+      return result?.rows || [];
+    } else {
+      // All centers for a specific factory or all factories
+      const result = await executeProcedure('getCentBalAll', { fact: fCode }, season, options);
+      return result?.rows || [];
     }
-
-    const result = await executeQuery(sqlText, queryParams, season, { timeoutMs: 9000000 });
-    return result || [];
   } catch (error) {
     console.error('[ReportNewRepository] getCenterBalanceReport error:', error.message);
     throw error;

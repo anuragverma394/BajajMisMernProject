@@ -183,7 +183,7 @@ const DailyLabAnalysisView = () => {
 
       <div className={__cx("page-card", "mt-[10px]")}>
         <div ref={tableViewportRef} className={__cx("table-wrapper", "max-h-[65vh] overflow-y-auto overflow-x-auto")}>
-          <table className={__cx("data-table", "min-w-[2800px]")}>
+          <table className={__cx("data-table", "min-w-[3400px]")}>
             <thead>
               <tr>
                 {columns.map((col) =>

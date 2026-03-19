@@ -25,10 +25,13 @@ const DailyLabAnalysisAdd = () => {
     FPJU_BX: '0', FPJU_POL: '0', FPJU_PY: '0',
     FPJT_BX: '0', FPJT_POL: '0', FPJT_PY: '0',
     CJ_BX: '0', CJ_POL: '0', CJ_PY: '0',
+    DEVC_I_BX: '0', DEVC_II_BX: '0',
     US_BX: '0', US_POL: '0', US_PY: '0',
     UST_BX: '0', UST_POL: '0', UST_PY: '0',
     SS_BX: '0', SS_POL: '0', SS_PY: '0',
-    B_POL: '0', B_MOIS: '0', PC: '0'
+    B_POL: '0', B_MOIS: '0', PC: '0',
+    PC1: '0', PC2: '0', PC3: '0', PC4: '0', PC5: '0', PC6: '0',
+    ADD_WATER: '0', MAC_FIBRE: '0'
   };
 
   const [form, setForm] = useState(initialFormState);
@@ -181,6 +184,14 @@ const DailyLabAnalysisAdd = () => {
               </div>
               <div className="form-grid-4">
                 <div className="form-group">
+                  <label>Devc-I Brix</label>
+                  <input type="number" step="0.01" name="DEVC_I_BX" value={form.DEVC_I_BX} onChange={handleInputChange} className="form-control" />
+                </div>
+                <div className="form-group">
+                  <label>Devc-II Brix</label>
+                  <input type="number" step="0.01" name="DEVC_II_BX" value={form.DEVC_II_BX} onChange={handleInputChange} className="form-control" />
+                </div>
+                <div className="form-group">
                   <label>Bagasse Pol %</label>
                   <input type="number" step="0.01" name="B_POL" value={form.B_POL} onChange={handleInputChange} className="form-control" />
                 </div>
@@ -189,8 +200,40 @@ const DailyLabAnalysisAdd = () => {
                   <input type="number" step="0.01" name="B_MOIS" value={form.B_MOIS} onChange={handleInputChange} className="form-control" />
                 </div>
                 <div className="form-group">
+                  <label>Added Water</label>
+                  <input type="number" step="0.01" name="ADD_WATER" value={form.ADD_WATER} onChange={handleInputChange} className="form-control" />
+                </div>
+                <div className="form-group">
+                  <label>MAC Fibre</label>
+                  <input type="number" step="0.01" name="MAC_FIBRE" value={form.MAC_FIBRE} onChange={handleInputChange} className="form-control" />
+                </div>
+                <div className="form-group">
                   <label>Preparatory Index (PC)</label>
                   <input type="number" step="0.01" name="PC" value={form.PC} onChange={handleInputChange} className="form-control" />
+                </div>
+                <div className="form-group">
+                  <label>PC1</label>
+                  <input type="number" step="0.01" name="PC1" value={form.PC1} onChange={handleInputChange} className="form-control" />
+                </div>
+                <div className="form-group">
+                  <label>PC2</label>
+                  <input type="number" step="0.01" name="PC2" value={form.PC2} onChange={handleInputChange} className="form-control" />
+                </div>
+                <div className="form-group">
+                  <label>PC3</label>
+                  <input type="number" step="0.01" name="PC3" value={form.PC3} onChange={handleInputChange} className="form-control" />
+                </div>
+                <div className="form-group">
+                  <label>PC4</label>
+                  <input type="number" step="0.01" name="PC4" value={form.PC4} onChange={handleInputChange} className="form-control" />
+                </div>
+                <div className="form-group">
+                  <label>PC5</label>
+                  <input type="number" step="0.01" name="PC5" value={form.PC5} onChange={handleInputChange} className="form-control" />
+                </div>
+                <div className="form-group">
+                  <label>PC6</label>
+                  <input type="number" step="0.01" name="PC6" value={form.PC6} onChange={handleInputChange} className="form-control" />
                 </div>
               </div>
             </div>
