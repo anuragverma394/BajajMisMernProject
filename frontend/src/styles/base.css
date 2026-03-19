@@ -731,3 +731,32 @@ textarea {
     font-family: var(--font);
     margin-top: 8px;
 }
+
+/* ========================
+   PRINT: Always show full output
+   ======================== */
+@media print {
+    .dn-main {
+        overflow: visible !important;
+    }
+
+    .overflow-x-auto,
+    .overflow-y-auto,
+    .overflow-auto,
+    .table-wrapper,
+    .scroll-list-box {
+        overflow: visible !important;
+        max-height: none !important;
+    }
+
+    table {
+        page-break-inside: auto;
+    }
+
+    tr,
+    td,
+    th {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+}

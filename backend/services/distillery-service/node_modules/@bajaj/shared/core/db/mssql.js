@@ -98,6 +98,11 @@ async function executeProcedure(name, params = {}, season, options = {}) {
     ? new sql.Request(options.transaction)
     : (await getPool(activeSeason)).request();
 
+  // Set custom timeout if provided
+  if (options.timeoutMs && Number.isFinite(Number(options.timeoutMs))) {
+    request.timeout = Number(options.timeoutMs);
+  }
+
   bindInput(request, params);
   const result = await request.execute(name);
   

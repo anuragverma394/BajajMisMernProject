@@ -41,6 +41,16 @@ export const reportNewService = {
         return response.data;
     },
 
+    getTargetActualMisSapNew: async (params) => {
+        const response = await apiClient.get('/report-new/target-actual-mis-sap-new', { params });
+        return response.data;
+    },
+
+    getTargetActualMISDataMis: async (params) => {
+        const response = await apiClient.get('/report-new/target-actual-misdata-mis', { params });
+        return response.data;
+    },
+
     getExceptionReports: async (params) => {
         const response = await apiClient.get('/new-report/exception-report-master', { params });
         return response.data;

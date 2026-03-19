@@ -33,8 +33,9 @@ const CenterBlanceReport = () => {
     setLoading(true);
     try {
       const response = await reportNewService.getCenterBlanceReport(filters);
-      if (response && response.status === 'success') {
-        const data = response.data || [];
+      const ok = response?.success === true || response?.status === 'success';
+      const data = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+      if (ok) {
         setReportData(data);
         if (data.length === 0) {
           toast.error("No data found for the selected filters.");
@@ -94,7 +95,7 @@ const CenterBlanceReport = () => {
             {loading ? 'Searching...' : 'Search'}
           </button>
           <button 
-            onClick={() => toast.info("Exporting Excel...")} 
+            type="button"
             disabled={reportData.length === 0}
             className={`${btnStyle} bg-[#16a085]`}
           >
@@ -136,16 +137,16 @@ const CenterBlanceReport = () => {
               <tbody>
                 {reportData.map((row, index) => (
                   <tr key={index} className="hover:bg-gray-50 transition-colors border-b border-[#e2e8f0]">
-                    <td className="p-[8px] border-x border-[#cbd5e1]">{row.Centre || row.Center || row.centre || '-'}</td>
-                    <td className="p-[8px] border-x border-[#cbd5e1]">{row.WClerk || row.Clerk || row.wclerk || 'N/A'}</td>
-                    <td className="p-[8px] border-x border-[#cbd5e1]">{row.PostingDate || row.postingdate || row.Posting_Date || '-'}</td>
-                    <td className="p-[8px] border-x border-[#cbd5e1]">{row.Desc || row.desc || '-'}</td>
-                    <td className="p-[8px] border-x border-[#cbd5e1] text-right">{(Number(row.Purchase || row.purchase || 0)).toFixed(2)}</td>
-                    <td className="p-[8px] border-x border-[#cbd5e1] text-right">{(Number(row.Manual || row.manual || 0)).toFixed(2)}</td>
-                    <td className="p-[8px] border-x border-[#cbd5e1] text-right">{(Number(row.Receipt || row.Reciept || row.receipt || 0)).toFixed(2)}</td>
-                    <td className="p-[8px] border-x border-[#cbd5e1] text-right">{(Number(row.Transit || row.transit || 0)).toFixed(2)}</td>
-                    <td className="p-[8px] border-x border-[#cbd5e1] text-right">{(Number(row.CentreRunningBal || row.CenterRunningBal || row.centrerunningbal || 0)).toFixed(2)}</td>
-                    <td className="p-[8px] border-x border-[#cbd5e1] text-right">{(Number(row.Balance || row.balance || 0)).toFixed(2)}</td>
+                    <td className="p-[8px] border-x border-[#cbd5e1]">{row.Center || '-'}</td>
+                    <td className="p-[8px] border-x border-[#cbd5e1]">{row.Clerk || 'N/A'}</td>
+                    <td className="p-[8px] border-x border-[#cbd5e1]">{row.PostingDate || '-'}</td>
+                    <td className="p-[8px] border-x border-[#cbd5e1]">{row.Desc || '-'}</td>
+                    <td className="p-[8px] border-x border-[#cbd5e1] text-right">{Number(row.Purchase || 0).toFixed(2)}</td>
+                    <td className="p-[8px] border-x border-[#cbd5e1] text-right">{Number(row.Manual || 0).toFixed(2)}</td>
+                    <td className="p-[8px] border-x border-[#cbd5e1] text-right">{Number(row.Receipt || 0).toFixed(2)}</td>
+                    <td className="p-[8px] border-x border-[#cbd5e1] text-right">{Number(row.Transit || 0).toFixed(2)}</td>
+                    <td className="p-[8px] border-x border-[#cbd5e1] text-right">{Number(row.CenterRunningBal || 0).toFixed(2)}</td>
+                    <td className="p-[8px] border-x border-[#cbd5e1] text-right">{Number(row.Balance || 0).toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>

@@ -111,6 +111,60 @@ async function getTruckDispatchWeighed(req) {
   return repository.getTruckDispatchWeighedData(params, season);
 }
 
+function ensureGateCenterTotals(payload = {}) {
+  const num = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  };
+  const isEmpty = (v) => v === undefined || v === null || v === '';
+  const setIfEmpty = (key, value) => {
+    if (isEmpty(payload[key])) payload[key] = value;
+  };
+
+  const gate = {
+    OYNos: num(payload.lblGateOYNos),
+    OYWt: num(payload.lblGateOYWt),
+    AtDNos: num(payload.lblGateAtDNos),
+    AtDWt: num(payload.lblGateAtDWt),
+    ODCNos: num(payload.lblGateODCNos),
+    ODCWt: num(payload.lblGateODCWt),
+    TDCNos: num(payload.lblGateTDCNos),
+    TDCWt: num(payload.lblGateTDCWt)
+  };
+  const center = {
+    OYNos: num(payload.lblCenterOYNos),
+    OYWt: num(payload.lblCenterOYWt),
+    AtDNos: num(payload.lblCenterAtDNos),
+    AtDWt: num(payload.lblCenterAtDWt),
+    ODCNos: num(payload.lblCenterODCNos),
+    ODCWt: num(payload.lblCenterODCWt),
+    TDCNos: num(payload.lblCenterTDCNos),
+    TDCWt: num(payload.lblCenterTDCWt)
+  };
+
+  const gtCenOYNos = gate.OYNos + center.OYNos;
+  const gtCenOYWt = gate.OYWt + center.OYWt;
+  const gtCenAtDNos = gate.AtDNos + center.AtDNos;
+  const gtCenAtDWt = gate.AtDWt + center.AtDWt;
+  const gtCenODCNos = gate.ODCNos + center.ODCNos;
+  const gtCenODCWt = gate.ODCWt + center.ODCWt;
+  const gtCenTDCNos = gate.TDCNos + center.TDCNos;
+  const gtCenTDCWt = gate.TDCWt + center.TDCWt;
+
+  setIfEmpty('lblGtCenOYNos', String(gtCenOYNos));
+  setIfEmpty('lblGtCenOYWt', gtCenOYWt.toFixed(2));
+  setIfEmpty('lblGtCenAtDNos', String(gtCenAtDNos));
+  setIfEmpty('lblGtCenAtDWt', gtCenAtDWt.toFixed(2));
+  setIfEmpty('lblGtCenODCNos', String(gtCenODCNos));
+  setIfEmpty('lblGtCenODCWt', gtCenODCWt.toFixed(2));
+  setIfEmpty('lblGtCenODCAvg', gtCenODCNos > 0 ? (gtCenODCWt / gtCenODCNos).toFixed(2) : '0.00');
+  setIfEmpty('lblGtCenTDCNos', String(gtCenTDCNos));
+  setIfEmpty('lblGtCenTDCWt', gtCenTDCWt.toFixed(2));
+  setIfEmpty('lblGtCenTDCAvg', gtCenTDCNos > 0 ? (gtCenTDCWt / gtCenTDCNos).toFixed(2) : '0.00');
+
+  return payload;
+}
+
 // Crushing Report - Load Factory Data
 async function loadFactoryData(req) {
   const season = getSeason(req);
@@ -123,7 +177,8 @@ async function loadFactoryData(req) {
   if (!date) throw new Error('Date is required');
 
   try {
-    return await repository.getCrushingReportData({ factCode, date }, season);
+    const data = await repository.getCrushingReportData({ factCode, date }, season);
+    return ensureGateCenterTotals(data || {});
   } catch (error) {
     console.error('[loadFactoryData Error]', error.message);
     // Return empty structure on error instead of crashing
@@ -143,7 +198,8 @@ async function loadModeWiseData(req) {
   if (!date) throw new Error('Date is required');
 
   try {
-    return await repository.getCrushingReportData({ factCode, date }, season);
+    const data = await repository.getCrushingReportData({ factCode, date }, season);
+    return ensureGateCenterTotals(data || {});
   } catch (error) {
     console.error('[loadModeWiseData Error]', error.message);
     return getCrushingReportTemplate();

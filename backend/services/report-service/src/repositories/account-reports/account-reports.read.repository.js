@@ -65,23 +65,23 @@ module.exports = {
       SELECT 
         p.M_FACTORY,
         CASE 
-          WHEN p.M_CATEG LIKE '1%' THEN '1'
-          WHEN p.M_CATEG LIKE '2%' THEN '2'
-          WHEN p.M_CATEG LIKE '3%' THEN '3'
+        WHEN p.M_CATEG LIKE '1%' THEN '1'
+        WHEN p.M_CATEG LIKE '2%' THEN '2'
+        WHEN p.M_CATEG LIKE '3%' THEN '3'
         END AS category,
         SUM(M_GROSS - M_TARE - M_JOONA) AS qty
-      FROM Purchase p
-      INNER JOIN Centre c ON c.c_code = p.M_CENTRE AND c.c_factory = p.M_FACTORY
-      LEFT JOIN Village v ON v.v_code = p.M_VILL AND v.v_factory = p.M_FACTORY
-      LEFT JOIN District d ON d.DT_code = v.V_DisitictCode
-      WHERE d.dt_state = 0 AND p.M_CENTRE = 100
+        FROM Purchase p
+        INNER JOIN Centre c ON c.c_code = p.M_CENTRE AND c.c_factory = p.M_FACTORY
+        LEFT JOIN Village v ON v.v_code = p.M_VILL AND v.v_factory = p.M_FACTORY
+        LEFT JOIN District d ON d.DT_code = v.V_DisitictCode
+        WHERE d.dt_state = 0 AND p.M_CENTRE = 100
         AND p.M_DATE >= @fDate AND p.M_DATE < DATEADD(DAY, 1, @tDate)
         AND (@fact IS NULL OR @fact = '0' OR p.M_FACTORY = @fact)
-      GROUP BY p.M_FACTORY,
+        GROUP BY p.M_FACTORY,
         CASE 
-          WHEN p.M_CATEG LIKE '1%' THEN '1'
-          WHEN p.M_CATEG LIKE '2%' THEN '2'
-          WHEN p.M_CATEG LIKE '3%' THEN '3'
+        WHEN p.M_CATEG LIKE '1%' THEN '1'
+        WHEN p.M_CATEG LIKE '2%' THEN '2'
+        WHEN p.M_CATEG LIKE '3%' THEN '3'
         END`;
 
     return executeQuery(

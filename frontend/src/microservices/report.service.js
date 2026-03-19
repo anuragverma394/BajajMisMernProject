@@ -81,5 +81,20 @@ export const reportService = {
     getSummaryReportUnitWise: async (params) => {
         const response = await apiClient.get('/report/summary-report-unit-wise', { params });
         return response.data;
+    },
+
+    getTargetActualMISReport: async (params) => {
+        const response = await apiClient.get('/report/target-actual-misreport', { params });
+        return response.data;
+    },
+
+    getTargetActualMISPeriodReport: async (params) => {
+        const response = await apiClient.get('/report/target-actual-misperiod-report', { params });
+        return response.data;
+    },
+
+    getDriageClerkCentreDetail: async (params) => {
+        const response = await apiClient.get('/report/driage-clerk-centre-detail', { params });
+        return response.data;
     }
 };

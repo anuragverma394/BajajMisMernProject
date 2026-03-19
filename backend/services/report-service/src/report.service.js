@@ -1,4 +1,5 @@
 const reportRepository = require('./report.repository');
+const newReportService = require('./services/new-report.service');
 
 function normalizeDmyInput(raw) {
   const value = String(raw || '').trim();
@@ -274,8 +275,27 @@ async function getDriageClerkSummary(params = {}) {
   return { success: true, data: rows, recordsets: [rows] };
 }
 
+async function getTargetActualMISReport(params = {}) {
+  const season = params.season;
+  const factoryName = params.factoryName || params.fcode || params.F_Code || '';
+  const cpDate = params.dateRaw || params.Date || params.date || '';
+  const data = await newReportService.getTargetActualMISDataMis(factoryName, cpDate, season);
+  return { success: true, data, recordsets: [data] };
+}
+
+async function getTargetActualMISPeriodReport(params = {}) {
+  const season = params.season;
+  const factoryName = params.factoryName || params.fcode || params.F_Code || '';
+  const dateFrom = params.dateFrom || params.fromDate || params.DateFrom || '';
+  const dateTo = params.dateTo || params.toDate || params.DateTo || '';
+  const data = await newReportService.getTargetActualMISData(factoryName, dateFrom, dateTo, season);
+  return { success: true, data, recordsets: [data] };
+}
+
 module.exports = {
   getDriageSummary,
   getDriageDetail,
-  getDriageClerkSummary
+  getDriageClerkSummary,
+  getTargetActualMISReport,
+  getTargetActualMISPeriodReport
 };

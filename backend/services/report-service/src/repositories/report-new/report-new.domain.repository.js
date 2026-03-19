@@ -83,7 +83,8 @@ function addDays(isoDate, days) {
  */
 async function getIndentPurchaseReportNew(params = {}, season) {
   try {
-    const factory = String(params.F_code || params.F_Code || params.factory || '').trim();
+    let factory = String(params.F_code || params.F_Code || params.factory || '').trim();
+    if (factory.toLowerCase() === 'all') factory = '0';
     const rawDate = String(params.Fdate || params.Date || params.date || '').trim();
     const zonefrom = String(params.Zone || params.zone || '0').trim();
     const zoneto = String(params.ZoneTo || params.zoneTo || '9999').trim();
@@ -224,9 +225,10 @@ where c_code=100  group by c_factory,bl_code,bl_name,c_code,c_name  )as x) as u 
     const zoneRows = await executeQuery(getAllZoneSql, baseParams, season);
     const zoneRows1 = await executeQuery(getAllZone1Sql, baseParams, season);
 
-    const rows = [...(zoneRows1 || []), ...(zoneRows || [])];
-
-    return rows || [];
+    return {
+      gateRows: zoneRows1 || [],
+      zoneRows: zoneRows || []
+    };
   } catch (error) {
     console.error('[ReportNewRepository] getIndentPurchaseReportNew error:', error.message);
     throw error;

@@ -1,13 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { masterService, reportService } from '../../microservices/api.service';
-import '../../styles/base.css';const Report_DriageClerkCentreDetail = () => {const navigate = useNavigate();const [units, setUnits] = useState([]);const [loading, setLoading] = useState(false);const [reportData, setReportData] = useState([]);const [filters, setFilters] = useState({ unit: 'All',
-      date: new Date().toLocaleDateString('en-GB').split('/').join('-')
-    });
+import '../../styles/base.css';
+
+const formatTodayDmy = () => {
+  const now = new Date();
+  const dd = String(now.getDate()).padStart(2, '0');
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const yyyy = now.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+};
+
+const toDmy = (value) => {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(raw)) return raw;
+  const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
+  return raw;
+};
+
+const Report_DriageClerkCentreDetail = () => {
+  const navigate = useNavigate();
+  const [units, setUnits] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [reportData, setReportData] = useState([]);
+  const [filters, setFilters] = useState({
+    F_code: '',
+    Date: formatTodayDmy()
+  });
 
   useEffect(() => {
-    masterService.getUnits().then((d) => setUnits(Array.isArray(d) ? d : [])).catch(() => {});
+    masterService.getUnits()
+      .then((d) => setUnits(Array.isArray(d) ? d : d?.data || []))
+      .catch(() => {});
   }, []);
 
   const handleFilterChange = (e) => {
@@ -16,176 +43,194 @@ import '../../styles/base.css';const Report_DriageClerkCentreDetail = () => {con
   };
 
   const handleSearch = async () => {
+    const date = toDmy(filters.Date);
+    if (!filters.F_code) {
+      toast.error('Please select a factory.');
+      return;
+    }
+    if (!date) {
+      toast.error('Please select a date.');
+      return;
+    }
     setLoading(true);
     try {
-      const response = await reportService.getGeneralReport({
-        reportName: 'driage-clerk-centre-summary',
-        ...filters
+      const response = await reportService.getDriageClerkCentreDetail({
+        F_code: filters.F_code,
+        Date: date
       });
-      if (response.API_STATUS === "OK") {
-        setReportData(response.Data || []);
-        toast.success("Driage analysis complete.");
+      const data = response?.Data || response?.data || [];
+      if (response?.API_STATUS === 'OK' || data.length > 0) {
+        setReportData(data);
+        if (!data.length) toast.error('No data available.');
       } else {
-        toast.error(response.Message || "No data available.");
+        toast.error(response?.Message || 'No data available.');
       }
     } catch (error) {
-      toast.error("Telemetry sync failure.");
+      toast.error('Failed to fetch report data.');
     } finally {
       setLoading(false);
     }
   };
 
-  const headerStyle = "bg-[#008080] text-white py-[10px] px-[20px] text-4 font-medium rounded-[8px 8px 0 0] mb-[1px]";
-
-
-
-
-
-
-
-
-
-  const subHeaderStyle = "bg-[#e6f3e6] text-[#2e7d32] py-[8px] px-[20px] text-[13px] font-semibold border-b border-b-[#c8e6c9] mb-[20px]";
-
-
-
-
-
-
-
-
-
-  const cardStyle = "p-[25px] border border-[#e2e8f0] rounded-[0 0 8px 8px] bg-white shadow-[0 1px 3px rgba(0,0,0,0.05)] mb-[20px]";
-
-
-
-
-
-
-
-
-  const labelStyle = "block text-[13px] font-semibold text-[#333] mb-[8px]";
-
-
-
-
-
-
-
-  const inputStyle = "w-[100%] py-[8px] px-[12px] border border-[#cbd5e1] rounded text-[13px] bg-white ";
-
-
-
-
-
-
-
-
-
-  const btnStyle = (bg = '#16a085') => ({
-    padding: '8px 20px',
-    borderRadius: '4px',
-    fontSize: '13px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    border: 'none',
-    color: 'white',
-    backgroundColor: bg,
-    minWidth: '90px'
-  });
+  const handleExport = () => {
+    if (!reportData.length) {
+      toast.error('No data to export.');
+      return;
+    }
+    const headers = [
+      'S.NO',
+      'Clerk Code',
+      'Clerk Name',
+      'Centre Code',
+      'Centre Name',
+      'From',
+      'Till',
+      'Purchase Qty',
+      'Receipt Qty',
+      'Dries Qty',
+      '%Tage'
+    ];
+    const rows = reportData.map((row, idx) => ([
+      idx + 1,
+      row.clerkCode || '',
+      row.clerkName || '',
+      row.centreCode || '',
+      row.centreName || '',
+      row.MFrom || '',
+      row.Till || '',
+      row.weighed ?? '0',
+      row.crushed ?? '0',
+      row.driage ?? '0',
+      row.percent ?? '0'
+    ]));
+    const csv = [headers, ...rows]
+      .map((r) => r.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'DriageClerkCentreDetail.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
 
   return (
-    <div className="p-[20px] bg-white min-h-[100vh] font-['Segoe UI', Tahoma, Geneva, Verdana, sans-serif]">
-            <Toaster position="top-right" />
+    <div className="min-h-screen bg-slate-50 p-4">
+      <Toaster position="top-right" />
 
-            <div className={headerStyle}>
-                DRIAGE CLERK AND CENTRE SUMMARY
-            </div>
+      <div className="rounded-lg border border-emerald-200 bg-white shadow-sm">
+        <div className="rounded-t-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white">
+          Driage Clerk And Centre Summary
+        </div>
 
-            <div className="border border-[#e2e8f0] rounded-[0 0 8px 8px]">
-                <div className={subHeaderStyle}>
-                    DRIAGE CLERK AND CENTRE SUMMARY
-                </div>
-
-                <div className={cardStyle}>
-                    <div className="flex gap-[20px] mb-[25px] items-end">
-                        <div className="w-[250px]">
-                            <label className={labelStyle}>Factory</label>
-                            <select
-                name="unit"
-                value={filters.unit}
-                onChange={handleFilterChange} className={inputStyle}>
-
-                
-                                <option value="All">All</option>
-                                {units.map((unit, idx) =>
-                <option key={`${unit.F_Code || unit.id}-${idx}`} value={unit.F_Code || unit.id}>{unit.F_Name || unit.name}</option>
-                )}
-                            </select>
-                        </div>
-
-                        <div className="w-[250px]">
-                            <label className={labelStyle}>Date</label>
-                            <input
-                type="text"
-                name="date"
-                value={filters.date}
+        <div className="space-y-4 p-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div>
+              <label className="mb-2 block text-xs font-semibold text-slate-700">Factory</label>
+              <select
+                name="F_code"
+                value={filters.F_code}
                 onChange={handleFilterChange}
-                placeholder="DD-MM-YYYY" className={inputStyle} />
-
-              
-                        </div>
-                    </div>
-
-                    <div className="flex gap-[10px]">
-                        <button onClick={handleSearch} disabled={loading} className="px-5 py-2 rounded text-[13px] font-medium cursor-pointer border-0 text-white min-w-[90px] bg-[#16a085]">
-                            {loading ? '...' : 'Search'}
-                        </button>
-                        <button onClick={() => toast.info("Exporting Excel...")} className="px-5 py-2 rounded text-[13px] font-medium cursor-pointer border-0 text-white min-w-[90px] bg-[#16a085]">
-                            Excel
-                        </button>
-                        <button onClick={() => window.print()} className="px-5 py-2 rounded text-[13px] font-medium cursor-pointer border-0 text-white min-w-[90px] bg-[#16a085]">
-                            Print
-                        </button>
-                        <button onClick={() => navigate(-1)} className="px-5 py-2 rounded text-[13px] font-medium cursor-pointer border-0 text-white min-w-[90px] bg-[#16a085]">
-                            Exit
-                        </button>
-                    </div>
-                </div>
-
-                <div className="p-[0 20px 20px 20px]">
-                    {reportData.length > 0 &&
-          <div className="overflow-x-auto border border-[#e2e8f0] rounded">
-                            <table className="w-[100%] text-[12px]">
-                                <thead>
-                                    <tr className="bg-[#f8fafc]">
-                                        <th className="p-[12px] border border-[#cbd5e1] text-left">Clerk</th>
-                                        <th className="p-[12px] border border-[#cbd5e1] text-left">Centre</th>
-                                        <th className="p-[12px] border border-[#cbd5e1] text-right">Weighed</th>
-                                        <th className="p-[12px] border border-[#cbd5e1] text-right">Crushed</th>
-                                        <th className="p-[12px] border border-[#cbd5e1] text-right">Driage</th>
-                                        <th className="p-[12px] border border-[#cbd5e1] text-center">%</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {reportData.map((row, idx) =>
-                <tr key={idx} className="border-b border-b-[#f1f5f9]">
-                                            <td className="py-[10px] px-[12px]">{row.clerkName}</td>
-                                            <td className="py-[10px] px-[12px]">{row.centreName}</td>
-                                            <td className="py-[10px] px-[12px] text-right">{row.weighed}</td>
-                                            <td className="py-[10px] px-[12px] text-right">{row.crushed}</td>
-                                            <td className="py-[10px] px-[12px] text-right">{row.driage}</td>
-                                            <td className="py-[10px] px-[12px] text-center">{row.percent}</td>
-                                        </tr>
-                )}
-                                </tbody>
-                            </table>
-                        </div>
-          }
-                </div>
+                className="w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none"
+              >
+                <option value="">Select Factory</option>
+                {units.map((unit, idx) => (
+                  <option key={`${unit.F_Code || unit.id}-${idx}`} value={unit.F_Code || unit.id}>
+                    {unit.F_Name || unit.name}
+                  </option>
+                ))}
+              </select>
             </div>
-        </div>);
 
+            <div>
+              <label className="mb-2 block text-xs font-semibold text-slate-700">Date</label>
+              <input
+                type="text"
+                name="Date"
+                value={filters.Date}
+                onChange={handleFilterChange}
+                placeholder="DD/MM/YYYY"
+                className="w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none"
+              />
+            </div>
+
+            <div className="flex flex-wrap items-end gap-2">
+              <button
+                onClick={handleSearch}
+                disabled={loading}
+                className="rounded bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? 'Searching...' : 'Search'}
+              </button>
+              <button
+                onClick={handleExport}
+                className="rounded bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+              >
+                Excel
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="rounded bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+              >
+                Print
+              </button>
+              <button
+                onClick={() => navigate(-1)}
+                className="rounded bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+              >
+                Exit
+              </button>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto rounded-lg border border-emerald-200">
+            <table className="min-w-[1100px] border-collapse text-xs">
+              <thead>
+                <tr className="bg-emerald-50 text-emerald-800">
+                  <th className="border border-emerald-200 px-2 py-2 text-center">S.NO</th>
+                  <th className="border border-emerald-200 px-2 py-2 text-left">Clerk Code</th>
+                  <th className="border border-emerald-200 px-2 py-2 text-left">Clerk Name</th>
+                  <th className="border border-emerald-200 px-2 py-2 text-left">Centre Code</th>
+                  <th className="border border-emerald-200 px-2 py-2 text-left">Centre Name</th>
+                  <th className="border border-emerald-200 px-2 py-2 text-center">From</th>
+                  <th className="border border-emerald-200 px-2 py-2 text-center">Till</th>
+                  <th className="border border-emerald-200 px-2 py-2 text-right">Purchase Qty</th>
+                  <th className="border border-emerald-200 px-2 py-2 text-right">Receipt Qty</th>
+                  <th className="border border-emerald-200 px-2 py-2 text-right">Dries Qty</th>
+                  <th className="border border-emerald-200 px-2 py-2 text-right">%Tage</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reportData.length === 0 ? (
+                  <tr>
+                    <td colSpan={11} className="border border-emerald-100 px-4 py-10 text-center text-slate-400">
+                      No data found. Select a factory and date, then click Search.
+                    </td>
+                  </tr>
+                ) : (
+                  reportData.map((row, idx) => (
+                    <tr key={`${row.clerkCode || 'row'}-${idx}`} className="border-b border-emerald-100">
+                      <td className="border border-emerald-100 px-2 py-1 text-center">{idx + 1}</td>
+                      <td className="border border-emerald-100 px-2 py-1 text-left">{row.clerkCode || '-'}</td>
+                      <td className="border border-emerald-100 px-2 py-1 text-left">{row.clerkName || '-'}</td>
+                      <td className="border border-emerald-100 px-2 py-1 text-left">{row.centreCode || '-'}</td>
+                      <td className="border border-emerald-100 px-2 py-1 text-left">{row.centreName || '-'}</td>
+                      <td className="border border-emerald-100 px-2 py-1 text-center">{row.MFrom || '-'}</td>
+                      <td className="border border-emerald-100 px-2 py-1 text-center">{row.Till || '-'}</td>
+                      <td className="border border-emerald-100 px-2 py-1 text-right">{row.weighed ?? '0'}</td>
+                      <td className="border border-emerald-100 px-2 py-1 text-right">{row.crushed ?? '0'}</td>
+                      <td className="border border-emerald-100 px-2 py-1 text-right">{row.driage ?? '0'}</td>
+                      <td className="border border-emerald-100 px-2 py-1 text-right">{row.percent ?? '0'}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Report_DriageClerkCentreDetail;

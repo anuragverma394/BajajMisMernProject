@@ -1828,12 +1828,18 @@ exports.HourlyCaneArrival = async (req, res, next) => {
        select cast(Format(${tTokenHourCol},'HH') as int)HH,1 T_TRUCK from T_Token where CAST(${tTokenDateCol} AS DATE) = @Date  and (@Unit='All' OR @Unit='0' OR tt_factory= @Unit))x 
        GROUP BY HH)select isnull((case when isnull(cte.HH,'')= '' then ct1.HH when isnull(cte.HH,'')= '' then cte.HH else  cte.HH end ),0)HHH,
        isnull(CART,0)CART,isnull(TROLLY,0)TROLLY,isnull(T_TRUCK,0)Truck   from cte full outer join   ct1 on  cte.HH= ct1.HH   
-       where isnull((case when isnull(cte.HH, '') = '' then ct1.HH when isnull(cte.HH, '') = '' then cte.HH else cte.HH end ),0)= @Hour 
        order by (case when isnull(cte.HH,'')= '' then ct1.HH when isnull(cte.HH,'')= '' then cte.HH else  cte.HH end )`;
 
-    const getHourlyArrivalData = async (unit, date, hour) => {
-      const rows = await executeQuery(arrivalSql, { Unit: unit, Date: date, Hour: hour }, season).catch(() => []);
-      return rows && rows.length ? rows[0] : null;
+    const getHourlyArrivalMap = async (unit, date) => {
+      const rows = await executeQuery(arrivalSql, { Unit: unit, Date: date }, season).catch(() => []);
+      const map = new Map();
+      if (rows && rows.length) {
+        rows.forEach((r) => {
+          const h = Number(r.HHH);
+          if (!Number.isNaN(h)) map.set(h, r);
+        });
+      }
+      return map;
     };
 
     const dt = hoursRows.map((r) => ({
@@ -1844,24 +1850,28 @@ exports.HourlyCaneArrival = async (req, res, next) => {
       RDBeforeCart: 0, RDBeforeTrolly: 0, RDBeforeTruck: 0
     }));
 
+    const t2Map = await getHourlyArrivalMap(fcode, TDBDT);
+    const t1Map = await getHourlyArrivalMap(fcode, ODBDT);
+    const t0Map = await getHourlyArrivalMap(fcode, CURDATE);
+
     for (const row of dt) {
       let hour = String(row.hours);
       if (hour === '24') hour = '0';
       const h = Number(hour);
 
-      const t2 = await getHourlyArrivalData(fcode, TDBDT, h);
+      const t2 = t2Map.get(h);
       if (t2) {
         row.TwoDBeforeCart = Number(t2.CART) || 0;
         row.TwoDBeforeTrolly = Number(t2.TROLLY) || 0;
         row.TwoDBeforeTruck = Number(t2.Truck) || 0;
       }
-      const t1 = await getHourlyArrivalData(fcode, ODBDT, h);
+      const t1 = t1Map.get(h);
       if (t1) {
         row.OneDBeforeCart = Number(t1.CART) || 0;
         row.OneDBeforeTrolly = Number(t1.TROLLY) || 0;
         row.OneDBeforeTruck = Number(t1.Truck) || 0;
       }
-      const t0 = await getHourlyArrivalData(fcode, CURDATE, h);
+      const t0 = t0Map.get(h);
       if (t0) {
         row.RDBeforeCart = Number(t0.CART) || 0;
         row.RDBeforeTrolly = Number(t0.TROLLY) || 0;
@@ -2276,18 +2286,43 @@ exports.IndentFailSummary = async (req, res, next) => {
       }
 
       const totalBal = Number(row.BALTOTINDQTY || 0) + Number(prev || 0);
+      const erInd = Number(row.ERINDQTY || 0);
+      const eIndWt = Number(row.EINDWT || 0);
+      const eActWt = Number(row.EACTWT || 0);
+      const otInd = Number(row.OTINDQTY || 0);
+      const otIndWt = Number(row.OTINDWT || 0);
+      const otActWt = Number(row.OTACTWT || 0);
+      const totInd = Number(row.TOTINDQTY || 0);
+      const totIndWt = Number(row.TOTINDWT || 0);
+      const totActWt = Number(row.TOTACTWT || 0);
+
+      const perc = (num, den) => (den > 0 ? truncateDecimal((num / den) * 100, 2) : 0);
+
+      const ePurchyPerc = perc(erInd - eIndWt, erInd);
+      const eWtPerc = perc(eIndWt - eActWt, eIndWt);
+      const otPurchyPerc = perc(otInd - otIndWt, otInd);
+      const otWtPerc = perc(otIndWt - otActWt, otIndWt);
+      const totPurchyPerc = perc(totInd - totIndWt, totInd);
+      const totWtPerc = perc(totIndWt - totActWt, totIndWt);
+
       output.push({
         ERINDQTY: row.ERINDQTY,
         IS_FACTORY: row.IS_FACTORY,
         IS_IS_DT: row.IS_IS_DT,
         EINDWT: row.EINDWT,
         EACTWT: row.EACTWT,
+        EPURCHYPERC: ePurchyPerc,
+        EWTPERC: eWtPerc,
         OTINDQTY: row.OTINDQTY,
         OTACTWT: row.OTACTWT,
         OTINDWT: row.OTINDWT,
+        OTPURCHYPERC: otPurchyPerc,
+        OTWTPERC: otWtPerc,
         TOTINDQTY: row.TOTINDQTY,
         TOTINDWT: row.TOTINDWT,
         TOTACTWT: row.TOTACTWT,
+        TOTPURCHYPERC: totPurchyPerc,
+        TOTWTPERC: totWtPerc,
         BALTOTINDQTY: row.BALTOTINDQTY,
         TOTBALIND: totalBal,
         PIPBALIND: prev
@@ -2340,6 +2375,25 @@ exports.IndentFailSummaryData = async (req, res, next) => {
       }
 
       const totalBal = Number(row.BALTOTINDQTY || 0) + Number(prev || 0);
+      const erInd = Number(row.ERINDQTY || 0);
+      const eIndWt = Number(row.EINDWT || 0);
+      const eActWt = Number(row.EACTWT || 0);
+      const otInd = Number(row.OTINDQTY || 0);
+      const otIndWt = Number(row.OTINDWT || 0);
+      const otActWt = Number(row.OTACTWT || 0);
+      const totInd = Number(row.TOTINDQTY || 0);
+      const totIndWt = Number(row.TOTINDWT || 0);
+      const totActWt = Number(row.TOTACTWT || 0);
+
+      const perc = (num, den) => (den > 0 ? truncateDecimal((num / den) * 100, 2) : 0);
+
+      const ePurchyPerc = perc(erInd - eIndWt, erInd);
+      const eWtPerc = perc(eIndWt - eActWt, eIndWt);
+      const otPurchyPerc = perc(otInd - otIndWt, otInd);
+      const otWtPerc = perc(otIndWt - otActWt, otIndWt);
+      const totPurchyPerc = perc(totInd - totIndWt, totInd);
+      const totWtPerc = perc(totIndWt - totActWt, totIndWt);
+
       output.push({
         ERINDQTY: row.ERINDQTY,
         IS_CNT_CD: row.IS_CNT_CD,
@@ -2347,12 +2401,18 @@ exports.IndentFailSummaryData = async (req, res, next) => {
         IS_FACTORY: row.IS_FACTORY,
         EINDWT: row.EINDWT,
         EACTWT: row.EACTWT,
+        EPURCHYPERC: ePurchyPerc,
+        EWTPERC: eWtPerc,
         OTINDQTY: row.OTINDQTY,
         OTACTWT: row.OTACTWT,
         OTINDWT: row.OTINDWT,
+        OTPURCHYPERC: otPurchyPerc,
+        OTWTPERC: otWtPerc,
         TOTINDQTY: row.TOTINDQTY,
         TOTINDWT: row.TOTINDWT,
         TOTACTWT: row.TOTACTWT,
+        TOTPURCHYPERC: totPurchyPerc,
+        TOTWTPERC: totWtPerc,
         BALTOTINDQTY: row.BALTOTINDQTY,
         TOTBALIND: totalBal,
         PIPBALIND: prev

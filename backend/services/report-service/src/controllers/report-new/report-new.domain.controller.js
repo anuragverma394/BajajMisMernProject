@@ -1,5 +1,6 @@
 const { catchAsync } = require('@bajaj/shared');
 const service = require('../../services/report-new.service');
+const legacyReport = require('../report/report.domain.controller');
 
 function getSeason(req) {
   return req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
@@ -13,9 +14,9 @@ function success(res, message, data) {
   return res.status(200).json({ success: true, status: 'success', message, data });
 }
 
-exports.HourlyCaneArrivalWieght = catchAsync(async (req, res) => {
-  const data = await service.getHourlyCaneArrivalWeight(getSeason(req));
-  return success(res, 'Hourly cane arrival weight', data);
+exports.HourlyCaneArrivalWieght = catchAsync(async (req, res, next) => {
+  // Reuse BajajMIS logic from legacy report domain for accurate hourly data
+  return legacyReport.HourlyCaneArrival(req, res, next);
 });
 
 exports.IndentPurchaseReportNew = catchAsync(async (req, res) => {

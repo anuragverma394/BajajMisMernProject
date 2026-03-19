@@ -5,5 +5,7 @@ module.exports = {
   ...legacy,
   DriageSummary: refactor.DriageSummary,
   DriageDetail: refactor.DriageDetail,
-  DriageClerkSummary: refactor.DriageClerkSummary
+  DriageClerkSummary: refactor.DriageClerkSummary,
+  TargetActualMISReport: refactor.TargetActualMISReport,
+  TargetActualMISPeriodReport: refactor.TargetActualMISPeriodReport
 };

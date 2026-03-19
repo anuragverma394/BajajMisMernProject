@@ -58,6 +58,58 @@ export default function Layout() {
     return () => clearTimeout(timer);
   }, [location.pathname]);
 
+  useEffect(() => {
+    const toCsv = (table) => {
+      const rows = Array.from(table.rows || []);
+      return rows.map((row) => {
+        const cells = Array.from(row.cells || []);
+        return cells.map((cell) => {
+          const text = cell?.innerText?.replace(/\s+/g, ' ').trim() || '';
+          return `"${text.replace(/"/g, '""')}"`;
+        }).join(',');
+      }).join('\n');
+    };
+
+    const findTable = (root) => {
+      const tables = Array.from((root || document).querySelectorAll('table'));
+      return tables.find((table) => table.rows?.length > 0 && table.offsetParent !== null) || null;
+    };
+
+    const exportVisibleTable = (button) => {
+      const root = button.closest('main') || document;
+      const table = findTable(root);
+      if (!table) {
+        window.alert('No table found to export.');
+        return;
+      }
+      const csv = toCsv(table);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      const safeTitle = String(printTitle || 'Export').replace(/[^\w\-]+/g, '_');
+      link.download = `${safeTitle}.csv`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    };
+
+    const handleExcelClick = (event) => {
+      const target = event.target;
+      const button = target?.closest?.('button, input[type="button"], input[type="submit"], a');
+      if (!button) return;
+      const label = button.tagName === 'INPUT'
+        ? (button.value || '').trim()
+        : (button.textContent || '').trim();
+      if (!/^(excel|export excel)$/i.test(label)) return;
+      if (button.dataset?.noExport === 'true') return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      exportVisibleTable(button);
+    };
+
+    document.addEventListener('click', handleExcelClick, true);
+    return () => document.removeEventListener('click', handleExcelClick, true);
+  }, [printTitle]);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -274,6 +326,10 @@ export default function Layout() {
             <main className="dn-main">
                 <Outlet />
             </main>
+
+            <footer className="dn-footer">
+                © 2021 Bajaj Hindusthan Sugar Ltd. All Rights Reserved. Designed & Developed By Vibrant IT Solutions Pvt. Ltd.
+            </footer>
         </div>);
 
 }

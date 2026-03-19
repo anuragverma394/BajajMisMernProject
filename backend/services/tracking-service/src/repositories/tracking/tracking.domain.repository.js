@@ -480,6 +480,19 @@ function normalizeDateToYmd(raw) {
   return '';
 }
 
+async function resolveTable(season, candidates = []) {
+  const names = candidates.filter(Boolean);
+  for (const tableName of names) {
+    try {
+      const rows = await executeQuery('SELECT OBJECT_ID(@tableName) AS objectId', { tableName }, season);
+      if (rows?.[0]?.objectId) return tableName;
+    } catch (error) {
+      // try next
+    }
+  }
+  return names[0] || '';
+}
+
 function normalizeDateToYmdCompact(raw) {
   const ymd = normalizeDateToYmd(raw);
   return ymd ? ymd.replace(/-/g, '') : '';
@@ -825,6 +838,15 @@ exports.TargetRpt = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'unit must be zero or a positive number' });
     }
 
+    const targetTable = await resolveTable(season, ['target_tran', 'MI_Target_Tran', 'MI_target_tran', 'Target_Tran']);
+    const factoryTable = await resolveTable(season, ['factory', 'MI_Factory']);
+    const villageTable = await resolveTable(season, ['village', 'MI_Village']);
+    const growerTable = await resolveTable(season, ['grower', 'MI_Grower']);
+    const circleTable = await resolveTable(season, ['circle', 'MI_Circle']);
+    const blockTable = await resolveTable(season, ['block', 'MI_Block']);
+    const zoneTable = await resolveTable(season, ['zone', 'MI_Zone']);
+    const userTable = await resolveTable(season, ['mi_user', 'MI_User', 'user', 'User']);
+
     const rows = await executeQuery(
       `SELECT
           ROW_NUMBER() OVER (
@@ -848,28 +870,28 @@ exports.TargetRpt = async (req, res, next) => {
           ISNULL(t.trg_rem, '') AS TRG_REM,
           CASE WHEN ISNULL(t.trg_img, '') = '' THEN '' ELSE '../../Meeting/' + t.trg_img END AS TRG_IMG,
           CONVERT(varchar(16), ISNULL(t.trg_updt, t.trg_crdate), 120) AS MeetingTime
-       FROM target_tran t
-       JOIN factory f
+       FROM ${targetTable} t
+       JOIN ${factoryTable} f
          ON f.f_code = t.trg_factory
-       JOIN village v
+       JOIN ${villageTable} v
          ON v.v_factory = t.trg_factory
         AND v.v_code = t.trg_vill
-       JOIN grower g
+       JOIN ${growerTable} g
          ON g.g_factory = t.trg_factory
         AND g.g_vill = t.trg_vill
         AND g.g_code = t.trg_grow
-       JOIN circle c
+       JOIN ${circleTable} c
          ON c.factory = v.v_factory
         AND c.cr_code = v.v_circle
-       JOIN block b
+       JOIN ${blockTable} b
          ON b.bl_factcode = c.factory
         AND b.bl_code = c.cr_bl_code
         AND ISNULL(b.b_type, 1) = 1
-       JOIN zone z
+       JOIN ${zoneTable} z
          ON z.z_factory = b.bl_factcode
         AND z.z_code = b.bl_zonecode
         AND ISNULL(z.z_type, 1) = 1
-       LEFT JOIN mi_user mu
+       LEFT JOIN ${userTable} mu
          ON CAST(mu.userid AS varchar(50)) = CAST(t.trg_sup AS varchar(50))
        WHERE (@unit = 0 OR t.trg_factory = @unit)
          AND (@zone = '' OR @zone = '0' OR CAST(z.z_code AS varchar(20)) = @zone)

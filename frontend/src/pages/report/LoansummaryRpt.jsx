@@ -65,6 +65,7 @@ const Report_LoansummaryRpt = () => {
         const agriTotal = Number(item.AgriInputsOther || 0);
         const agriDeducted = Number(item.AgriInputsOtherDeduct || 0);
         const agriBalance = agriTotal - agriDeducted;
+        
         return {
           F_Name: item.Fname || item.F_Name || '',
           NeedyTotal: needyTotal,
@@ -121,6 +122,7 @@ const Report_LoansummaryRpt = () => {
         const agriBalance = Number(item.AgriInputsOther || 0);
         const factoryTotal = needyBalance + agriBalance;
         const societyBalance = Number(item.SocietyTotal || 0);
+
         return {
           F_Name: item.Fname || item.F_Name || '',
           NeedyBalance: needyBalance,

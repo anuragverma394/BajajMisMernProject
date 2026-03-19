@@ -18,7 +18,9 @@ async function getHourlyCaneArrivalWeight(season) {
 async function getIndentPurchaseReportNew(params, season) {
   try {
     const data = await repository.getIndentPurchaseReportNew(params, season);
-    const rows = Array.isArray(data) ? data : [];
+    const gateRows = Array.isArray(data?.gateRows) ? data.gateRows : [];
+    const zoneRows = Array.isArray(data?.zoneRows) ? data.zoneRows : [];
+    const rows = [...gateRows, ...zoneRows];
 
     const withExp = rows.map((row) => {
       const mature = Number(row.mature || 0);
@@ -27,34 +29,44 @@ async function getIndentPurchaseReportNew(params, season) {
       return { ...row, expur };
     });
 
-    const totals = withExp.reduce((acc, row) => {
-      acc.onedaysbalnace += Number(row.onedaysbalnace || 0);
-      acc.twodaysdaysbalnace += Number(row.twodaysdaysbalnace || 0);
-      acc.TodayIndent += Number(row.TodayIndent || 0);
-      acc.totalindenttoday += Number(row.totalindenttoday || 0);
-      acc.purchase += Number(row.purchase || 0);
-      acc.mature += Number(row.mature || 0);
-      acc.backonedaysbalnace += Number(row.backonedaysbalnace || 0);
-      acc.backtwodaysdaysbalnace += Number(row.backtwodaysdaysbalnace || 0);
-      acc.backTodayIndent += Number(row.backTodayIndent || 0);
-      acc.backbalanceindent += Number(row.backbalanceindent || 0);
-      acc.expur += Number(row.expur || 0);
-      return acc;
-    }, {
-      onedaysbalnace: 0,
-      twodaysdaysbalnace: 0,
-      TodayIndent: 0,
-      totalindenttoday: 0,
-      purchase: 0,
-      mature: 0,
-      backonedaysbalnace: 0,
-      backtwodaysdaysbalnace: 0,
-      backTodayIndent: 0,
-      backbalanceindent: 0,
-      expur: 0
-    });
+    const computeTotals = (list) => {
+      const sum = list.reduce((acc, row) => {
+        acc.onedaysbalnace += Number(row.onedaysbalnace || 0);
+        acc.twodaysdaysbalnace += Number(row.twodaysdaysbalnace || 0);
+        acc.TodayIndent += Number(row.TodayIndent || 0);
+        acc.totalindenttoday += Number(row.totalindenttoday || 0);
+        acc.purchase += Number(row.purchase || 0);
+        acc.backonedaysbalnace += Number(row.backonedaysbalnace || 0);
+        acc.backtwodaysdaysbalnace += Number(row.backtwodaysdaysbalnace || 0);
+        acc.backTodayIndent += Number(row.backTodayIndent || 0);
+        acc.backbalanceindent += Number(row.backbalanceindent || 0);
+        return acc;
+      }, {
+        onedaysbalnace: 0,
+        twodaysdaysbalnace: 0,
+        TodayIndent: 0,
+        totalindenttoday: 0,
+        purchase: 0,
+        backonedaysbalnace: 0,
+        backtwodaysdaysbalnace: 0,
+        backTodayIndent: 0,
+        backbalanceindent: 0
+      });
 
-    return { rows: withExp, totals };
+      const maturity = sum.totalindenttoday > 0
+        ? Math.round((sum.purchase / sum.totalindenttoday) * 100)
+        : 0;
+      const expur = maturity > 0
+        ? Math.round((sum.backbalanceindent * maturity) / 100)
+        : 0;
+
+      return { ...sum, mature: maturity, expur };
+    };
+
+    const zoneTotals = computeTotals(zoneRows);
+    const grandTotals = computeTotals([...gateRows, ...zoneRows]);
+
+    return { rows: withExp, totals: zoneTotals, grandTotals };
   } catch (error) {
     throw new Error(`Failed to fetch indent purchase report: ${error.message}`);
   }
@@ -134,7 +146,21 @@ async function getZoneCentreWiseTruckDetails(zone, centre, season) {
 async function getCenterBalanceReport(params, season) {
   try {
     const data = await repository.getCenterBalanceReport(params, season);
-    return data || [];
+    const rows = Array.isArray(data?.rows) ? data.rows : Array.isArray(data) ? data : [];
+    return rows.map((row) => ({
+      Center: row.Center ?? row.Centre ?? row.centre ?? row.C_Name ?? row.c_name ?? row.CenterName ?? row.CNTR ?? '',
+      Clerk: row.WClerk ?? row.Clerk ?? row.wclerk ?? row.ClerkName ?? row.WCLERKNAME ?? '',
+      PostingDate: row.PostingDate ?? row.Posting_Date ?? row.PostingDt ?? row.PDate ?? row.PDATE ?? row.postingdate ?? '',
+      Desc: row.Desc ?? row.Description ?? row.Narration ?? row.desc ?? '',
+      Purchase: Number(row.Purchase ?? row.PURCHASE ?? row.Pur ?? row.purchase ?? 0) || 0,
+      Manual: Number(row.Manual ?? row.MANUAL ?? row.Man ?? row.manual ?? 0) || 0,
+      Receipt: Number(row.Receipt ?? row.Reciept ?? row.RECEIPT ?? row.receipt ?? 0) || 0,
+      Transit: Number(row.Transit ?? row.TRANSIT ?? row.transit ?? 0) || 0,
+      CenterRunningBal: Number(
+        row.CentreRunningBal ?? row.CenterRunningBal ?? row.CenterRunningBalance ?? row.CRunningBalance ?? row.centrerunningbal ?? 0
+      ) || 0,
+      Balance: Number(row.Balance ?? row.BALANCE ?? row.balance ?? 0) || 0
+    }));
   } catch (error) {
     throw new Error(`Failed to fetch center balance report: ${error.message}`);
   }
