@@ -152,6 +152,7 @@ const NewReport_AuditReportMaster = lazy(() => import('./pages/new-report/AuditR
 const NewReport_CONSECUTIVEGROSSWEIGHT = lazy(() => import('./pages/new-report/CONSECUTIVEGROSSWEIGHT'));
 const NewReport_ExceptionReportMaster = lazy(() => import('./pages/new-report/ExceptionReportMaster'));
 const NewReport_TargetActualMISReport = lazy(() => import('./pages/new-report/TargetActualMISReport'));
+const NewReport_TargetActualMisSapNew = lazy(() => import('./pages/new-report/TargetActualMisSapNew'));
 const NewReport_TargetVsActualMisPeriodcallyNewSap = lazy(() => import('./pages/new-report/TargetVsActualMisPeriodcallyNewSap'));
 const WhatsApp_ActualVarietyWiseArea = lazy(() => import('./pages/whatsapp/ActualVarietyWiseArea'));
 const WhatsApp_UploadLabReport = lazy(() => import('./pages/whatsapp/UploadLabReport'));
@@ -316,6 +317,7 @@ function App() {
             <Route path="/NewReport/CONSECUTIVEGROSSWEIGHT" element={<NewReport_CONSECUTIVEGROSSWEIGHT />} />
             <Route path="/NewReport/ExceptionReportMaster" element={<NewReport_ExceptionReportMaster />} />
             <Route path="/NewReport/TargetActualMISReport" element={<NewReport_TargetActualMISReport />} />
+            <Route path="/NewReport/TargetActualMisSapNew" element={<NewReport_TargetActualMisSapNew />} />
             <Route path="/NewReport/TargetVsActualMisPeriodcallyNewSap" element={<NewReport_TargetVsActualMisPeriodcallyNewSap />} />
 
             {/* Tracking Routes */}

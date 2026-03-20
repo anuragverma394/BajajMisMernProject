@@ -2,8 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { reportNewService, masterService } from '../../microservices/api.service';
-import '../../styles/base.css';const IndentPurchaseReportNew = () => {const navigate = useNavigate();const [units, setUnits] = useState([]);const [loading, setLoading] = useState(false);const [reportData, setReportData] = useState([]);const [totals, setTotals] = useState(null);const [grandTotals, setGrandTotals] = useState(null);const [filters, setFilters] = useState({
-    F_code: '',
+import '../../styles/base.css';
+
+const IndentPurchaseReportNew = () => {const navigate = useNavigate();
+const [units, setUnits] = useState([]);
+const [loading, setLoading] = useState(false);
+const [reportData, setReportData] = useState([]);
+const [totals, setTotals] = useState(null);
+const [filters, setFilters] = useState({
+
+
+    F_code: 'All',
     Fdate: new Date().toLocaleDateString('en-GB'), // DD/MM/YYYY
     Zone: '0',
     ZoneTo: '9999'
@@ -22,7 +31,6 @@ import '../../styles/base.css';const IndentPurchaseReportNew = () => {const navi
   };
 
   const handleSearch = async () => {
-    if (!filters.F_code || String(filters.F_code).toLowerCase() === 'all') {toast.error("Please select a factory.");return;}
     setLoading(true);
     try {
       const response = await reportNewService.getIndentPurchaseReport(filters);
@@ -30,14 +38,12 @@ import '../../styles/base.css';const IndentPurchaseReportNew = () => {const navi
         const payload = response?.data || {};
         setReportData(payload?.rows || []);
         setTotals(payload?.totals || null);
-        setGrandTotals(payload?.grandTotals || null);
         toast.success("Indent data synchronized.");
       } else {
         toast.error(response?.message || "No data available.");
       }
     } catch (error) {
       toast.error("Telemetry sync failure.");
-      setGrandTotals(null);
     } finally {
       setLoading(false);
     }
@@ -120,12 +126,14 @@ import '../../styles/base.css';const IndentPurchaseReportNew = () => {const navi
                         <div className="w-[220px]">
                             <label className={labelStyle}>Factory</label>
                             <select
+              
+              
                 name="F_code"
                 value={filters.F_code}
                 onChange={handleFilterChange} className={inputStyle}>
 
                 
-                                <option value="">Select</option>
+                                <option value="All">All</option>
                                 {units.map((unit, idx) =>
                 <option key={`${unit.F_Code || unit.id}-${idx}`} value={unit.F_Code || unit.id}>{unit.F_Name || unit.name}</option>
                 )}
@@ -171,7 +179,7 @@ import '../../styles/base.css';const IndentPurchaseReportNew = () => {const navi
                         <button onClick={handleSearch} disabled={loading} className="px-5 py-2 rounded text-[13px] font-medium cursor-pointer border-0 text-white min-w-[90px] bg-[#16a085]">
                             {loading ? '...' : 'Search'}
                         </button>
-                        <button type="button" className="px-5 py-2 rounded text-[13px] font-medium cursor-pointer border-0 text-white min-w-[90px] bg-[#16a085]">
+                        <button onClick={() => toast.info("Exporting Excel...")} className="px-5 py-2 rounded text-[13px] font-medium cursor-pointer border-0 text-white min-w-[90px] bg-[#16a085]">
                             Excel Export
                         </button>
                         <button onClick={() => window.print()} className="px-5 py-2 rounded text-[13px] font-medium cursor-pointer border-0 text-white min-w-[90px] bg-[#16a085]">
@@ -247,24 +255,6 @@ import '../../styles/base.css';const IndentPurchaseReportNew = () => {const navi
                                             <td className="py-[10px] px-[12px] border border-[#cbd5e1] text-right">{totals.backTodayIndent}</td>
                                             <td className="py-[10px] px-[12px] border border-[#cbd5e1] text-right">{totals.backbalanceindent}</td>
                                             <td className="py-[10px] px-[12px] border border-[#cbd5e1] text-right">{totals.expur}</td>
-                                        </tr>
-                                    </tfoot>
-              }
-                                {grandTotals &&
-              <tfoot className="bg-white font-bold">
-                                        <tr>
-                                            <td colSpan="2" className="py-[10px] px-[12px] border border-[#cbd5e1] text-center">GRAND TOTAL</td>
-                                            <td className="py-[10px] px-[12px] border border-[#cbd5e1] text-right">{grandTotals.onedaysbalnace}</td>
-                                            <td className="py-[10px] px-[12px] border border-[#cbd5e1] text-right">{grandTotals.twodaysdaysbalnace}</td>
-                                            <td className="py-[10px] px-[12px] border border-[#cbd5e1] text-right">{grandTotals.TodayIndent}</td>
-                                            <td className="py-[10px] px-[12px] border border-[#cbd5e1] text-right">{grandTotals.totalindenttoday}</td>
-                                            <td className="py-[10px] px-[12px] border border-[#cbd5e1] text-right">{grandTotals.purchase}</td>
-                                            <td className="py-[10px] px-[12px] border border-[#cbd5e1] text-right">{grandTotals.mature}</td>
-                                            <td className="py-[10px] px-[12px] border border-[#cbd5e1] text-right">{grandTotals.backonedaysbalnace}</td>
-                                            <td className="py-[10px] px-[12px] border border-[#cbd5e1] text-right">{grandTotals.backtwodaysdaysbalnace}</td>
-                                            <td className="py-[10px] px-[12px] border border-[#cbd5e1] text-right">{grandTotals.backTodayIndent}</td>
-                                            <td className="py-[10px] px-[12px] border border-[#cbd5e1] text-right">{grandTotals.backbalanceindent}</td>
-                                            <td className="py-[10px] px-[12px] border border-[#cbd5e1] text-right">{grandTotals.expur}</td>
                                         </tr>
                                     </tfoot>
               }
