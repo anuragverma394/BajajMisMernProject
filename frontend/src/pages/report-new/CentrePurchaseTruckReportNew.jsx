@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { reportNewService, masterService } from '../../microservices/api.service';
 import '../../styles/base.css';const CentrePurchaseTruckReportNew = () => {const navigate = useNavigate();const [units, setUnits] = useState([]);const [loading, setLoading] = useState(false);const [reportData, setReportData] = useState([]);const [totals, setTotals] = useState(null);const [filters, setFilters] = useState({
-    F_code: 'All',
+    F_code: '',
     FromDate: new Date().toLocaleDateString('en-GB'),
     ToDate: new Date().toLocaleDateString('en-GB'),
     Zone: '0',
@@ -23,12 +23,15 @@ import '../../styles/base.css';const CentrePurchaseTruckReportNew = () => {const
   };
 
   const handleSearch = async () => {
+    if (!filters.F_code || String(filters.F_code).toLowerCase() === 'all') {toast.error("Please select a factory.");return;}
     setLoading(true);
     try {
       const response = await reportNewService.getCentrePurchaseTruckReport(filters);
-      if (response.status === 'success') {
-        setReportData(response.data || []);
-        setTotals(response.totals);
+      if (response?.success === true || response?.status === 'success') {
+        const payload = response?.data || {};
+        const data = Array.isArray(payload?.rows) ? payload.rows : Array.isArray(response?.data) ? response.data : [];
+        setReportData(data);
+        setTotals(payload?.totals || null);
         toast.success("Truck metrics synchronized.");
       } else {
         toast.error(response.message || "No data available.");
@@ -120,7 +123,7 @@ import '../../styles/base.css';const CentrePurchaseTruckReportNew = () => {const
                 onChange={handleFilterChange} className={inputStyle}>
 
                 
-                                <option value="All">All</option>
+                                <option value="">Select</option>
                                 {units.map((unit, idx) =>
                 <option key={`${unit.F_Code || unit.id}-${idx}`} value={unit.F_Code || unit.id}>{unit.F_Name || unit.name}</option>
                 )}
@@ -178,7 +181,7 @@ import '../../styles/base.css';const CentrePurchaseTruckReportNew = () => {const
                         <button onClick={handleSearch} disabled={loading} className="px-5 py-2 rounded text-[13px] font-medium cursor-pointer border-0 text-white min-w-[90px] bg-[#16a085]">
                             {loading ? '...' : 'Search'}
                         </button>
-                        <button onClick={() => toast.info("Exporting Excel...")} className="px-5 py-2 rounded text-[13px] font-medium cursor-pointer border-0 text-white min-w-[90px] bg-[#16a085]">
+                        <button type="button" className="px-5 py-2 rounded text-[13px] font-medium cursor-pointer border-0 text-white min-w-[90px] bg-[#16a085]">
                             Excel Export
                         </button>
                         <button onClick={() => window.print()} className="px-5 py-2 rounded text-[13px] font-medium cursor-pointer border-0 text-white min-w-[90px] bg-[#16a085]">
@@ -192,34 +195,53 @@ import '../../styles/base.css';const CentrePurchaseTruckReportNew = () => {const
 
                 <div className="p-[0 20px 20px 20px]">
                     {reportData.length > 0 &&
-          <div className="overflow-x-auto border border-[#e2e8f0] rounded">
-                            <table className="w-[100%] text-2.5">
+          <div className="overflow-x-auto border border-[#cbd5e1] rounded bg-white">
+                            <div className="flex items-center justify-between bg-[#129a81] px-4 py-2 text-white text-[14px] font-semibold">
+                              <div className="flex items-center gap-3">
+                                <span>DATE</span>
+                                <input
+                                  readOnly
+                                  value={filters.ToDate}
+                                  className="w-[110px] rounded bg-white px-2 py-1 text-[12px] text-[#333] border border-[#0f7f69]"
+                                />
+                              </div>
+                              <div className="text-[16px]">Center Purchase Reports</div>
+                              <div className="flex items-center gap-3">
+                                <span>Time :</span>
+                                <input
+                                  readOnly
+                                  value={new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                                  className="w-[80px] rounded bg-white px-2 py-1 text-[12px] text-[#333] border border-[#0f7f69]"
+                                />
+                              </div>
+                            </div>
+                            <table className="w-[100%] text-[12px] border-collapse">
                                 <thead>
-                                    <tr className="bg-[#f8fafc]">
-                                        <th rowSpan="2" className="p-[8px] border border-[#cbd5e1] text-left min-w-[150px]">Block</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">O.BALANCE</th>
-                                        <th colSpan="2" className="p-[8px] border border-[#cbd5e1]">PURCHASE QTY(Period)</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">TOTAL PURCHASE</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">O.BALANCE</th>
-                                        <th colSpan="2" className="p-[8px] border border-[#cbd5e1]">Period</th>
-                                        <th colSpan="2" className="p-[8px] border border-[#cbd5e1]">STANDING AT YARD</th>
-                                        <th colSpan="2" className="p-[8px] border border-[#cbd5e1]">IN TRANSIT</th>
-                                        <th colSpan="2" className="p-[8px] border border-[#cbd5e1]">RECIEPT WEIGHTED(Period)</th>
+                                    <tr className="bg-[#dff0d8] text-[#2b2b2b]">
+                                        <th rowSpan="2" className="p-[8px] border border-[#cbd5e1] text-center min-w-[150px]">Block</th>
+                                        <th className="p-[8px] border border-[#cbd5e1] text-center">O.BALANC<br/>E</th>
+                                        <th colSpan="2" className="p-[8px] border border-[#cbd5e1] text-center">PURCHASE QTY(Period)</th>
+                                        <th className="p-[8px] border border-[#cbd5e1] text-center">TOTAL<br/>PURCHAS<br/>E</th>
+                                        <th className="p-[8px] border border-[#cbd5e1] text-center">O.BALANC<br/>E</th>
+                                        <th colSpan="2" className="p-[8px] border border-[#cbd5e1] text-center">Period</th>
+                                        <th colSpan="2" className="p-[8px] border border-[#cbd5e1] text-center">STANDING AT YARD</th>
+                                        <th colSpan="2" className="p-[8px] border border-[#cbd5e1] text-center">IN TRANSIT</th>
+                                        <th colSpan="2" className="p-[8px] border border-[#cbd5e1] text-center">RECIEPT WEIGHTED(Period)</th>
                                     </tr>
-                                    <tr className="bg-[#f8fafc] font-bold">
-                                        <th className="p-[8px] border border-[#cbd5e1]">Purchase</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">CANE(Qtl.)</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">PURCHY(Nos.)</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]"></th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">Reciept</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">VEHICLE DISPATCH</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">VEHICLE RECEIVED</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">VEHICLE(Nos.)</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">EST. QTY</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">NOS</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">EST. QTY</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">NOS</th>
-                                        <th className="p-[8px] border border-[#cbd5e1]">QTY</th>
+                                    <tr className="bg-[#dff0d8] font-semibold">
+                                        <th className="p-[8px] border border-[#cbd5e1] text-center">Purchase</th>
+                                        <th className="p-[8px] border border-[#cbd5e1] text-center">CANE(Qtl.)</th>
+                                        <th className="p-[8px] border border-[#cbd5e1] text-center">PURCHY(<br/>Nos.)</th>
+                                        <th className="p-[8px] border border-[#cbd5e1] text-center"></th>
+                                        <th className="p-[8px] border border-[#cbd5e1] text-center">Reciept</th>
+                                        <th className="p-[8px] border border-[#cbd5e1] text-center">VEHICLE<br/>DISPACH</th>
+                                        <th className="p-[8px] border border-[#cbd5e1] text-center">VEHICLE<br/>RECEIVED</th>
+                                        <th className="p-[8px] border border-[#cbd5e1] text-center">VEHICLE(<br/>Nos.)</th>
+                                        <th className="p-[8px] border border-[#cbd5e1] text-center">EST. QTY</th>
+                                        <th className="p-[8px] border border-[#cbd5e1] text-center">NOS</th>
+                                        <th className="p-[8px] border border-[#cbd5e1] text-center">EST. QTY</th>
+                                        <th className="p-[8px] border border-[#cbd5e1] text-center">NOS</th>
+                                        <th className="p-[8px] border border-[#cbd5e1] text-center">QTY</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -247,9 +269,9 @@ import '../../styles/base.css';const CentrePurchaseTruckReportNew = () => {const
                 )}
                                 </tbody>
                                 {totals &&
-              <tfoot className="bg-[#fff5f7] font-bold">
+              <tfoot className="bg-[#a9698c] text-white font-bold">
                                         <tr>
-                                            <td className="py-[10px] px-[12px] border border-[#cbd5e1] text-center">TOTAL</td>
+                                            <td className="py-[10px] px-[12px] border border-[#cbd5e1] text-center">Total</td>
                                             <td className="py-[10px] px-[12px] border border-[#cbd5e1] text-right">{totals.openingbalance}</td>
                                             <td className="py-[10px] px-[12px] border border-[#cbd5e1] text-right">{totals.Cane}</td>
                                             <td className="py-[10px] px-[12px] border border-[#cbd5e1] text-right">{totals.purchy}</td>

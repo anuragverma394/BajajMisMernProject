@@ -15,6 +15,18 @@ export const reportService = {
         const response = await apiClient.get('/report/indent-fail-summary', { params });
         return response.data;
     },
+    getIndentFailSummaryNew: async (params) => {
+        const response = await apiClient.get('/report/indent-fail-summary-new-data', { params });
+        return response.data;
+    },
+    getIndentFailSummaryNewMeta: async () => {
+        const response = await apiClient.get('/report/indent-fail-summary-new');
+        return response.data;
+    },
+    getIndentFailDetails: async (params) => {
+        const response = await apiClient.get('/report/indent-faill-details-data', { params });
+        return response.data;
+    },
 
     getCrushingFactoryData: async (params) => {
         const response = await apiClient.get('/report/loadfactorydata', { params });

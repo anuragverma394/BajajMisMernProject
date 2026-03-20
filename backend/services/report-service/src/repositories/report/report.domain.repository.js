@@ -1,5 +1,5 @@
 const { executeProcedure, executeQuery } = require('../../core/db/query-executor');
-const reportService = require('../../services/report.service');
+const getReportService = () => require('../../services/report.service');
 const readRepository = require('./report.read.repository');
 
 const CONTROLLER = 'Report';
@@ -2454,7 +2454,7 @@ exports.CentrePurchase = async (req, res, next) => {
 // Crushing report helper endpoints
 exports.LOADFACTORYDATA = async (req, res, next) => {
   try {
-    const data = await reportService.loadFactoryData(req);
+    const data = await getReportService().loadFactoryData(req);
     return res.status(200).json({ success: true, data });
   } catch (error) {
     if (typeof next === 'function') return next(error);
@@ -2464,7 +2464,7 @@ exports.LOADFACTORYDATA = async (req, res, next) => {
 
 exports.LOADMODEWISEDATA = async (req, res, next) => {
   try {
-    const data = await reportService.loadModeWiseData(req);
+    const data = await getReportService().loadModeWiseData(req);
     return res.status(200).json({ success: true, data });
   } catch (error) {
     if (typeof next === 'function') return next(error);
@@ -2474,7 +2474,7 @@ exports.LOADMODEWISEDATA = async (req, res, next) => {
 
 exports.TruckDispatchWeighed = async (req, res, next) => {
   try {
-    const data = await reportService.getTruckDispatchWeighed(req);
+    const data = await getReportService().getTruckDispatchWeighed(req);
     return res.status(200).json({ success: true, data });
   } catch (error) {
     if (typeof next === 'function') return next(error);
@@ -2484,7 +2484,7 @@ exports.TruckDispatchWeighed = async (req, res, next) => {
 
 exports.Analysisdata = async (req, res, next) => {
   try {
-    const data = await reportService.getAnalysisData(req);
+    const data = await getReportService().getAnalysisData(req);
     return res.status(200).json({ success: true, data });
   } catch (error) {
     if (typeof next === 'function') return next(error);
@@ -2494,7 +2494,7 @@ exports.Analysisdata = async (req, res, next) => {
 
 exports.LatestCrushingDate = async (req, res, next) => {
   try {
-    const data = await reportService.getLatestCrushingDate(req);
+    const data = await getReportService().getLatestCrushingDate(req);
     return res.status(200).json({ success: true, data });
   } catch (error) {
     if (typeof next === 'function') return next(error);
@@ -2504,7 +2504,7 @@ exports.LatestCrushingDate = async (req, res, next) => {
 
 exports.EffectedCaneAreaReport = async (req, res, next) => {
   try {
-    const data = await reportService.getEffectedCaneAreaReport(req);
+    const data = await getReportService().getEffectedCaneAreaReport(req);
     return res.status(200).json({ success: true, message: 'Effected cane area report', data });
   } catch (error) {
     return next(error);
@@ -2513,7 +2513,7 @@ exports.EffectedCaneAreaReport = async (req, res, next) => {
 
 exports.CentreCode = async (req, res, next) => {
   try {
-    const data = await reportService.getCentreCode(req);
+    const data = await getReportService().getCentreCode(req);
     return res.status(200).json({ success: true, message: 'Centre code report', data });
   } catch (error) {
     return next(error);
@@ -2524,7 +2524,7 @@ exports.CentreCode_2 = exports.CentreCode;
 
 exports.Getdisease = async (req, res, next) => {
   try {
-    const data = await reportService.getDiseaseList(req);
+    const data = await getReportService().getDiseaseList(req);
     return res.status(200).json({ success: true, message: 'Disease list', data });
   } catch (error) {
     return next(error);
@@ -2533,7 +2533,7 @@ exports.Getdisease = async (req, res, next) => {
 
 exports.SummaryReportUnitWise = async (req, res, next) => {
   try {
-    const data = await reportService.getSummaryReportUnitWise(req);
+    const data = await getReportService().getSummaryReportUnitWise(req);
     return res.status(200).json({ success: true, message: 'Summary report unit wise', data });
   } catch (error) {
     console.error('[report-service] SummaryReportUnitWise failed', {

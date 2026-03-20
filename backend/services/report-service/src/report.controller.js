@@ -17,6 +17,7 @@ exports.DriageDetail = catchAsync(async (req, res) => {
     center: req.query?.CENTER || req.query?.center || req.body?.CENTER || req.body?.center || '',
     dateRaw: req.query?.DATE || req.query?.Date || req.query?.date || req.body?.DATE || req.body?.Date || req.body?.date || ''
   });
+  
   return res.status(200).json(result);
 });
 

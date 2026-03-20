@@ -265,10 +265,87 @@ async function getCenterIndentPurchaseReport(centerCode, season) {
 /**
  * Get Centre Purchase Truck Report New
  */
-async function getCentrePurchaseTruckReportNew(season) {
+async function getCentrePurchaseTruckReportNew(params = {}, season) {
   try {
-    const result = await executeProcedure('sp_GetCentrePurchaseTruckReportNew', { Season: season });
-    return result || [];
+    const factory = String(params.F_code || params.F_Code || params.factory || '').trim();
+    const fromRaw = String(params.FromDate || params.fromDate || '').trim();
+    const toRaw = String(params.ToDate || params.toDate || '').trim();
+    const zonefrom = String(params.Zone || params.zone || '0').trim();
+    const zoneto = String(params.ZoneTo || params.zoneTo || '9999').trim();
+
+    if (!factory || factory.toLowerCase() === 'all') {
+      return [];
+    }
+
+    const FDate = toSqlDate(fromRaw);
+    const TDate = toSqlDate(toRaw);
+    if (!FDate || !TDate) {
+      return [];
+    }
+
+    const sqlText = `
+      select CDO_NAME,CDO_CODE,bl_code blk_code,
+        CONCAT(bl_name,'(', bl_code, ')',  '  /  '  , CDO_NAME, '(', CDO_CODE, ')') AS blk_name,
+        sum(openingbalance) openingbalance,
+        sum(isnull(qty,0)) Cane,
+        sum(isnull(purchy,0)) purchy,
+        sum(isnull(TotalCane,0)) TotalCane,
+        sum(isnull(openingreceipt,0)) openingreceipt,
+        sum(VehicleDispatch) VehicleDispatch,
+        sum(VehicleReceive) VehicleReceive,
+        sum(Standingyard) Standingyard,
+        sum(standingYardWeight) standingYardWeight,
+        sum(NosTransit) NosTransit,
+        sum(TransitWeight) TransitWeight,
+        sum(WeightedNos) WeightedNos,
+        sum(WeightedQty) WeightedQty,
+        sum(BalanceTruck) BalanceTruck,
+        sum(expqty) expqty
+      from (
+        select CDO_NAME,CDO_CODE,bl_code,bl_name,c_code,c_name,C_AVGWEIGHTCHALLAN,
+          isnull((select sum(m_gross-m_tare-m_joona) from Purchase
+                  where m_centre=c_code and m_factory=c_factory and cast(m_date as date) < @Date),0) as openingbalance,
+          isnull((select sum(m_gross-m_tare-m_joona) from mill_pur
+                  where m_centre=c_code and m_factory=c_factory and cast(m_date as date) between @Date and @Date1),0) qty,
+          isnull((select count(*) from mill_pur
+                  where m_centre=c_code and m_factory=c_factory and cast(m_date as date) between @Date and @Date1),0) purchy,
+          (isnull((select sum(m_gross-m_tare-m_joona) from Purchase
+                   where m_centre=c_code and m_factory=c_factory and cast(m_date as date) < @Date),0)
+           + isnull((select sum(m_gross - m_tare - m_joona) from mill_pur
+                     where m_centre=c_code and m_factory=c_factory and cast(m_date as date) between @Date and @Date1),0)) TotalCane,
+          isnull((select sum(tt_grossweight-tt_tareweight-tt_joonaWeight) from Receipt
+                  where tt_center= c_code and tt_factory=c_factory and tt_tareWeight> 0 and cast(tt_date as date) < @Date),0) openingreceipt,
+          (select COUNT(*) from challan_final
+           where c_code= Ch_Centre and c_factory=ch_Factory and ch_cancel = 0 and cast(ch_dep_date as date) between @Date and @Date1) VehicleDispatch,
+          (select COUNT(*) from challan_final
+           where c_code= Ch_Centre and c_factory=ch_Factory and ch_status=5 and ch_cancel = 0 and cast(ch_dep_date as date) between @Date and @Date1) VehicleReceive,
+          ((select COUNT(*) from T_Token where tt_cnt=c_code  and  c_factory=TT_FACTORY)
+            + (select count(*) from Receipt where tt_center= c_code and tt_factory=c_factory and tt_tareWeight=0)) Standingyard,
+          ((select COUNT(*) from T_Token where tt_cnt=c_code  and  c_factory=TT_FACTORY)
+            + (select count(*) from Receipt where tt_center= c_code and tt_factory=c_factory and tt_tareWeight=0)) * C_AVGWEIGHTCHALLAN standingYardWeight,
+          (select COUNT(*) from challan_final
+           where c_code = Ch_Centre and c_factory = ch_Factory and cast(ch_dep_date as date) between @Date and @Date1
+             and (ch_status = 0) and ch_cancel = 0
+             and not exists(Select 1 from T_TOKEN where tt_chln = ch_challan and TT_FACTORY = ch_Factory)) NosTransit,
+          (select COUNT(*) from challan_final
+           where c_code = Ch_Centre and c_factory = ch_Factory and cast(ch_dep_date as date) between @Date and @Date1
+             and (ch_status = 0) and ch_cancel = 0
+             and ch_challan not in (Select TT_CHLN from T_TOKEN where TT_FACTORY = ch_Factory)) * C_AVGWEIGHTCHALLAN TransitWeight,
+          (Select count(*) from Receipt
+           where cast(tt_date as date) between @Date and @Date1 and tt_center =c_code  AND tt_factory=c_factory and isnull(tt_tareWeight,0)>0) WeightedNos,
+          (Select isnull(Sum(tt_grossWeight-tt_tareWeight-tt_joonaWeight),0) from Receipt
+           where cast(tt_date as date) between @Date and @Date1 and tt_center =c_code and tt_factory=c_factory AND isnull(tt_tareWeight,0)>0) WeightedQty,
+          0 as BalanceTruck,0 as expqty
+        from centre
+        join block on bl_code=c_block and bl_factcode=c_factory
+        join cdo_mst on bl_factcode = CDO_Factcode and bl_inchargecode = CDO_CODE
+        where bl_code between @zonefrom and @zoneto and bl_factcode= @F_code
+        group by c_factory,bl_code,bl_name,c_code,c_name,C_AVGWEIGHTCHALLAN,CDO_NAME,CDO_CODE
+      ) as x
+      group by bl_code, bl_name ,CDO_NAME,CDO_CODE`;
+
+    const rows = await executeQuery(sqlText, { Date: FDate, Date1: TDate, zonefrom, zoneto, F_code: factory }, season);
+    return rows || [];
   } catch (error) {
     console.error('[ReportNewRepository] getCentrePurchaseTruckReportNew error:', error.message);
     throw error;
@@ -292,10 +369,44 @@ async function mutateCentrePurchaseTruckReport(model, command) {
 /**
  * Get Zone Centre Wise Truck Details
  */
-async function getZoneCentreWiseTruckDetails(zone, centre, season) {
+async function getZoneCentreWiseTruckDetails(params = {}, season) {
   try {
-    const result = await executeProcedure('sp_GetZoneCentreWiseTruckDetails', { Zone: zone, Centre: centre, Season: season });
-    return result || [];
+    const gatecode = String(params.ID || params.id || params.zone || params.Zone || '').trim();
+    const factory = String(params.Factory || params.factory || params.F_code || params.F_Code || '').trim();
+    const fromRaw = String(params.DATE || params.Date || params.fromDate || params.FromDate || '').trim();
+    const toRaw = String(params.DATETO || params.DateTo || params.ToDate || params.toDate || '').trim();
+
+    if (!gatecode || !factory) return [];
+
+    const Date = toSqlDate(fromRaw);
+    const Date1 = toSqlDate(toRaw || fromRaw);
+    if (!Date || !Date1) return [];
+
+    const sqlText = `
+      select  c_code,CONCAT(c_code, ' - ', c_name ) AS c_name, C_AVGWEIGHTCHALLAN cnt_avg_wt,
+      isnull((select sum(m_gross - m_tare - m_joona)
+        from purchase where m_centre = c_code and m_factory=c_factory and cast(m_date as date) < @Date),0) as openingbalance,
+      isnull((select sum(m_gross - m_tare - m_joona) from mill_pur where m_centre = c_code and m_factory=c_factory and cast(m_date as date) between @Date and @Date1),0)qty,
+      isnull((select Count(*) from mill_pur where m_centre = c_code and m_factory = c_factory  and cast(m_date as date) between @Date and @Date1),0)purchy,
+      (isnull((select sum(m_gross - m_tare - m_joona) from purchase where m_centre = c_code and m_factory = c_factory  and cast(m_date as date)  < @Date), 0) +
+       isnull((select sum(m_gross - m_tare - m_joona) from mill_pur where m_centre = c_code and m_factory = c_factory and cast(m_date as date) between @Date and @Date1),0))TotalCane ,
+      isnull((select sum(tt_grossweight-tt_tareweight-tt_joonaWeight) from Receipt where tt_center= c_code and tt_factory=c_factory and tt_tareWeight> 0 and cast(tt_date as date) < @Date),0) openingreceipt,
+      (select COUNT(*) from challan_final where c_code = Ch_Centre and c_factory = ch_Factory and cast(ch_dep_date as date) between @Date and @Date1 )VehicleDispatch,
+      (select COUNT(*) from challan_final where c_code = Ch_Centre and c_factory = ch_Factory and ch_status = 5 and ch_cancel = 0 and cast(ch_dep_date as date) between @Date and @Date1)VehicleReceive,
+      ((select COUNT(*) from T_Token where tt_cnt=c_code  and  c_factory=TT_FACTORY  )+(select count(*) from Receipt where tt_center = c_code and tt_factory = c_factory and tt_tareWeight = 0))  Standingyard,
+      ((select COUNT(*) from T_Token where tt_cnt=c_code  and  c_factory=TT_FACTORY  )+(select count(*) from Receipt where tt_center = c_code and tt_factory = c_factory and tt_tareWeight = 0))*C_AVGWEIGHTCHALLAN standingYardWeight,
+      (select COUNT(*) from challan_final where c_code = Ch_Centre and c_factory = ch_Factory and cast(ch_dep_date as date) between @Date and @Date1 and(ch_status = 0)  and  ch_cancel=0 and ch_challan not  in
+        (Select TT_CHLN from  T_TOKEN where TT_FACTORY = ch_Factory ) )NosTransit,
+      (select COUNT(*) from challan_final where c_code = Ch_Centre and c_factory = ch_Factory and cast(ch_dep_date as date) between @Date and @Date1 and(ch_status = 0)  and  ch_cancel=0 and ch_challan not  in(Select TT_CHLN from  T_TOKEN where TT_FACTORY = ch_Factory  ) )*C_AVGWEIGHTCHALLAN TransitWeight,
+      (Select count(*) from Receipt where cast(tt_date as date) between @Date and @Date1  and tt_center = c_code  AND tt_factory = c_factory  AND isnull(tt_tareWeight, 0) > 0)WeightedNos,
+      (Select isnull(Sum(tt_grossWeight - tt_tareWeight - tt_joonaWeight), 0) from Receipt where cast(tt_date as date) between @Date and @Date1  and tt_center = c_code and tt_factory = c_factory  AND isnull(tt_tareWeight, 0) > 0)WeightedQty,
+      0 as BalanceTruck,0 as expqty
+      from centre join block on bl_code = c_block and bl_factcode=c_factory
+      where bl_code = @gatecode and bl_factcode = @Factory
+      group by c_factory, c_code,c_name,C_AVGWEIGHTCHALLAN`;
+
+    const rows = await executeQuery(sqlText, { Date, Date1, gatecode, Factory: factory }, season);
+    return rows || [];
   } catch (error) {
     console.error('[ReportNewRepository] getZoneCentreWiseTruckDetails error:', error.message);
     throw error;

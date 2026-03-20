@@ -103,10 +103,42 @@ async function getCenterIndentPurchaseReport(centerCode, season) {
 /**
  * GET: Centre Purchase Truck Report New
  */
-async function getCentrePurchaseTruckReportNew(season) {
+async function getCentrePurchaseTruckReportNew(params, season) {
   try {
-    const data = await repository.getCentrePurchaseTruckReportNew(season);
-    return data || [];
+    const rows = await repository.getCentrePurchaseTruckReportNew(params, season);
+    const data = Array.isArray(rows) ? rows : [];
+    const totals = data.reduce((acc, row) => {
+      acc.openingbalance += Number(row.openingbalance || row.OpeningBalance || 0);
+      acc.Cane += Number(row.Cane || row.cane || 0);
+      acc.purchy += Number(row.purchy || row.Purchy || 0);
+      acc.TotalCane += Number(row.TotalCane || row.totalcane || 0);
+      acc.openingreceipt += Number(row.openingreceipt || row.OpeningReceipt || 0);
+      acc.VehicleDispatch += Number(row.VehicleDispatch || row.vehicledispatch || 0);
+      acc.VehicleReceive += Number(row.VehicleReceive || row.vehiclereceive || 0);
+      acc.Standingyard += Number(row.Standingyard || row.standingyard || 0);
+      acc.standingYardWeight += Number(row.standingYardWeight || row.standingyardweight || 0);
+      acc.NosTransit += Number(row.NosTransit || row.nostransit || 0);
+      acc.TransitWeight += Number(row.TransitWeight || row.transitweight || 0);
+      acc.WeightedNos += Number(row.WeightedNos || row.weightednos || 0);
+      acc.WeightedQty += Number(row.WeightedQty || row.weightedqty || 0);
+      return acc;
+    }, {
+      openingbalance: 0,
+      Cane: 0,
+      purchy: 0,
+      TotalCane: 0,
+      openingreceipt: 0,
+      VehicleDispatch: 0,
+      VehicleReceive: 0,
+      Standingyard: 0,
+      standingYardWeight: 0,
+      NosTransit: 0,
+      TransitWeight: 0,
+      WeightedNos: 0,
+      WeightedQty: 0
+    });
+
+    return { rows: data, totals };
   } catch (error) {
     throw new Error(`Failed to fetch centre purchase truck report: ${error.message}`);
   }
@@ -131,9 +163,9 @@ async function mutateCentrePurchaseTruckReport(model, command) {
 /**
  * GET: Zone Centre Wise Truck Details
  */
-async function getZoneCentreWiseTruckDetails(zone, centre, season) {
+async function getZoneCentreWiseTruckDetails(params, season) {
   try {
-    const data = await repository.getZoneCentreWiseTruckDetails(zone, centre, season);
+    const data = await repository.getZoneCentreWiseTruckDetails(params, season);
     return data || [];
   } catch (error) {
     throw new Error(`Failed to fetch zone-centre truck details: ${error.message}`);

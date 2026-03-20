@@ -94,7 +94,13 @@ export const debugDuplicateIdsInPayload = (payload, endpoint = '') => {
 };
 
 export const normalizeUnitsList = (payload) => {
-    const rows = Array.isArray(payload) ? payload : [];
+    const rows = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.data)
+            ? payload.data
+            : Array.isArray(payload?.recordsets?.[0])
+                ? payload.recordsets[0]
+                : [];
     const seen = new Set();
     const normalizedRows = rows.map((row) => {
         const code = String(row?.f_Code ?? row?.F_Code ?? row?.id ?? '').trim();
