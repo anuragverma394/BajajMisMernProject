@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, NavLink, useNavigate, Outlet, useLocation } from "react-router-dom";
 import '../../styles/Layout.css';const __cx = (...vals) => vals.filter(Boolean).join(" ");
-
+const CURRENT_YEAR = new Date().getFullYear();
 const logo = "/assets/images/Bajaj_Logo.png";
 
 export default function Layout() {
@@ -328,7 +328,7 @@ export default function Layout() {
             </main>
 
             <footer className="dn-footer">
-                © 2021 Bajaj Hindusthan Sugar Ltd. All Rights Reserved. Designed & Developed By Vibrant IT Solutions Pvt. Ltd.
+                @{CURRENT_YEAR} Bajaj Hindusthan Sugar Ltd. All Rights Reserved. Designed & Developed By Vibrant IT Solutions Pvt. Ltd.
             </footer>
         </div>);
 

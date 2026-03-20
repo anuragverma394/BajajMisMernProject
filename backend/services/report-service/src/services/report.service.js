@@ -424,6 +424,50 @@ async function getIndentFailDetails(params = {}) {
 
   return { success: true, data: list };
 }
+
+async function getEffectedCaneAreaReport(req = {}) {
+  const p = { ...(req.query || {}), ...(req.body || {}) };
+  const season = req.user?.season || p.season;
+  const fcode = String(p.F_code || p.F_Code || p.fact || p.factoryCode || '').trim();
+  const caneArea = String(p.CaneArea || p.caneArea || '1').trim();
+  const stateDropdown = String(p.stateDropdown || p.state || '').trim();
+
+  if (!fcode || fcode === '0' || fcode.toLowerCase() === 'all') {
+    return [];
+  }
+
+  const useAmity = caneArea === '2';
+  const rows = await reportRepository.fetchEffectedCaneAreaReport(fcode, stateDropdown, season, useAmity).catch(() => []);
+  const safeRows = Array.isArray(rows) ? rows : [];
+  let loggedMissingNoOfMember = false;
+  for (let i = 0; i < safeRows.length; i += 1) {
+    const r = safeRows[i] || {};
+    r.V_Code = r.V_Code ?? r.V_CODE ?? r.v_code ?? r.VCode ?? '';
+    r.V_Name = r.V_Name || r.V_NAME || r.VNAME || r.v_name || r.VName || r.VILLAGE_NAME || r.VILLAGENAME || r.VILL_NAME || r.VILLNAME || r.VILLAGE || r.VILL_NM || r.VILL_NM1 || r.V_NM || r.VNAME1 || '';
+    const noOfMemberRaw =
+      r.NoOfMember || r.NoofMember || r.NO_OF_MEMBER || r.NO_OF_MEM || r.NOOFMEMBER || r.NOOFMEM || r.NOOFMEM1 || r.noofmember ||
+      r.No_of_member || r.MEMBERCOUNT || r.MEMBERS || r.NOMEMBER || r.NO_MEMBER || r.MEMBER_COUNT || r.MEMCOUNT ||
+      r['No of Member'] || r['No Of Member'] || r['No_Of_Member'] || r['NoOfMember'] || r['NOOFMEMBER'] || 0;
+    r.NoOfMember = Number(noOfMemberRaw) || 0;
+    if (!loggedMissingNoOfMember && r.NoOfMember === 0) {
+      console.warn('[EffectedCaneAreaReport] NoOfMember missing. Available keys:', Object.keys(r));
+      loggedMissingNoOfMember = true;
+    }
+    r.BondedMember = r.BondedMember ?? r.BONDEDMEMBER ?? r.bondedmember ?? 0;
+    r.CLA = r.CLA ?? r.Cla ?? r.cla ?? 0;
+    r.TotalCaneArea = r.TotalCaneArea ?? r.TOTALCANEAREA ?? r.totalcanearea ?? 0;
+    r.MoreThanCLA = r.MoreThanCLA ?? r.MORETHANCLA ?? r.morethancla ?? 0;
+    r.ZeroCLA = r.ZeroCLA ?? r.ZEROCLA ?? r.zerocla ?? 0;
+    r.NonMem = r.NonMem ?? r.NONMEM ?? r.nonmem ?? 0;
+    r.LockGrower = r.LockGrower ?? r.LOCKGROWER ?? r.lockgrower ?? 0;
+    r.Total = r.Total ?? r.TOTAL ?? r.total ?? 0;
+    r.EffectedCaneArea = r.EffectedCaneArea ?? r.EFFECTEDCANEAREA ?? r.effectedcanearea ?? 0;
+    r.Percent = r.Percent ?? r.PERCENT ?? r.percent ?? 0;
+    r.IsReadyForAmty = r.IsReadyForAmty ?? r.ISREADYFORAMTY ?? r.isreadyforamty ?? 0;
+    safeRows[i] = r;
+  }
+  return safeRows;
+}
 module.exports = {
   getDriageSummary,
   getDriageDetail,
@@ -431,5 +475,6 @@ module.exports = {
   getTargetActualMISReport,
   getTargetActualMISPeriodReport,
   getIndentFailSummaryNew,
-  getIndentFailDetails
+  getIndentFailDetails,
+  getEffectedCaneAreaReport
 };

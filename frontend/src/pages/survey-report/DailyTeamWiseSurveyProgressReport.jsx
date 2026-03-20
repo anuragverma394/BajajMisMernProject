@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { masterService } from '../../microservices/api.service';
@@ -50,34 +50,23 @@ const SurveyReport_DailyTeamWiseSurveyProgressReport = () => {
         } finally { setLoading(false); }
     };
 
-    // Totals per column for footer
-    const totals = useMemo(() => {
-        const sum = k => rows.reduce((a, r) => a + nv(r[k]), 0);
-        return {
-            NoofPlotOnDate: sum('NoofPlotOnDate'),
-            NoofPlotToDate: sum('NoofPlotToDate'),
-            OnDateArea: sum('OnDateArea').toFixed(3),
-            ToDateArea: sum('ToDateArea').toFixed(3),
-            SurveyAvgOnDate: sum('SurveyAvgOnDate').toFixed(3),
-            SurveyAvgToDate: sum('SurveyAvgToDate').toFixed(3)
-        };
-    }, [rows]);
 
-    const thBase = 'px-2 py-2 border border-gray-300 bg-teal-700 text-white font-semibold text-center whitespace-nowrap text-xs';
-    const tdBase = 'px-2 py-1.5 border-b border-gray-200 text-xs whitespace-nowrap';
+    const thBase = 'px-2 py-2 border border-[#8fbfa4] bg-[#dff0d8] text-[#1b3b2f] font-semibold text-center whitespace-nowrap text-xs';
+    const tdBase = 'px-2 py-1.5 border-b border-[#c7d9c5] text-xs whitespace-nowrap';
+    const tableId = 'daily-team-wise-survey-progress-report-table';
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 font-sans">
             <Toaster position="top-right" />
 
             {/* Header */}
-            <div className="bg-teal-700 text-white px-5 py-3 text-sm font-semibold rounded-t-lg mb-px">
+            <div className="bg-[#129a81] text-white px-5 py-3 text-sm font-semibold rounded-t-lg mb-px">
                 Daily Survey Progress Report
             </div>
 
             {/* Filter card */}
             <div className="border border-gray-200 rounded-b-lg bg-white shadow-sm mb-4">
-                <div className="bg-green-50 text-green-800 px-5 py-2 text-xs font-semibold border-b border-green-200">
+                <div className="bg-[#dff0d8] text-[#1b3b2f] px-5 py-2 text-xs font-semibold border-b border-[#c7d9c5]">
                     Daily Survey Progress Report
                 </div>
                 <div className="p-5">
@@ -100,7 +89,7 @@ const SurveyReport_DailyTeamWiseSurveyProgressReport = () => {
 
                     <div className="flex flex-wrap gap-2">
                         <button onClick={handleSearch} disabled={loading}
-                            className="px-5 py-2 rounded text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-60 transition-colors min-w-[80px]">
+                            className="px-5 py-2 rounded text-sm font-medium text-white bg-[#129a81] hover:bg-[#0f7f68] disabled:opacity-60 transition-colors min-w-[80px]">
                             {loading ? (
                                 <span className="flex items-center gap-1">
                                     <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
@@ -110,9 +99,9 @@ const SurveyReport_DailyTeamWiseSurveyProgressReport = () => {
                                 </span>
                             ) : 'Search'}
                         </button>
-                        <button onClick={() => toast('Excel export coming soon.', { icon: '📊' })} className="px-5 py-2 rounded text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 transition-colors">Excel</button>
-                        <button onClick={() => window.print()} className="px-5 py-2 rounded text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 transition-colors">Print</button>
-                        <button onClick={() => navigate(-1)} className="px-5 py-2 rounded text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 transition-colors">Exit</button>
+                        <button className="px-5 py-2 rounded text-sm font-medium text-white bg-[#129a81] hover:bg-[#0f7f68] transition-colors">Excel</button>
+                        <button onClick={() => window.print()} className="px-5 py-2 rounded text-sm font-medium text-white bg-[#129a81] hover:bg-[#0f7f68] transition-colors">Print</button>
+                        <button onClick={() => navigate(-1)} className="px-5 py-2 rounded text-sm font-medium text-white bg-[#129a81] hover:bg-[#0f7f68] transition-colors">Exit</button>
                     </div>
                 </div>
             </div>
@@ -120,7 +109,7 @@ const SurveyReport_DailyTeamWiseSurveyProgressReport = () => {
             {/* Data table */}
             {rows.length > 0 && (
                 <div className="overflow-x-auto border border-gray-200 rounded-lg shadow-sm bg-white">
-                    <table className="w-full text-xs border-collapse">
+                    <table id={tableId} className="w-full text-xs border-collapse">
                         <thead>
                             {/* Row 1 – grouped headers */}
                             <tr>
@@ -129,8 +118,8 @@ const SurveyReport_DailyTeamWiseSurveyProgressReport = () => {
                                 <th className={`${thBase} align-bottom`} rowSpan={2}>Block Incharge</th>
                                 <th className={`${thBase} align-bottom`} rowSpan={2}>Block</th>
                                 <th className={`${thBase} align-bottom`} rowSpan={2}>Surveyor</th>
-                                <th className={`${thBase} align-bottom text-teal-200`} rowSpan={2}>Time Of<br />Survey Start</th>
-                                <th className={`${thBase} align-bottom text-teal-200`} rowSpan={2}>Time Of<br />Survey Closed</th>
+                                <th className={`${thBase} align-bottom`} rowSpan={2}>Time Of<br />Survey Start</th>
+                                <th className={`${thBase} align-bottom`} rowSpan={2}>Time Of<br />Survey Closed</th>
                                 <th className={`${thBase}`} colSpan={2}>No. Of Plot Surveyed</th>
                                 <th className={`${thBase}`} colSpan={2}>Survey Area (Hect)</th>
                                 <th className={`${thBase}`} colSpan={2}>Survey Avg (In Hect)</th>
@@ -140,44 +129,41 @@ const SurveyReport_DailyTeamWiseSurveyProgressReport = () => {
                             <tr>
                                 {['No. Of Plot Surveyed', 'Survey Area (Hect)', 'Survey Avg (In Hect)', '% Of Survey On Non-Member'].flatMap(() =>
                                     ['ONDATE', 'TODATE'].map((sub, si) => (
-                                        <th key={`${sub}-${Math.random()}`} className={`${thBase} text-teal-200`}>{sub}</th>
+                                        <th key={`${sub}-${Math.random()}`} className={`${thBase}`}>{sub}</th>
                                     ))
                                 )}
                             </tr>
                         </thead>
                         <tbody>
-                            {rows.map((row, idx) => (
-                                <tr key={idx} className={idx % 2 === 0 ? 'bg-white hover:bg-teal-50' : 'bg-gray-50 hover:bg-teal-50'}>
-                                    <td className={`${tdBase} text-center`}>{row.SNo}</td>
-                                    <td className={`${tdBase}`}>{row.ZoneIncharge}</td>
-                                    <td className={`${tdBase}`}>{row.BlockIncharge}</td>
-                                    <td className={`${tdBase} font-medium text-teal-700`}>{row.Block}</td>
-                                    <td className={`${tdBase} text-teal-600`}>{row.Surveyor}</td>
-                                    <td className={`${tdBase} text-center`}>{row.StartTime}</td>
-                                    <td className={`${tdBase} text-center`}>{row.EndTime}</td>
-                                    <td className={`${tdBase} text-right`}>{nv(row.NoofPlotOnDate)}</td>
-                                    <td className={`${tdBase} text-right`}>{nv(row.NoofPlotToDate)}</td>
-                                    <td className={`${tdBase} text-right`}>{row.OnDateArea}</td>
-                                    <td className={`${tdBase} text-right`}>{row.ToDateArea}</td>
-                                    <td className={`${tdBase} text-right`}>{row.SurveyAvgOnDate}</td>
-                                    <td className={`${tdBase} text-right`}>{row.SurveyAvgToDate}</td>
-                                    <td className={`${tdBase} text-right`}>{row.PctNonMemberOnDate}</td>
-                                    <td className={`${tdBase} text-right`}>{row.PctNonMemberToDate}</td>
-                                </tr>
-                            ))}
+                            {rows.map((row, idx) => {
+                                const isTotal = String(row?.Surveyor || '').toLowerCase().includes('total');
+                                const rowClass = isTotal
+                                    ? 'bg-[#dff0d8] font-semibold'
+                                    : idx % 2 === 0
+                                        ? 'bg-white hover:bg-[#eef7f0]'
+                                        : 'bg-[#f7fbf8] hover:bg-[#eef7f0]';
+                                return (
+                                    <tr key={idx} className={rowClass}>
+                                    <td className={`${tdBase} text-center`}>{row.SN}</td>
+                                    <td className={`${tdBase}`}>{row.Manager}</td>
+                                    <td className={`${tdBase}`}>{row.Blockincharge}</td>
+                                    <td className={`${tdBase} font-medium text-[#0b5f4e]`}>{row.Zone}</td>
+                                    <td className={`${tdBase} text-[#0b5f4e]`}>{row.Surveyor}</td>
+                                    <td className={`${tdBase} text-center`}>{row.StartSurvey}</td>
+                                    <td className={`${tdBase} text-center`}>{row.EndSurvey}</td>
+                                    <td className={`${tdBase} text-right`}>{nv(row.NoPlotOnDate)}</td>
+                                    <td className={`${tdBase} text-right`}>{nv(row.NoPlotToDate)}</td>
+                                    <td className={`${tdBase} text-right`}>{row.AreaOnDate}</td>
+                                    <td className={`${tdBase} text-right`}>{row.AreaToDate}</td>
+                                    <td className={`${tdBase} text-right`}>{row.AvgOnDate}</td>
+                                    <td className={`${tdBase} text-right`}>{row.AvgToDate}</td>
+                                    <td className={`${tdBase} text-right`}>{row.PerOnDate}</td>
+                                    <td className={`${tdBase} text-right`}>{row.PerToDate}</td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
-                        <tfoot>
-                            <tr className="bg-teal-50 font-semibold text-teal-900 border-t-2 border-teal-300 text-xs">
-                                <td colSpan={7} className="px-3 py-2 text-left font-bold">TOTAL</td>
-                                <td className="px-2 py-2 text-right">{totals.NoofPlotOnDate}</td>
-                                <td className="px-2 py-2 text-right">{totals.NoofPlotToDate}</td>
-                                <td className="px-2 py-2 text-right">{totals.OnDateArea}</td>
-                                <td className="px-2 py-2 text-right">{totals.ToDateArea}</td>
-                                <td className="px-2 py-2 text-right">{totals.SurveyAvgOnDate}</td>
-                                <td className="px-2 py-2 text-right">{totals.SurveyAvgToDate}</td>
-                                <td colSpan={2} className="px-2 py-2 text-center">—</td>
-                            </tr>
-                        </tfoot>
+                        <tfoot />
                     </table>
                 </div>
             )}

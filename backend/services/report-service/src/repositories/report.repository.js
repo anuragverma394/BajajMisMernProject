@@ -1,4 +1,4 @@
-const { executeQuery } = require('../core/db/query-executor');
+const { executeQuery, executeProcedure } = require('../core/db/query-executor');
 
 const SUMMARY_SQL = `
   WITH CEN AS (
@@ -431,5 +431,15 @@ module.exports = {
   fetchIndentFailPBal,
   fetchIndentFailTodayWeight,
   fetchIndentFailDetailRows,
-  fetchIndentFailDetail2DayBack
+  fetchIndentFailDetail2DayBack,
+  fetchEffectedCaneAreaReport
 };
+
+async function fetchEffectedCaneAreaReport(fcode, stateDropdown, season, useAmity = false) {
+  const procName = useAmity ? 'mis_rptGASHTIAmity1' : 'mis_rpt1';
+  const result = await executeProcedure(procName, {
+    fact: fcode ?? '',
+    state: stateDropdown ?? ''
+  }, season);
+  return result?.recordsets?.[0] || result?.rows || [];
+}

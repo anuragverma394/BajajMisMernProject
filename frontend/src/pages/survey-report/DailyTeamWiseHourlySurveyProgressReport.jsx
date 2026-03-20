@@ -1,212 +1,208 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
-import { surveyService, masterService } from '../../microservices/api.service';
-import '../../styles/base.css';const SurveyReport_DailyTeamWiseHourlySurveyProgressReport = () => {const navigate = useNavigate();const tableRef = useRef(null);const [factories, setFactories] = useState([]);const [unitCode, setUnitCode] = useState('All');const [date, setDate] = useState('');const [isLoading, setIsLoading] = useState(false);
-  const [reportData, setReportData] = useState([]);
+import { masterService } from '../../microservices/api.service';
+import { surveyService } from '../../microservices/survey.service';
+
+const today = () => {
+  const d = new Date();
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+};
+
+const normalizeUnit = (u) => ({
+  code: String(u?.F_Code || u?.f_Code || u?.id || '').trim(),
+  name: String(u?.F_Name || u?.f_Name || u?.name || '').trim()
+});
+
+const toNum = (v) => {
+  const num = Number(String(v ?? '').replace(/,/g, ''));
+  return Number.isFinite(num) ? num : 0;
+};
+
+const SurveyReport_DailyTeamWiseHourlySurveyProgressReport = () => {
+  const navigate = useNavigate();
+  const [units, setUnits] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [rows, setRows] = useState([]);
+  const [filters, setFilters] = useState({ unit: '', date: today() });
 
   useEffect(() => {
-    masterService.getUnits().then((d) => {
-      const data = Array.isArray(d) ? d : d.data || [];
-      setFactories(data);
-    }).catch(() => {});
+    masterService.getUnits()
+      .then((d) => setUnits(Array.isArray(d) ? d.map(normalizeUnit).filter((u) => u.code) : []))
+      .catch(() => { });
   }, []);
 
-  const handleSearch = async (e) => {
-    if (e) e.preventDefault();
-    setIsLoading(true);
+  const handleChange = (e) => setFilters((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+  const handleSearch = async () => {
+    if (!filters.unit) { toast.error('Please select a Factory'); return; }
+    if (!filters.date) { toast.error('Please enter a Date'); return; }
+    setLoading(true);
     try {
-      const params = { unitCode, date };
-      const response = await surveyService.getDailyTeamWiseHourlyProgress(params);
-      setReportData(response.data || response || []);
-      toast.success('Hourly synchronization complete.');
-    } catch (error) {
-      toast.error('Data sync failure.');
+      const response = await surveyService.getDailyTeamWiseHourlyProgress({
+        F_Code: filters.unit,
+        Date: filters.date
+      });
+      const data = response?.data ?? response?.recordsets?.[0] ?? (Array.isArray(response) ? response : []);
+      setRows(Array.isArray(data) ? data : []);
+      if (!data || data.length === 0) toast('No data found.', { icon: 'ℹ️' });
+    } catch {
+      toast.error('Failed to fetch report data.');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const headerStyle = "bg-[#16a085] text-white py-[10px] px-[20px] text-4 font-medium rounded-[8px 8px 0 0] mb-[1px]";
-
-
-
-
-
-
-
-
-
-  const subHeaderStyle = "bg-[#e6f3e6] text-[#2e7d32] py-[8px] px-[20px] text-[13px] font-semibold border-b border-b-[#c8e6c9] mb-[20px]";
-
-
-
-
-
-
-
-
-
-  const cardStyle = "p-[25px] border border-[#e2e8f0] rounded-lg bg-white shadow-[0 1px 3px rgba(0,0,0,0.05)] mb-[20px] relative";
-
-
-
-
-
-
-
-
-
-  const labelStyle = "block text-[13px] font-semibold text-[#333] mb-[8px]";
-
-
-
-
-
-
-
-  const inputStyle = "w-[100%] py-[8px] px-[12px] border border-[#cbd5e1] rounded text-[13px] bg-white ";
-
-
-
-
-
-
-
-
-
-  const btnStyle = (bg = '#16a085') => ({
-    padding: '8px 20px',
-    borderRadius: '4px',
-    fontSize: '13px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    border: 'none',
-    color: 'white',
-    backgroundColor: bg,
-    minWidth: '80px'
-  });
-
-  const helpIconStyle = "absolute right-[40px] bottom-[85px] w-[32px] h-[32px] bg-[#3498db] text-white rounded-[50%] flex items-center justify-center text-[18px] cursor-pointer shadow-[0 2px 4px rgba(0,0,0,0.1)]";
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  const thBase = 'px-2 py-2 border border-[#8fbfa4] bg-[#dff0d8] text-[#1b3b2f] font-semibold text-center whitespace-nowrap text-xs';
+  const tdBase = 'px-2 py-1.5 border-b border-[#c7d9c5] text-xs whitespace-nowrap';
 
   return (
-    <div className="p-[20px] bg-white min-h-[100vh] font-['Segoe UI', Tahoma, Geneva, Verdana, sans-serif]">
-            <Toaster position="top-right" />
+    <div className="min-h-screen bg-gray-50 p-4 font-sans">
+      <Toaster position="top-right" />
 
-            <div className={headerStyle}>
-                Daily Hourly Survey Progress Report
+      <div className="bg-[#129a81] text-white px-5 py-3 text-sm font-semibold rounded-t-lg mb-px">
+        Daily Hourly Survey Progress Report
+      </div>
+
+      <div className="border border-gray-200 rounded-b-lg bg-white shadow-sm mb-4">
+        <div className="bg-[#dff0d8] text-[#1b3b2f] px-5 py-2 text-xs font-semibold border-b border-[#c7d9c5]">
+          Daily Hourly Survey Progress Report
+        </div>
+        <div className="p-5">
+          <div className="flex flex-wrap gap-5 mb-5 items-end">
+            <div className="w-64">
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Factory</label>
+              <select
+                name="unit"
+                value={filters.unit}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              >
+                <option value="">-- Select Factory --</option>
+                {units.map((u, i) => (
+                  <option key={`${u.code}-${i}`} value={u.code}>{u.name}</option>
+                ))}
+              </select>
             </div>
-
-            <div className="border border-[#e2e8f0] rounded-[0 0 8px 8px]">
-                <div className={subHeaderStyle}>
-                    Daily Hourly Survey Progress Report
-                </div>
-
-                <div className={cardStyle}>
-                    <div className="flex gap-[40px] mb-[25px]">
-                        <div className="w-[280px]">
-                            <label className={labelStyle}>Factory</label>
-                            <select
-                value={unitCode}
-                onChange={(e) => setUnitCode(e.target.value)} className={inputStyle}>
-
-                
-                                <option value="All">All</option>
-                                {factories.map((f, idx) =>
-                <option key={`${f.F_Code || f.id}-${idx}`} value={f.F_Code || f.id}>{f.F_Name || f.name}</option>
-                )}
-                            </select>
-                        </div>
-                        <div className="w-[280px]">
-                            <label className={labelStyle}>Date</label>
-                            <input
+            <div className="w-52">
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Date</label>
+              <input
                 type="text"
-                placeholder="dd/mm/yyyy"
-                value={date}
-                onChange={(e) => setDate(e.target.value)} className={inputStyle} />
-
-              
-                        </div>
-                    </div>
-
-                    <div className="flex gap-[10px]">
-                        <button onClick={handleSearch} disabled={isLoading} className="px-5 py-2 rounded text-[13px] font-medium cursor-pointer border-0 text-white min-w-[90px] bg-[#16a085]">
-                            {isLoading ? '...' : 'Search'}
-                        </button>
-                        <button onClick={() => toast.info("Exporting Excel...")} className="px-5 py-2 rounded text-[13px] font-medium cursor-pointer border-0 text-white min-w-[90px] bg-[#16a085]">
-                            Excel
-                        </button>
-                        <button onClick={() => window.print()} className="px-5 py-2 rounded text-[13px] font-medium cursor-pointer border-0 text-white min-w-[90px] bg-[#16a085]">
-                            Print
-                        </button>
-                        <button onClick={() => navigate(-1)} className="px-5 py-2 rounded text-[13px] font-medium cursor-pointer border-0 text-white min-w-[90px] bg-[#16a085]">
-                            Exit
-                        </button>
-                    </div>
-
-                    <div className={helpIconStyle}>?</div>
-                </div>
-
-                <div className="p-[0 20px 20px 20px]">
-                    {reportData.length > 0 &&
-          <div className="overflow-x-auto border border-[#e2e8f0] rounded">
-                            <table ref={tableRef} className="w-[100%] text-[11px]">
-                                <thead>
-                                    <tr className="bg-[#2d3436] text-white font-bold">
-                                        <th className="p-[10px] border border-[#444]">SN</th>
-                                        <th className="p-[10px] border border-[#444] text-left">Commander</th>
-                                        <th className="p-[10px] border border-[#444] text-left">Incharge</th>
-                                        <th className="p-[10px] border border-[#444]">Zone</th>
-                                        <th className="p-[10px] border border-[#444]">Surveyor</th>
-                                        {[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map((h, idx) =>
-                  <th key={h} className="p-[10px] border border-[#444]">{h}h</th>
-                  )}
-                                        <th className="p-[10px] border border-[#444]">Total Plots</th>
-                                        <th className="p-[10px] border border-[#444]">Total Area</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {reportData.map((row, idx) =>
-                <tr key={idx} className="border-b border-b-[#f1f5f9]">
-                                            <td className="p-[8px] text-center">{row.SN || idx + 1}</td>
-                                            <td className="p-[8px]">{row.Manager}</td>
-                                            <td className="p-[8px]">{row.BlockIncharge}</td>
-                                            <td className="p-[8px] text-center">{row.Zone}</td>
-                                            <td className="p-[8px]">{row.Surveyor}</td>
-                                            {[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map((h, idx) =>
-                  <td key={h} className="p-[8px] text-center">{row[`Hr${h}`] || 0}</td>
-                  )}
-                                            <td className="p-[8px] text-right font-bold">{row.NoPlotToDate}</td>
-                                            <td className="p-[8px] text-right font-bold">{row.AreaToDate}</td>
-                                        </tr>
-                )}
-                                </tbody>
-                            </table>
-                        </div>
-          }
-                </div>
+                name="date"
+                value={filters.date}
+                onChange={handleChange}
+                placeholder="DD/MM/YYYY"
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
             </div>
+          </div>
 
-            <footer className="mt-[20px] py-[0] px-[20px] text-[11px] text-[#999]">
-                2021 © Bajaj Hindusthan Sugar Ltd. All Rights Reserved. Designed & Developed By Vibrant IT Solutions Pvt. Ltd.
-            </footer>
-        </div>);
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={handleSearch}
+              disabled={loading}
+              className="px-5 py-2 rounded text-sm font-medium text-white bg-[#129a81] hover:bg-[#0f7f68] disabled:opacity-60 transition-colors min-w-[80px]"
+            >
+              {loading ? '...' : 'Search'}
+            </button>
+            <button className="px-5 py-2 rounded text-sm font-medium text-white bg-[#129a81] hover:bg-[#0f7f68] transition-colors">
+              Excel
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="px-5 py-2 rounded text-sm font-medium text-white bg-[#129a81] hover:bg-[#0f7f68] transition-colors"
+            >
+              Print
+            </button>
+            <button
+              onClick={() => navigate(-1)}
+              className="px-5 py-2 rounded text-sm font-medium text-white bg-[#129a81] hover:bg-[#0f7f68] transition-colors"
+            >
+              Exit
+            </button>
+          </div>
+        </div>
+      </div>
 
+      {rows.length > 0 && (
+        <div className="overflow-x-auto border border-gray-200 rounded-lg shadow-sm bg-white">
+          <table className="w-full text-xs border-collapse">
+            <thead>
+              <tr>
+                <th className={`${thBase} align-bottom`} rowSpan={2}>S.No</th>
+                <th className={`${thBase} align-bottom`} rowSpan={2}>Zone Incharge</th>
+                <th className={`${thBase} align-bottom`} rowSpan={2}>Block Incharge</th>
+                <th className={`${thBase} align-bottom`} rowSpan={2}>Block</th>
+                <th className={`${thBase} align-bottom`} rowSpan={2}>Surveyor</th>
+                <th className={`${thBase}`} colSpan={2}>Priv.Day No</th>
+                <th className={`${thBase}`} colSpan={15}>Hourly On Date Plot</th>
+                <th className={`${thBase}`} colSpan={2}>On Date No.</th>
+                <th className={`${thBase}`} colSpan={2}>To Date No.</th>
+                <th className={`${thBase}`} colSpan={2}>Todate Avg.</th>
+                <th className={`${thBase}`} colSpan={2}>Non Mem. %</th>
+                <th className={`${thBase}`} colSpan={1}>Total Working Days</th>
+              </tr>
+              <tr>
+                <th className={thBase}>PLOT</th>
+                <th className={thBase}>AREA</th>
+                {[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map((hr) => (
+                  <th key={`h-${hr}`} className={thBase}>{hr}Hr</th>
+                ))}
+                <th className={thBase}>PLOT</th>
+                <th className={thBase}>AREA</th>
+                <th className={thBase}>PLOT</th>
+                <th className={thBase}>AREA</th>
+                <th className={thBase}>Plot</th>
+                <th className={thBase}>Area</th>
+                <th className={thBase}>Ondate</th>
+                <th className={thBase}>Todate</th>
+                <th className={thBase}></th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, idx) => {
+                const isTotal = String(row?.Surveyor || '').toLowerCase().includes('total');
+                const rowClass = isTotal
+                  ? 'bg-[#dff0d8] font-semibold'
+                  : idx % 2 === 0
+                    ? 'bg-white hover:bg-[#eef7f0]'
+                    : 'bg-[#f7fbf8] hover:bg-[#eef7f0]';
+                return (
+                  <tr key={idx} className={rowClass}>
+                    <td className={`${tdBase} text-center`}>{row.SN}</td>
+                    <td className={tdBase}>{row.Manager}</td>
+                    <td className={tdBase}>{row.Blockincharge}</td>
+                    <td className={tdBase}>{row.Zone}</td>
+                    <td className={tdBase}>{row.Surveyor}</td>
+                    <td className={`${tdBase} text-right`}>{toNum(row.PDNPlot)}</td>
+                    <td className={`${tdBase} text-right`}>{row.PDNArea}</td>
+                    {[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map((hr) => (
+                      <td key={`${idx}-${hr}`} className={`${tdBase} text-center`}>{toNum(row[`Hr${hr}`])}</td>
+                    ))}
+                    <td className={`${tdBase} text-right`}>{toNum(row.NoPlotOnDate)}</td>
+                    <td className={`${tdBase} text-right`}>{row.AreaOnDate}</td>
+                    <td className={`${tdBase} text-right`}>{toNum(row.NoPlotToDate)}</td>
+                    <td className={`${tdBase} text-right`}>{row.AreaToDate}</td>
+                    <td className={`${tdBase} text-right`}>{row.AreaTotalAvg}</td>
+                    <td className={`${tdBase} text-right`}>{row.PlotTotalAvg}</td>
+                    <td className={`${tdBase} text-right`}>{row.NonMemOnDatePer}</td>
+                    <td className={`${tdBase} text-right`}>{row.NonMemToDatePre}</td>
+                    <td className={`${tdBase} text-right`}>{row.TotalWorkingDays}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {!loading && rows.length === 0 && (
+        <div className="border border-gray-200 rounded-lg bg-white min-h-[250px] flex flex-col items-center justify-center text-gray-400">
+          <p className="text-sm">Select a factory and date, then click <strong>Search</strong>.</p>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default SurveyReport_DailyTeamWiseHourlySurveyProgressReport;

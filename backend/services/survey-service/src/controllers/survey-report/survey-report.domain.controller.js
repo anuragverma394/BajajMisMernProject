@@ -71,12 +71,81 @@ function makeProcedureHandler(action) {
   });
 }
 
-exports.getDailyTeamWiseSurveyProgressReport = makeProcedureHandler('DailyTeamWiseSurveyProgressReport');
-exports.getDailyTeamWiseHourlySurveyProgressReport = makeProcedureHandler('DailyTeamWiseHourlySurveyProgressReport');
+exports.getDailyTeamWiseSurveyProgressReport = catchAsync(async (req, res) => {
+  const season = getSeason(req);
+  const fCode = getValue(req, 'F_code', 'F_Code', 'factoryCode');
+  const date = normalizeDateInput(getValue(req, 'Date', 'date'));
+  const userId = String(req.user?.userId || req.headers['x-user-id'] || getValue(req, 'Userid', 'userId') || '').trim();
+  const data = await surveyReportService.getDailyTeamWiseSurveyProgressReport({
+    fCode: fCode === '0' ? '' : fCode,
+    date: toSqlDate(date),
+    userId,
+    season
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: 'Daily team wise survey progress report',
+    data
+  });
+});
+exports.getDailyTeamWiseHourlySurveyProgressReport = catchAsync(async (req, res) => {
+  const season = getSeason(req);
+  const fCode = getValue(req, 'F_code', 'F_Code', 'factoryCode');
+  const date = normalizeDateInput(getValue(req, 'Date', 'date'));
+  const userId = String(req.user?.userId || req.headers['x-user-id'] || getValue(req, 'Userid', 'userId') || '').trim();
+  const data = await surveyReportService.getDailyTeamWiseHourlySurveyProgressReport({
+    fCode: fCode === '0' ? '' : fCode,
+    date: toSqlDate(date),
+    userId,
+    season
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: 'Daily team wise hourly survey progress report',
+    data
+  });
+});
 exports.getFinalVillageFirstSurveyReport = makeProcedureHandler('FinalVillageFirstSurveyReport');
 exports.getFinalVillageFirstSurveySummeryReport = makeProcedureHandler('FinalVillageFirstSurveySummeryReport');
-exports.getSurveyUnitWiseSurveyStatus = makeProcedureHandler('SurveyUnitWiseSurveyStatus');
-exports.getSurveyUnitWiseSurveyAreaSummary = makeProcedureHandler('SurveyUnitWiseSurveyAreaSummary');
+exports.getSurveyUnitWiseSurveyStatus = catchAsync(async (req, res) => {
+  const season = getSeason(req);
+  const fCode = getValue(req, 'F_code', 'F_Code', 'factoryCode') || '0';
+  const caneType = getValue(req, 'CaneType', 'caneType') || '1';
+  const data = await surveyReportService.getSurveyUnitWiseSurveyStatusReport({
+    fCode,
+    caneType,
+    season
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: 'Survey unit wise survey status',
+    data
+  });
+});
+exports.getSurveyUnitWiseSurveyAreaSummary = catchAsync(async (req, res) => {
+  const season = getSeason(req);
+  const fCode = getValue(req, 'F_code', 'F_Code', 'factoryCode') || '0';
+  const caneType = getValue(req, 'CaneType', 'caneType') || '1';
+  const date = normalizeDateInput(getValue(req, 'Date', 'date'));
+  const connectionSeason = String(req.user?.connectionSeason || req.headers['x-user-connection-season'] || '').trim();
+
+  const data = await surveyReportService.getSurveyUnitWiseSurveyAreaSummaryReport({
+    fCode,
+    caneType,
+    date: toSqlDate(date),
+    season,
+    connectionSeason
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: 'Survey unit wise survey area summary',
+    data
+  });
+});
 exports.getSurveyActualVarietywise = makeProcedureHandler('SurveyActualVarietywise');
 
 exports.DailyTeamWiseSurveyProgressReport = exports.getDailyTeamWiseSurveyProgressReport;

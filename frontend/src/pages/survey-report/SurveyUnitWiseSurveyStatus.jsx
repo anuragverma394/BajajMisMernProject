@@ -1,237 +1,218 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
-import { surveyService, masterService } from '../../microservices/api.service';
-import '../../styles/SurveyReports.css';
-import { openPrintWindow } from '../../utils/print';
+import { masterService, surveyService } from '../../microservices/api.service';
 
 const SurveyReport_SurveyUnitWiseSurveyStatus = () => {
-    const navigate = useNavigate();
-    const [factories, setFactories] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [reportData, setReportData] = useState([]);
-    const [filters, setFilters] = useState({
-        F_code: '',
-        CaneType: '1'
-    });
+  const navigate = useNavigate();
+  const [units, setUnits] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [rows, setRows] = useState([]);
+  const [filters, setFilters] = useState({
+    F_code: '0',
+    CaneType: '1'
+  });
 
-    useEffect(() => {
-        const loadUnits = async () => {
-            try {
-                const units = await masterService.getUnits();
-                setFactories(units);
-                if (units.length > 0) {
-                    setFilters(prev => ({ ...prev, F_code: units[0].F_Code || units[0].id }));
-                }
-            } catch (error) {
-                toast.error("Telemetry link failure: Station registry unreachable");
-            }
-        };
-        loadUnits();
-    }, []);
-
-    const handleSearch = async (e) => {
-        if (e) e.preventDefault();
-        if (!filters.F_code) {
-            toast.error("Command node identification required");
-            return;
-        }
-
-        setLoading(true);
-        try {
-            const response = await surveyService.getSurveyUnitWiseStatus(filters);
-            setReportData(response.data || response || []);
-            toast.success("Progress Matrix synchronized");
-        } catch (error) {
-            toast.error("Synthetic analytical failure: Progress mapping aborted");
-            setReportData([]);
-        } finally {
-            setLoading(false);
-        }
+  useEffect(() => {
+    const loadUnits = async () => {
+      try {
+        const data = await masterService.getUnits();
+        const normalized = Array.isArray(data)
+          ? data
+              .map((u) => ({
+                code: String(u?.F_Code || u?.f_Code || u?.id || '').trim(),
+                name: String(u?.F_Name || u?.f_Name || u?.name || '').trim()
+              }))
+              .filter((u) => u.code)
+          : [];
+        setUnits(normalized);
+      } catch {
+        toast.error('Failed to load units.');
+      }
     };
+    loadUnits();
+  }, []);
 
-    const handlePrint = () => {
-        const content = document.getElementById('survey-report-print');
-        openPrintWindow({
-            title: "Projected Progress Matrix",
-            subtitle: `Node: ${filters.F_code} | Protocol: ${filters.CaneType === '1' ? 'Primary' : 'Portal'}`,
-            contentHtml: content ? content.outerHTML : ""
-        });
-    };
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({ ...prev, [name]: value }));
+  };
 
-    const handleExport = () => {
-        if (reportData.length === 0) return;
-        const csvContent = "data:text/csv;charset=utf-8,"
-            + Object.keys(reportData[0]).join(",") + "\n"
-            + reportData.map(row => Object.values(row).join(",")).join("\n");
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `ProgressMatrix_${new Date().toLocaleDateString()}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        toast.success("Progress Matrix exported to CSV");
-    };
+  const handleSearch = async () => {
+    setLoading(true);
+    try {
+      const response = await surveyService.getSurveyUnitWiseStatus(filters);
+      const data = response?.data ?? response ?? [];
+      if (Array.isArray(data) && data.length > 0) {
+        setRows(data);
+        toast.success(`Loaded ${data.length} rows.`);
+      } else {
+        setRows([]);
+        toast('No data found.', { icon: 'ℹ️' });
+      }
+    } catch {
+      setRows([]);
+      toast.error('Failed to fetch report data.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <div className="report-container-premium animate-in fade-in duration-700 bg-slate-50 min-h-screen p-8">
-            <Toaster position="top-right" />
+  const tableId = 'unit-wise-survey-status-table';
+  const thBase =
+    'px-3 py-2 border border-[#a6c5a6] bg-[#dff0d8] text-[#1b3b2f] text-xs font-semibold text-center whitespace-nowrap';
+  const tdBase = 'px-3 py-2 border-b border-[#cfe0cf] text-xs text-center whitespace-nowrap';
 
-            <header className="report-header-premium mb-10 bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 p-10 rounded-[3rem] shadow-2xl flex flex-col md:flex-row justify-between items-center gap-8 border border-white/10 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-                <div className="flex items-center gap-8 relative z-10">
-                    <div className="w-20 h-20 bg-indigo-500 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-indigo-500/40 rotate-3 group hover:rotate-6 transition-all duration-500">
-                        <i className="fas fa-chart-line text-white text-4xl"></i>
-                    </div>
-                    <div>
-                        <h1 className="text-3xl font-black text-white tracking-tighter uppercase">Progress Matrix</h1>
-                        <p className="text-indigo-400 font-black text-[11px] uppercase tracking-[0.3em] mt-2 flex items-center gap-2">
-                            <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
-                            Unit-Wise Survey Status & Operational Velocity
-                        </p>
-                    </div>
-                </div>
+  const unitOptions = useMemo(
+    () => [
+      { code: '0', name: 'All' },
+      ...units
+    ],
+    [units]
+  );
 
-                <div className="flex gap-4 relative z-10">
-                    <button onClick={() => navigate('/dashboard')} className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all border border-white/5 backdrop-blur-md">
-                        <i className="fas fa-th mr-3"> Home</i>
-                    </button>
-                    {reportData.length > 0 && (
-                        <button onClick={handleExport} className="px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-indigo-500/20 transition-all active:scale-95">
-                            <i className="fas fa-file-excel mr-3"> Export</i>
-                        </button>
-                    )}
-                </div>
-            </header>
+  return (
+    <div className="min-h-screen bg-gray-50 p-4 font-sans">
+      <Toaster position="top-right" />
 
-            <div className="filter-card-premium mb-12 bg-white/80 backdrop-blur-xl p-12 rounded-[4rem] shadow-2xl border border-white relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-50 rounded-full -mr-48 -mt-48 blur-3xl opacity-50 group-hover:bg-indigo-100 transition-all duration-700"></div>
+      <div className="bg-[#129a81] text-white px-5 py-3 text-sm font-semibold rounded-t-lg mb-px">
+        Unit Wise Survey Report
+      </div>
 
-                <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-3 gap-12 items-end relative z-10">
-                    <div className="report-form-group">
-                        <label className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 block ml-1">Area Source Protocol</label>
-                        <select
-                            className="filter-input w-full bg-slate-100/50 border-slate-200 text-slate-800 font-black h-14 rounded-2xl px-6 focus:bg-white transition-all shadow-inner"
-                            value={filters.CaneType}
-                            onChange={(e) => setFilters({ ...filters, CaneType: e.target.value })}
-                        >
-                            <option value="1">Primary Survey Logistics</option>
-                            <option value="2">Caneup Portal Flux</option>
-                        </select>
-                    </div>
-                    <div className="report-form-group">
-                        <label className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 block ml-1">Command Node</label>
-                        <select
-                            className="filter-input w-full bg-slate-100/50 border-slate-200 text-slate-800 font-black h-14 rounded-2xl px-6 focus:bg-white transition-all shadow-inner"
-                            value={filters.F_code}
-                            onChange={(e) => setFilters({ ...filters, F_code: e.target.value })}
-                            required
-                        >
-                            <option value="">-- Identify Station --</option>
-                            {factories.map((f, idx) => <option key={`${f.F_Code || f.id}-${idx}`} value={f.F_Code || f.id}>{f.F_Name || f.name}</option>)}
-                        </select>
-                    </div>
-                    <button type="submit" disabled={loading} className="btn-search-premium bg-slate-900 hover:bg-black text-white font-black uppercase tracking-[0.2em] text-[11px] h-14 rounded-2xl shadow-2xl transition-all hover:-translate-y-1 active:scale-95">
-                        {loading ? <i className="fas fa-spin fa-gear mr-3"></i> : <i className="fas fa-sync-alt mr-3"></i>}
-                        {loading ? 'Analyzing Vector...' : 'Sync Progress Matrix'}
-                    </button>
-                </form>
-            </div>
-
-            {reportData.length > 0 ? (
-                <div className="space-y-12 animate-in slide-in-from-bottom-10 duration-1000" id="survey-report-print">
-                    <div className="bg-white rounded-[4rem] shadow-2xl border border-white overflow-hidden relative">
-                        <div className="px-10 py-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
-                            <h3 className="font-black text-slate-800 uppercase tracking-widest text-[13px]">Operational Velocity Spectrum</h3>
-                            <button onClick={handlePrint} className="px-5 py-2 bg-white text-slate-900 hover:bg-slate-100 border border-slate-200 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm transition-all active:scale-95">
-                                <i className="fas fa-print mr-2"> Hardcopy</i>
-                            </button>
-                        </div>
-                        <div className="table-wrapper-premium overflow-x-auto p-4">
-                            <table className="table-premium w-full border-separate border-spacing-0">
-                                <thead>
-                                    <tr className="bg-slate-900 text-white">
-                                        <th className="p-6 text-center text-[10px] font-black uppercase border-r border-slate-800 rounded-tl-[3.5rem]">Idx</th>
-                                        <th className="p-6 text-left text-[10px] font-black uppercase border-r border-slate-800">Station</th>
-                                        <th className="p-6 text-center text-[10px] font-black uppercase border-r border-slate-800">Initiation</th>
-                                        <th className="p-6 text-center text-[10px] font-black uppercase border-r border-slate-800">Cluster</th>
-                                        <th className="p-3 text-center text-[10px] font-black uppercase border-r border-slate-800 bg-emerald-900 text-emerald-300 italic">Validated</th>
-                                        <th className="p-3 text-center text-[10px] font-black uppercase border-r border-slate-800 bg-blue-900 text-blue-300 italic">RFA Stream</th>
-                                        <th className="p-3 text-center text-[10px] font-black uppercase border-r border-slate-800 bg-amber-900 text-amber-300 italic">UP Stream</th>
-                                        <th className="p-3 text-center text-[10px] font-black uppercase border-r border-slate-800 bg-slate-800 text-white italic">Aggregate</th>
-                                        <th className="p-6 text-center text-[10px] font-black uppercase rounded-tr-[3.5rem] bg-rose-900 text-rose-300 italic">Latent</th>
-                                    </tr>
-                                    <tr className="bg-slate-900/90 text-[8px] font-black text-slate-500 uppercase">
-                                        <th colSpan="4"></th>
-                                        <th className="p-2 border-r border-slate-800 text-emerald-500">Vill | Area</th>
-                                        <th className="p-2 border-r border-slate-800 text-blue-500">Vill | Area</th>
-                                        <th className="p-2 border-r border-slate-800 text-amber-500">Vill | Area</th>
-                                        <th className="p-2 border-r border-slate-800 text-white">Vill | Area</th>
-                                        <th className="p-2 text-rose-500 text-center">Villages</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {reportData.map((row, idx) => {
-                                        const isTotal = row.Factory === 'Total';
-                                        return (
-                                            <tr key={idx} className={`${isTotal ? 'bg-slate-900 text-white font-black uppercase shadow-2xl' : 'hover:bg-indigo-50/50 border-b border-slate-50 group transition-all'}`}>
-                                                <td className="p-4 text-center mono text-[10px] text-slate-300 border-r border-slate-50">{row.SN}</td>
-                                                <td className="p-4 text-left border-r border-slate-50 font-black text-slate-800 tracking-tighter italic">{row.Factory}</td>
-                                                <td className="p-4 text-center border-r border-slate-50 mono text-[10px] text-slate-400">{row.SurStartDate}</td>
-                                                <td className="p-4 text-center border-r border-slate-50 mono text-[11px] font-black text-slate-600 bg-slate-50/50 italic">{row.TVillage}</td>
-
-                                                <td className="p-4 text-center border-r border-slate-50 bg-emerald-50/30">
-                                                    <div className="flex flex-col">
-                                                        <span className="text-emerald-600 font-black text-[11px]">{row.VillageCNo}</span>
-                                                        <span className="text-[9px] text-emerald-700/60 mono">{row.VillageCArea} ha</span>
-                                                    </div>
-                                                </td>
-                                                <td className="p-4 text-center border-r border-slate-50 bg-blue-50/30">
-                                                    <div className="flex flex-col">
-                                                        <span className="text-blue-600 font-black text-[11px]">{row.VillageRFANo}</span>
-                                                        <span className="text-[9px] text-blue-700/60 mono">{row.VillageRFAArea} ha</span>
-                                                    </div>
-                                                </td>
-                                                <td className="p-4 text-center border-r border-slate-50 bg-amber-50/30">
-                                                    <div className="flex flex-col">
-                                                        <span className="text-amber-600 font-black text-[11px]">{row.VillageUPNo}</span>
-                                                        <span className="text-[9px] text-amber-700/60 mono">{row.VillageUPArea} ha</span>
-                                                    </div>
-                                                </td>
-                                                <td className="p-4 text-center border-r border-slate-50 bg-slate-100/50">
-                                                    <div className="flex flex-col">
-                                                        <span className="text-slate-900 font-black text-[12px]">{row.TotalSNo}</span>
-                                                        <span className="text-[9px] text-slate-500 mono">{row.TotalSArea} ha</span>
-                                                    </div>
-                                                </td>
-                                                <td className="p-4 text-center bg-rose-50/50">
-                                                    <span className="text-rose-600 font-black text-[13px] tracking-tighter">{row.BalVillage}</span>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            ) : !loading && (
-                <div className="py-40 flex flex-col items-center justify-center bg-white rounded-[4rem] shadow-2xl border border-white relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-slate-50 rounded-full -mr-32 -mt-32 blur-3xl opacity-50"></div>
-                    <div className="w-40 h-40 bg-indigo-50 rounded-full flex items-center justify-center mb-10 shadow-inner group hover:scale-110 transition-all duration-700">
-                        <i className="fas fa-chart-line text-indigo-200 group-hover:text-indigo-500 text-6xl transition-colors"></i>
-                    </div>
-                    <h3 className="text-2xl font-black text-slate-800 tracking-tight italic uppercase">Progress Matrix Latent</h3>
-                    <p className="text-slate-400 text-center max-w-sm mt-4 font-bold uppercase tracking-widest text-[9px] leading-loose">
-                        Synchronize command node and area source protocol to reveal the station-wise operational velocity and multidimensional survey completion heuristics.
-                    </p>
-                </div>
-            )}
+      <div className="border border-gray-200 rounded-b-lg bg-white shadow-sm mb-4">
+        <div className="bg-[#dff0d8] text-[#1b3b2f] px-5 py-2 text-xs font-semibold border-b border-[#c7d9c5]">
+          Unit Wise Survey Report
         </div>
-    );
+        <div className="p-5">
+          <div className="flex flex-wrap gap-5 mb-5 items-end">
+            <div className="w-64">
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Type of cane Area</label>
+              <select
+                name="CaneType"
+                value={filters.CaneType}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              >
+                <option value="1">As Per First Survey</option>
+                <option value="2">As Per Caneup Portal</option>
+              </select>
+            </div>
+            <div className="w-64">
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Factory</label>
+              <select
+                name="F_code"
+                value={filters.F_code}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              >
+                {unitOptions.map((u) => (
+                  <option key={u.code} value={u.code}>
+                    {u.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={handleSearch}
+              disabled={loading}
+              className="px-5 py-2 rounded text-sm font-medium text-white bg-[#129a81] hover:bg-[#0f7f68] disabled:opacity-60 transition-colors min-w-[80px]"
+            >
+              {loading ? 'Loading...' : 'Search'}
+            </button>
+            <button
+              onClick={() => window.exportTableToCSV?.(tableId, 'UNIT_WISE_SURVEY_REPORT')}
+              className="px-5 py-2 rounded text-sm font-medium text-white bg-[#129a81] hover:bg-[#0f7f68] transition-colors"
+            >
+              Excel
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="px-5 py-2 rounded text-sm font-medium text-white bg-[#129a81] hover:bg-[#0f7f68] transition-colors"
+            >
+              Print
+            </button>
+            <button
+              onClick={() => navigate(-1)}
+              className="px-5 py-2 rounded text-sm font-medium text-white bg-[#129a81] hover:bg-[#0f7f68] transition-colors"
+            >
+              Exit
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {rows.length > 0 && (
+        <div className="overflow-x-auto border border-gray-200 rounded-lg shadow-sm bg-white">
+          <table id={tableId} className="w-full text-xs border-collapse">
+            <thead>
+              <tr>
+                <th rowSpan={2} className={thBase}>S.No</th>
+                <th rowSpan={2} className={thBase}>Unit Name</th>
+                <th rowSpan={2} className={thBase}>Survey Start Date</th>
+                <th rowSpan={2} className={thBase}>Total No of Village</th>
+                <th colSpan={2} className={thBase}>Village Under Finalization</th>
+                <th colSpan={2} className={thBase}>Final Village (Uploaded on ERP)</th>
+                <th colSpan={2} className={thBase}>Village Under Survey</th>
+                <th colSpan={2} className={thBase}>Total Survey</th>
+                <th rowSpan={2} className={thBase}>Balance Village</th>
+              </tr>
+              <tr>
+                <th className={thBase}>No</th>
+                <th className={thBase}>Area</th>
+                <th className={thBase}>No</th>
+                <th className={thBase}>Area</th>
+                <th className={thBase}>No</th>
+                <th className={thBase}>Area</th>
+                <th className={thBase}>No</th>
+                <th className={thBase}>Area</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, idx) => {
+                const isTotal = ['West Zone', 'Central Zone', 'Eeast Zone', 'Total'].includes(
+                  String(row.Factory || '').trim()
+                );
+                return (
+                  <tr
+                    key={idx}
+                    className={
+                      isTotal ? 'bg-[#dff0d8] font-semibold' : idx % 2 === 0 ? 'bg-white' : 'bg-[#f7fbf8]'
+                    }
+                  >
+                    <td className={`${tdBase} text-center`}>{row.SN}</td>
+                    <td className={`${tdBase} text-left`}>{row.Factory}</td>
+                    <td className={tdBase}>{row.SurStartDate}</td>
+                    <td className={tdBase}>{row.TVillage}</td>
+                    <td className={tdBase}>{row.VillageCNo}</td>
+                    <td className={tdBase}>{row.VillageCArea}</td>
+                    <td className={tdBase}>{row.VillageRFANo}</td>
+                    <td className={tdBase}>{row.VillageRFAArea}</td>
+                    <td className={tdBase}>{row.VillageUPNo}</td>
+                    <td className={tdBase}>{row.VillageUPArea}</td>
+                    <td className={tdBase}>{row.TotalSNo}</td>
+                    <td className={tdBase}>{row.TotalSArea}</td>
+                    <td className={tdBase}>{row.BalVillage}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {!loading && rows.length === 0 && (
+        <div className="border border-gray-200 rounded-lg bg-white min-h-[220px] flex flex-col items-center justify-center text-gray-400">
+          <svg className="h-10 w-10 mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2a4 4 0 014-4h0a4 4 0 014 4v2M3 17v-2a4 4 0 014-4h0" />
+          </svg>
+          <p className="text-sm">Select filters and click Search.</p>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default SurveyReport_SurveyUnitWiseSurveyStatus;
-
-
-

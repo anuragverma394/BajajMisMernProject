@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { reportService, masterService } from '../../microservices/api.service';
-import '../../styles/Report.css';
-import '../../styles/HourlyCaneArrival.css'; // Reusing premium report layout styles
 import { openPrintWindow } from '../../utils/print';
-const __cx = (...vals) => vals.filter(Boolean).join(" ");
+
 const Report_EffectedCaneAreaReport = () => {
   const navigate = useNavigate();
   const [factories, setFactories] = useState([]);
@@ -21,17 +19,17 @@ const Report_EffectedCaneAreaReport = () => {
     const loadUnits = async () => {
       try {
         const units = await masterService.getUnits();
-        setFactories(units);
+        setFactories(Array.isArray(units) ? units : []);
       } catch (error) {
-        toast.error("Failed to load factory units");
+        toast.error('Failed to load factory units');
       }
     };
     loadUnits();
   }, []);
 
   const handleSearch = async () => {
-    if (!filters.F_code) {
-      toast.error("Please select a factory unit");
+    if (!filters.F_code || filters.F_code === 'All') {
+      toast.error('Please select a factory unit');
       return;
     }
     setLoading(true);
@@ -39,12 +37,13 @@ const Report_EffectedCaneAreaReport = () => {
       const response = await reportService.getEffectedCaneAreaReport({
         F_code: filters.F_code,
         CaneArea: filters.CaneArea,
-        stateDropdown: filters.F_code === '63' ? filters.stateDropdown : ''
+        stateDropdown: filters.stateDropdown || '2'
       });
-      setReportData(response.data || response || []);
-      toast.success("Analysis complete");
+      const rows = response?.data ?? response ?? [];
+      setReportData(Array.isArray(rows) ? rows : []);
+      toast.success('Analysis complete');
     } catch (error) {
-      toast.error("An error occurred during verification");
+      toast.error('An error occurred during verification');
       setReportData([]);
     } finally {
       setLoading(false);
@@ -54,162 +53,226 @@ const Report_EffectedCaneAreaReport = () => {
   const handlePrint = () => {
     const printContent = document.getElementById('effected-report-print');
     openPrintWindow({
-      title: "Effected Cane Area Report",
-      contentHtml: printContent ? printContent.outerHTML : ""
+      title: 'Effected Cane Area Report',
+      contentHtml: printContent ? printContent.outerHTML : ''
     });
   };
 
   const handleExport = () => {
-    if (reportData.length === 0) return;
-    const csvContent = "data:text/csv;charset=utf-8," +
-    Object.keys(reportData[0]).join(",") + "\n" +
-    reportData.map((row) => Object.values(row).join(",")).join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `EffectedCaneArea_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
+    if (!reportData.length) return;
+    if (window.exportTableToCSV) {
+      window.exportTableToCSV('effected-cane-area-table', 'EffectedCaneAreaReport.csv');
+      return;
+    }
+    toast.error('Export utility not available');
+  };
+
+  const totals = useMemo(() => {
+    const pickNumber = (row, keys = []) => {
+      for (const k of keys) {
+        const v = row?.[k];
+        if (v !== undefined && v !== null && v !== '') return Number(v) || 0;
+      }
+      return 0;
+    };
+    const sum = (keys) => reportData.reduce((acc, row) => acc + pickNumber(row, Array.isArray(keys) ? keys : [keys]), 0);
+    const totalCaneArea = sum(['TotalCaneArea', 'TOTALCANEAREA', 'totalcanearea']);
+    const effected = sum(['EffectedCaneArea', 'EFFECTEDCANEAREA', 'effectedcanearea']);
+    const percent = totalCaneArea > 0 ? (effected * 100) / totalCaneArea : 0;
+    return {
+      NoOfMember: sum(['NoOfMember', 'NOOFMEMBER', 'noofmember', 'No_of_member']),
+      BondedMember: sum(['BondedMember', 'BONDEDMEMBER', 'bondedmember']),
+      CLA: sum(['CLA', 'Cla', 'cla']),
+      TotalCaneArea: totalCaneArea,
+      MoreThanCLA: sum(['MoreThanCLA', 'MORETHANCLA', 'morethancla']),
+      ZeroCLA: sum(['ZeroCLA', 'ZEROCLA', 'zerocla']),
+      NonMem: sum(['NonMem', 'NONMEM', 'nonmem']),
+      LockGrower: sum(['LockGrower', 'LOCKGROWER', 'lockgrower']),
+      Total: sum(['Total', 'TOTAL', 'total']),
+      EffectedCaneArea: effected,
+      Percent: percent
+    };
+  }, [reportData]);
+
+  const formatNum = (value, digits = 3) => {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return '0';
+    return n.toFixed(digits);
   };
 
   return (
-    <div className="p-[20px] bg-white min-h-[100vh] font-['Poppins', Arial, sans-serif]">
-            <Toaster position="top-right" />
+    <div className="px-4 pb-10">
+      <Toaster position="top-right" />
+      <div className="rounded-lg border border-emerald-200 bg-white shadow-sm">
+        <div className="rounded-t-lg bg-emerald-600 px-6 py-3 text-white">
+          <h1 className="text-base font-semibold">Effected Cane Area Report</h1>
+        </div>
+        <div className="border border-emerald-100 bg-emerald-50 px-6 py-3 text-emerald-900">
+          Effected Cane Area Report Season 2526 (Only Final Villages)
+        </div>
 
-            <div className={__cx("page-card", "rounded-lg border-0 shadow-[0 4px 12px rgba(0,0,0,0.1)]")}>
-                <div className={__cx("page-card-header", "text-left text-[15px] py-[12px] px-[20px] bg-[#1F9E8A]")}>
-                    Effected Cane Area Report
-                </div>
-                <div className="bg-[#e2efda] py-[10px] px-[20px] text-[13px] text-[#333] border-b border-b-[#c8e6c9] font-bold">
-                    Effected Cane Area Report Season 2526 (Only Final Villages)
-                </div>
-
-                <div className={__cx("page-card-body", "p-[20px]")}>
-                    <div className={__cx("form-row", "flex gap-[20px] items-end mb-[20px]")}>
-                        <div className={__cx("form-group", "min-w-[350px]")}>
-                            <label className="block text-[12px] font-bold text-[#333] mb-[4px]">Type of cane Area</label>
-                            <select
-                className={__cx("form-control", "w-[100%] p-[8px] border border-[#ccc] rounded")}
+        <div className="px-6 py-5">
+          <div className="grid gap-4 md:grid-cols-3">
+            <div>
+              <label className="text-sm font-semibold text-emerald-900">Type of cane Area</label>
+              <select
+                className="mt-2 w-full rounded-md border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
                 value={filters.CaneArea}
-                onChange={(e) => setFilters({ ...filters, CaneArea: e.target.value })}>
-
-                
-                                <option value="1">As Per First Survey</option>
-                                <option value="2">As per caneup Portal</option>
-                            </select>
-                        </div>
-                        <div className={__cx("form-group", "min-w-[350px]")}>
-                            <label className="block text-[12px] font-bold text-[#333] mb-[4px]">Factory</label>
-                            <select
-                className={__cx("form-control", "w-[100%] p-[8px] border border-[#ccc] rounded")}
-                value={filters.F_code}
-                onChange={(e) => setFilters({ ...filters, F_code: e.target.value })}>
-
-                
-                                <option value="All">All</option>
-                                {factories.map((f, idx) => <option key={`${f.id ?? 'factory'}-${idx}`} value={f.id}>{f.name}</option>)}
-                            </select>
-                        </div>
-                        {filters.F_code === '63' &&
-            <div className={__cx("form-group", "min-w-[350px]")}>
-                                <label className="block text-[12px] font-bold text-[#333] mb-[4px]">Target State</label>
-                                <select
-                className={__cx("form-control", "w-[100%] p-[8px] border border-[#ccc] rounded")}
-                value={filters.stateDropdown}
-                onChange={(e) => setFilters({ ...filters, stateDropdown: e.target.value })}>
-
-                
-                                    <option value="2">All States</option>
-                                    <option value="0">Uttar Pradesh (U.P)</option>
-                                    <option value="1">Bihar</option>
-                                </select>
-                            </div>
-            }
-                    </div>
-
-                    <div className={__cx("form-actions", "flex gap-[8px] mt-[10px]")}>
-                        <button className={__cx("btn", "py-[8px] px-[16px] bg-[#1F9E8A] text-white border-0 rounded cursor-pointer")} onClick={handleSearch} disabled={loading}>
-                            {loading ? 'Searching...' : 'Search'}
-                        </button>
-                        <button className={__cx("btn", "py-[8px] px-[16px] bg-[#1F9E8A] text-white border-0 rounded cursor-pointer")} onClick={handleExport} disabled={!reportData.length}>
-                            Excel
-                        </button>
-                        <button className={__cx("btn", "py-[8px] px-[16px] bg-[#1F9E8A] text-white border-0 rounded cursor-pointer")} onClick={handlePrint} disabled={!reportData.length}>
-                            Print
-                        </button>
-                        <button className={__cx("btn", "py-[8px] px-[16px] bg-[#1F9E8A] text-white border-0 rounded cursor-pointer")} onClick={() => navigate(-1)}>
-                            Exit
-                        </button>
-                    </div>
-                </div>
-
-                {reportData.length > 0 ?
-        <div className="report-main-content mt-6 animate-in slide-in-from-bottom duration-500" id="effected-report-print">
-                        <div className="table-wrapper-premium">
-                            <table className="table-premium">
-                                <thead>
-                                    <tr>
-                                        <th className="w-16">Sr. No.</th>
-                                        <th className="w-24">Village Code</th>
-                                        <th className="text-left">Village Name</th>
-                                        <th className="text-right">Baseline Area (Ha)</th>
-                                        <th className="text-right">Effected Area (Ha)</th>
-                                        <th>Impact Analysis / Remarks</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {reportData.map((row, idx) =>
-                <tr key={idx}>
-                                            <td className="font-mono text-slate-400">{idx + 1}</td>
-                                            <td className="font-black">{row.V_Code || row.v_Code}</td>
-                                            <td>{row.V_Name || row.v_Name}</td>
-                                            <td className="text-right font-mono">{row.CaneArea || row.caneArea}</td>
-                                            <td className="text-right font-black text-rose-600 font-mono italic">
-                                                {row.EffectedArea || row.effectedArea}
-                                            </td>
-                                            <td>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-                                                    <span className="text-xs italic">{row.Remarks || row.remarks || 'Critical Impact Noted'}</span>
-                                                </div>
-                                            </td>
-                                        </tr>
-                )}
-                                </tbody>
-                                <tfoot>
-                                    <tr>
-                                        <td colSpan="3" className="font-bold text-lg">CUMULATIVE ASSESSMENT</td>
-                                        <td className="text-right font-black text-lg">
-                                            {reportData.reduce((acc, curr) => acc + (parseFloat(curr.CaneArea || curr.caneArea) || 0), 0).toFixed(3)}
-                                        </td>
-                                        <td className="text-right font-black text-rose-600 text-xl italic">
-                                            {reportData.reduce((acc, curr) => acc + (parseFloat(curr.EffectedArea || curr.effectedArea) || 0), 0).toFixed(3)}
-                                        </td>
-                                        <td>
-                                            <div className={__cx("aggregate-box", "bg-[#fef2f2] border border-[#fee2e2]")}>
-                                                <span className="aggregate-value text-rose-600">
-                                                    {(reportData.reduce((acc, curr) => acc + (parseFloat(curr.EffectedArea || curr.effectedArea) || 0), 0) / (reportData.reduce((acc, curr) => acc + (parseFloat(curr.CaneArea || curr.caneArea) || 0), 0) || 1) * 100).toFixed(2)}%
-                                                </span>
-                                                <span className="aggregate-label text-rose-400">Yield Impact Ratio</span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                    </div> :
-        !loading &&
-        <div className="empty-state-premium mt-12">
-                        <div className="empty-icon-box">
-                            <i className="fas fa-map-marked-alt text-slate-300"></i>
-                        </div>
-                        <h3 className="empty-title">Impact Engine Ready</h3>
-                        <p className="empty-subtitle">Initialize audit to visualize geographical area damage and production risks.</p>
-                    </div>
-        }
+                onChange={(e) => setFilters({ ...filters, CaneArea: e.target.value })}
+              >
+                <option value="1">As Per First Survey</option>
+                <option value="2">As Per Caneup Portal</option>
+              </select>
             </div>
-        </div>);
+            <div>
+              <label className="text-sm font-semibold text-emerald-900">Factory</label>
+              <select
+                className="mt-2 w-full rounded-md border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+                value={filters.F_code}
+                onChange={(e) => setFilters({ ...filters, F_code: e.target.value })}
+              >
+                <option value="">Select Factory</option>
+                {factories.map((f, idx) => {
+                  const value = f?.id || f?.F_Code || f?.f_Code || '';
+                  const label = f?.F_Name || f?.f_Name || f?.name || value;
+                  return (
+                    <option key={`${value || 'factory'}-${idx}`} value={value}>
+                      {label}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+            {filters.F_code === '63' && (
+              <div>
+                <label className="text-sm font-semibold text-emerald-900">Target State</label>
+                <select
+                  className="mt-2 w-full rounded-md border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+                  value={filters.stateDropdown}
+                  onChange={(e) => setFilters({ ...filters, stateDropdown: e.target.value })}
+                >
+                  <option value="2">All States</option>
+                  <option value="0">Uttar Pradesh (U.P)</option>
+                  <option value="1">Bihar</option>
+                </select>
+              </div>
+            )}
+          </div>
 
+          <div className="mt-5 flex flex-wrap gap-3">
+            <button
+              onClick={handleSearch}
+              disabled={loading}
+              className="rounded-md bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-700 disabled:opacity-70"
+            >
+              {loading ? 'Searching...' : 'Search'}
+            </button>
+            <button
+              onClick={handleExport}
+              disabled={!reportData.length}
+              className="rounded-md bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-700 disabled:opacity-70"
+            >
+              Excel
+            </button>
+            <button
+              onClick={handlePrint}
+              disabled={!reportData.length}
+              className="rounded-md bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-700 disabled:opacity-70"
+            >
+              Print
+            </button>
+            <button
+              onClick={() => navigate(-1)}
+              className="rounded-md bg-emerald-500 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-600"
+            >
+              Exit
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-6 rounded-lg border border-emerald-200 bg-white shadow-sm" id="effected-report-print">
+        <div className="p-4">
+          <div className="max-h-[520px] overflow-auto">
+            <table id="effected-cane-area-table" className="min-w-[1200px] table-auto border-collapse text-sm">
+              <thead className="sticky top-0 bg-emerald-100">
+                <tr>
+                  <th rowSpan={2} className="border border-emerald-200 px-2 py-2 text-center">S.No</th>
+                  <th rowSpan={2} className="border border-emerald-200 px-2 py-2 text-center">Grower Vill</th>
+                  <th rowSpan={2} className="border border-emerald-200 px-2 py-2 text-center">Village Name</th>
+                  <th rowSpan={2} className="border border-emerald-200 px-2 py-2 text-center">No of Member</th>
+                  <th rowSpan={2} className="border border-emerald-200 px-2 py-2 text-center">Bonded Member</th>
+                  <th rowSpan={2} className="border border-emerald-200 px-2 py-2 text-center">CLA</th>
+                  <th rowSpan={2} className="border border-emerald-200 px-2 py-2 text-center">Total Cane Area</th>
+                  <th colSpan={5} className="border border-emerald-200 px-2 py-2 text-center">Calendring Not Done</th>
+                  <th rowSpan={2} className="border border-emerald-200 px-2 py-2 text-center">Effected Cane Area</th>
+                  <th rowSpan={2} className="border border-emerald-200 px-2 py-2 text-center">%Age</th>
+                </tr>
+                <tr>
+                  <th className="border border-emerald-200 px-2 py-2 text-center">More Than CLA</th>
+                  <th className="border border-emerald-200 px-2 py-2 text-center">Zero CLA</th>
+                  <th className="border border-emerald-200 px-2 py-2 text-center">Non Mem</th>
+                  <th className="border border-emerald-200 px-2 py-2 text-center">Lock Grower</th>
+                  <th className="border border-emerald-200 px-2 py-2 text-center">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {!reportData.length && (
+                  <tr>
+                    <td colSpan={14} className="border border-emerald-200 px-4 py-6 text-center text-sm text-slate-500">
+                      {loading ? 'Loading data...' : 'No data found. Please select filters and click Search.'}
+                    </td>
+                  </tr>
+                )}
+                {reportData.map((row, idx) => {
+                  const highlight = Number(row?.IsReadyForAmty || row?.ISREADYFORAMTY || 0) === 1;
+                  const growerVill = row?.V_Code ?? row?.V_CODE ?? row?.v_code ?? row?.VCode ?? '';
+                  const villageName = row?.V_Name || row?.V_NAME || row?.VNAME || row?.v_name || row?.VName || row?.VILLAGE_NAME || row?.VILLAGENAME || row?.VILL_NAME || row?.VILLNAME || row?.VILLAGE || row?.VILL_NM || row?.VILL_NM1 || row?.V_NM || row?.VNAME1 || '';
+                  const noOfMember = row?.NoOfMember || row?.NoofMember || row?.NO_OF_MEMBER || row?.NO_OF_MEM || row?.NOOFMEMBER || row?.NOOFMEM || row?.NOOFMEM1 || row?.noofmember || row?.No_of_member || row?.MEMBERCOUNT || row?.MEMBERS || row?.NOMEMBER || row?.NO_MEMBER || row?.MEMBER_COUNT || row?.MEMCOUNT || row?.['No of Member'] || row?.['No Of Member'] || row?.['No_Of_Member'] || row?.['NoOfMember'] || row?.['NOOFMEMBER'] || 0;
+                  return (
+                    <tr key={`${row?.V_Code}-${idx}`} className={highlight ? 'bg-emerald-200' : 'bg-emerald-50'}>
+                      <td className="border border-emerald-200 px-2 py-2 text-center">{idx + 1}</td>
+                      <td className="border border-emerald-200 px-2 py-2 text-center">{growerVill}</td>
+                      <td className="border border-emerald-200 px-2 py-2 text-left">{villageName}</td>
+                      <td className="border border-emerald-200 px-2 py-2 text-right">{noOfMember}</td>
+                      <td className="border border-emerald-200 px-2 py-2 text-right">{row?.BondedMember ?? row?.BONDEDMEMBER ?? row?.bondedmember ?? 0}</td>
+                      <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(row?.CLA ?? row?.Cla ?? row?.cla)}</td>
+                      <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(row?.TotalCaneArea ?? row?.TOTALCANEAREA ?? row?.totalcanearea)}</td>
+                      <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(row?.MoreThanCLA ?? row?.MORETHANCLA ?? row?.morethancla)}</td>
+                      <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(row?.ZeroCLA ?? row?.ZEROCLA ?? row?.zerocla)}</td>
+                      <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(row?.NonMem ?? row?.NONMEM ?? row?.nonmem)}</td>
+                      <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(row?.LockGrower ?? row?.LOCKGROWER ?? row?.lockgrower)}</td>
+                      <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(row?.Total ?? row?.TOTAL ?? row?.total)}</td>
+                      <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(row?.EffectedCaneArea ?? row?.EFFECTEDCANEAREA ?? row?.effectedcanearea)}</td>
+                      <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(row?.Percent ?? row?.PERCENT ?? row?.percent, 2)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              {reportData.length > 0 && (
+                <tfoot>
+                  <tr className="bg-emerald-100 font-semibold">
+                    <td colSpan={3} className="border border-emerald-200 px-2 py-2 text-center">Total</td>
+                    <td className="border border-emerald-200 px-2 py-2 text-right">{totals.NoOfMember}</td>
+                    <td className="border border-emerald-200 px-2 py-2 text-right">{totals.BondedMember}</td>
+                    <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(totals.CLA)}</td>
+                    <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(totals.TotalCaneArea)}</td>
+                    <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(totals.MoreThanCLA)}</td>
+                    <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(totals.ZeroCLA)}</td>
+                    <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(totals.NonMem)}</td>
+                    <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(totals.LockGrower)}</td>
+                    <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(totals.Total)}</td>
+                    <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(totals.EffectedCaneArea)}</td>
+                    <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(totals.Percent, 2)}</td>
+                  </tr>
+                </tfoot>
+              )}
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Report_EffectedCaneAreaReport;

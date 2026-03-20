@@ -238,5 +238,5 @@ exports.DistilleryReportEntryData = async (req, res, next) => {
 };
 
 exports.ActualVarietyWiseArea = async (req, res) => {
-  return res.status(200).json([]);
+  return mainController.ActualVarietyWiseArea(req, res);
 };

@@ -1,202 +1,234 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
-import { surveyService, masterService } from '../../microservices/api.service';
-import '../../styles/SurveyReports.css';
-import { openPrintWindow } from '../../utils/print';
-const __cx = (...vals) => vals.filter(Boolean).join(" ");const SurveyReport_SurveyUnitWiseSurveyAreaSummary = () => {const navigate = useNavigate();const [factories, setFactories] = useState([]);const [loading, setLoading] = useState(false);const [reportData, setReportData] = useState([]);const [filters, setFilters] = useState({ F_code: '',
-      Date: new Date().toISOString().split('T')[0],
-      CaneType: '1'
-    });
+import { masterService, surveyService } from '../../microservices/api.service';
+
+const today = () => {
+  const d = new Date();
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+};
+
+const SurveyReport_SurveyUnitWiseSurveyAreaSummary = () => {
+  const navigate = useNavigate();
+  const [units, setUnits] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [rows, setRows] = useState([]);
+  const [filters, setFilters] = useState({
+    CaneType: '1',
+    F_code: '0',
+    Date: today()
+  });
 
   useEffect(() => {
     const loadUnits = async () => {
       try {
-        const units = await masterService.getUnits();
-        setFactories(units);
-        if (units.length > 0) {
-          setFilters((prev) => ({ ...prev, F_code: units[0].F_Code || units[0].id }));
-        }
-      } catch (error) {
-        toast.error("Telemetry link failure: Station registry unreachable");
+        const data = await masterService.getUnits();
+        const normalized = Array.isArray(data)
+          ? data
+              .map((u) => ({
+                code: String(u?.F_Code || u?.f_Code || u?.id || '').trim(),
+                name: String(u?.F_Name || u?.f_Name || u?.name || '').trim()
+              }))
+              .filter((u) => u.code)
+          : [];
+        setUnits(normalized);
+      } catch {
+        toast.error('Failed to load units.');
       }
     };
     loadUnits();
   }, []);
 
-  const handleSearch = async (e) => {
-    if (e) e.preventDefault();
-    if (!filters.F_code) {
-      toast.error("Command node identification required");
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSearch = async () => {
+    if (!filters.Date) {
+      toast.error('Please enter a Date.');
       return;
     }
-
     setLoading(true);
     try {
       const response = await surveyService.getSurveyUnitWiseAreaSummary(filters);
-      setReportData(response.data || response || []);
-      toast.success("Area architecture synchronized");
-    } catch (error) {
-      toast.error("Synthetic analytical failure: Architecture mapping aborted");
-      setReportData([]);
+      const data = response?.data ?? response ?? [];
+      if (Array.isArray(data) && data.length > 0) {
+        setRows(data);
+        toast.success(`Loaded ${data.length} rows.`);
+      } else {
+        setRows([]);
+        toast('No data found.', { icon: 'ℹ️' });
+      }
+    } catch {
+      setRows([]);
+      toast.error('Failed to fetch report data.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePrint = () => {
-    const printContent = document.getElementById('survey-summary-print');
-    openPrintWindow({
-      title: "Unit Wise Survey Area Summary Report",
-      subtitle: `As on: ${filters.Date}`,
-      contentHtml: printContent ? printContent.outerHTML : ""
-    });
-  };
+  const unitOptions = useMemo(
+    () => [{ code: '0', name: 'All' }, ...units],
+    [units]
+  );
 
-  const handleExport = () => {
-    if (reportData.length === 0) return;
-    const csvContent = "data:text/csv;charset=utf-8," +
-    Object.keys(reportData[0]).join(",") + "\n" +
-    reportData.map((row) => Object.values(row).join(",")).join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `AreaArchetype_${filters.Date}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    toast.success("Area archetype exported to CSV");
-  };
+  const tableId = 'unit-wise-survey-area-summary-table';
+  const thBase =
+    'px-3 py-2 border border-[#a6c5a6] bg-[#dff0d8] text-[#1b3b2f] text-xs font-semibold text-center whitespace-nowrap';
+  const tdBase = 'px-3 py-2 border-b border-[#cfe0cf] text-xs text-center whitespace-nowrap';
 
   return (
-    <div className={__cx("container-fluid", "p-[0] bg-white min-h-[100vh]")}>
-            <Toaster position="top-center" reverseOrder={false} />
+    <div className="min-h-screen bg-gray-50 p-4 font-sans">
+      <Toaster position="top-right" />
 
-            <div className="bg-[#1b9970] py-[10px] px-[20px] text-white flex justify-between items-center">
-                <h2 className="m-[0px] text-[18px] font-medium">Unit Wise Survey Area Summary Report</h2>
-            </div>
+      <div className="bg-[#129a81] text-white px-5 py-3 text-sm font-semibold rounded-t-lg mb-px">
+        Unit Wise Survey Area Summary Report
+      </div>
 
-            <div className="p-[20px]">
-
-
-                <form onSubmit={handleSearch}>
-                    <div className="flex gap-[20px] mb-[20px] items-end">
-                        <div className="min-w-[200px] max-w-[300px]">
-                            <label className="block mb-[8px] text-[13px] font-semibold text-[#333]">Type of cane Area</label>
-                            <select
-                className={__cx("form-select", "w-[100%] h-[38px] rounded border border-[#ccc]")}
+      <div className="border border-gray-200 rounded-b-lg bg-white shadow-sm mb-4">
+        <div className="bg-[#dff0d8] text-[#1b3b2f] px-5 py-2 text-xs font-semibold border-b border-[#c7d9c5]">
+          Unit Wise Survey Area Summary Report
+        </div>
+        <div className="p-5">
+          <div className="flex flex-wrap gap-5 mb-5 items-end">
+            <div className="w-64">
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Type of cane Area</label>
+              <select
+                name="CaneType"
                 value={filters.CaneType}
-                onChange={(e) => setFilters({ ...filters, CaneType: e.target.value })}>
-
-                
-                                <option value="1">As Per First Survey</option>
-                                <option value="2">As Per Caneup Portal</option>
-                            </select>
-                        </div>
-                        <div className="min-w-[200px] max-w-[300px]">
-                            <label className="block mb-[8px] text-[13px] font-semibold text-[#333]">Factory</label>
-                            <select
-                className={__cx("form-select", "w-[100%] h-[38px] rounded border border-[#ccc]")}
-                value={filters.F_code}
-                onChange={(e) => setFilters({ ...filters, F_code: e.target.value })}
-                required>
-
-                
-                                <option value="">All</option>
-                                {factories.map((f, idx) => <option key={`${f.F_Code || f.id}-${idx}`} value={f.F_Code || f.id}>{f.F_Name || f.name}</option>)}
-                            </select>
-                        </div>
-                        <div className="min-w-[200px] max-w-[300px]">
-                            <label className="block mb-[8px] text-[13px] font-semibold text-[#333]">Date</label>
-                            <input
-                type="date"
-                className={__cx("form-control", "w-[100%] h-[38px] rounded border border-[#ccc]")}
-                value={filters.Date}
-                onChange={(e) => setFilters({ ...filters, Date: e.target.value })} />
-
-              
-                        </div>
-                    </div>
-
-                    <div className="flex gap-[10px] mb-[20px]">
-                        <button type="submit" disabled={loading} className="bg-[#1b9970] text-white border-0 py-[8px] px-[20px] rounded text-[13px] cursor-pointer">
-                            Search
-                        </button>
-                        {reportData.length > 0 &&
-            <button type="button" onClick={handleExport} className="bg-[#1b9970] text-white border-0 py-[8px] px-[20px] rounded text-[13px] cursor-pointer">
-                                Excel
-                            </button>
-            }
-                        {reportData.length > 0 &&
-            <button type="button" onClick={handlePrint} className="bg-[#1b9970] text-white border-0 py-[8px] px-[20px] rounded text-[13px] cursor-pointer">
-                                Print
-                            </button>
-            }
-                        <button type="button" onClick={() => navigate('/SurveyReport')} className="bg-[#1b9970] text-white border-0 py-[8px] px-[20px] rounded text-[13px] cursor-pointer">
-                            Exit
-                        </button>
-                    </div>
-                </form>
-
-                <div className="flex justify-end mt-[-50px] mb-[20px]">
-                    <div className="bg-[#3498db] text-white w-[30px] h-[30px] rounded-[50%] flex justify-center items-center font-bold cursor-pointer">
-                        ?
-                    </div>
-                </div>
-
-
-                {reportData.length > 0 &&
-        <div id="survey-summary-print" className="overflow-x-auto border border-[#e2e8f0] mt-[20px]">
-                        <table className="w-[100%] text-[13px]">
-                            <thead>
-                                <tr>
-                                    <th rowSpan="2" className="border border-[#e2e8f0] p-[10px] bg-[#f8fafc] font-semibold text-[#333]">Idx</th>
-                                    <th rowSpan="2" className="border border-[#e2e8f0] p-[10px] bg-[#f8fafc] font-semibold text-[#333] text-left">Station Hierarchy</th>
-                                    <th colSpan="4" className="border border-[#e2e8f0] p-[10px] bg-[#f8fafc] font-semibold text-[#333]">Legacy Infrastructure (Hec)</th>
-                                    <th colSpan="5" className="border border-[#e2e8f0] p-[10px] bg-[#f8fafc] font-semibold text-[#333]">Active Infrastructure (Hec)</th>
-                                    <th colSpan="2" className="border border-[#e2e8f0] p-[10px] bg-[#f8fafc] font-semibold text-[#333]">Deviation Diagnostics</th>
-                                </tr>
-                                <tr>
-                                    <th className="border border-[#e2e8f0] p-[8px] bg-[#f8fafc] font-semibold text-[#333]">Ratoon</th>
-                                    <th className="border border-[#e2e8f0] p-[8px] bg-[#f8fafc] font-semibold text-[#333]">Autumn</th>
-                                    <th className="border border-[#e2e8f0] p-[8px] bg-[#f8fafc] font-semibold text-[#333]">Plant</th>
-                                    <th className="border border-[#e2e8f0] p-[8px] bg-[#f8fafc] font-semibold text-[#333]">Total</th>
-                                    <th className="border border-[#e2e8f0] p-[8px] bg-[#f8fafc] font-semibold text-[#333]">Ratoon I</th>
-                                    <th className="border border-[#e2e8f0] p-[8px] bg-[#f8fafc] font-semibold text-[#333]">Ratoon II</th>
-                                    <th className="border border-[#e2e8f0] p-[8px] bg-[#f8fafc] font-semibold text-[#333]">Autumn</th>
-                                    <th className="border border-[#e2e8f0] p-[8px] bg-[#f8fafc] font-semibold text-[#333]">Plant</th>
-                                    <th className="border border-[#e2e8f0] p-[8px] bg-[#f8fafc] font-semibold text-[#333]">Total</th>
-                                    <th className="border border-[#e2e8f0] p-[8px] bg-[#f8fafc] font-semibold text-[#333]">Hec Flux</th>
-                                    <th className="border border-[#e2e8f0] p-[8px] bg-[#f8fafc] font-semibold text-[#333]">Flux %</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {reportData.map((row, idx) => {
-                const isTotal = row.Factory === 'Total';
-                return (
-                  <tr key={idx} className={isTotal ? "bg-[#f1f5f9] font-bold" : "bg-white font-normal"}>
-                                            <td className="border border-[#e2e8f0] p-[8px] text-center">{row.SN}</td>
-                                            <td className="border border-[#e2e8f0] p-[8px]">{row.Factory}</td>
-                                            <td className="border border-[#e2e8f0] p-[8px] text-center">{row.PreRatoon}</td>
-                                            <td className="border border-[#e2e8f0] p-[8px] text-center">{row.PreAutumn}</td>
-                                            <td className="border border-[#e2e8f0] p-[8px] text-center">{row.PrePlant}</td>
-                                            <td className="border border-[#e2e8f0] p-[8px] text-center">{row.PreTotal}</td>
-                                            <td className="border border-[#e2e8f0] p-[8px] text-center">{row.CRatoon}</td>
-                                            <td className="border border-[#e2e8f0] p-[8px] text-center">{row.CRatoon2}</td>
-                                            <td className="border border-[#e2e8f0] p-[8px] text-center">{row.CAutumn}</td>
-                                            <td className="border border-[#e2e8f0] p-[8px] text-center">{row.CPlant}</td>
-                                            <td className="border border-[#e2e8f0] p-[8px] text-center">{row.CTotal}</td>
-                                            <td className="border border-[#e2e8f0] p-[8px] text-center">{row.VarianceH}</td>
-                                            <td className="border border-[#e2e8f0] p-[8px] text-center">{row.VarianceP}</td>
-                                        </tr>);
-
-              })}
-                            </tbody>
-                        </table>
-                    </div>
-        }
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              >
+                <option value="1">As Per First Survey</option>
+                <option value="2">As Per Caneup Portal</option>
+              </select>
             </div>
-        </div>);
+            <div className="w-64">
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Factory</label>
+              <select
+                name="F_code"
+                value={filters.F_code}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              >
+                {unitOptions.map((u) => (
+                  <option key={u.code} value={u.code}>
+                    {u.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="w-52">
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Date</label>
+              <input
+                type="text"
+                name="Date"
+                value={filters.Date}
+                onChange={handleChange}
+                placeholder="DD/MM/YYYY"
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
+          </div>
 
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={handleSearch}
+              disabled={loading}
+              className="px-5 py-2 rounded text-sm font-medium text-white bg-[#129a81] hover:bg-[#0f7f68] disabled:opacity-60 transition-colors min-w-[80px]"
+            >
+              {loading ? 'Loading...' : 'Search'}
+            </button>
+            <button
+              onClick={() => window.exportTableToCSV?.(tableId, 'UNIT_WISE_SURVEY_AREA_SUMMARY')}
+              className="px-5 py-2 rounded text-sm font-medium text-white bg-[#129a81] hover:bg-[#0f7f68] transition-colors"
+            >
+              Excel
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="px-5 py-2 rounded text-sm font-medium text-white bg-[#129a81] hover:bg-[#0f7f68] transition-colors"
+            >
+              Print
+            </button>
+            <button
+              onClick={() => navigate(-1)}
+              className="px-5 py-2 rounded text-sm font-medium text-white bg-[#129a81] hover:bg-[#0f7f68] transition-colors"
+            >
+              Exit
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {rows.length > 0 && (
+        <div className="overflow-x-auto border border-gray-200 rounded-lg shadow-sm bg-white">
+          <table id={tableId} className="w-full text-xs border-collapse">
+            <thead>
+              <tr>
+                <th rowSpan={2} className={thBase}>S.No</th>
+                <th rowSpan={2} className={thBase}>Unit Name</th>
+                <th colSpan={4} className={thBase}>Actual Survey 2024-25 (Hect.)</th>
+                <th colSpan={5} className={thBase}>Actual Survey 2025-26 (Hect.)</th>
+                <th rowSpan={2} className={thBase}>Variance in (hect)</th>
+                <th rowSpan={2} className={thBase}>Variance in (%)</th>
+              </tr>
+              <tr>
+                <th className={thBase}>Ratoon</th>
+                <th className={thBase}>Autumn</th>
+                <th className={thBase}>Plant</th>
+                <th className={thBase}>Total</th>
+                <th className={thBase}>Ratoon</th>
+                <th className={thBase}>Ratoon2</th>
+                <th className={thBase}>Autumn</th>
+                <th className={thBase}>Plant</th>
+                <th className={thBase}>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, idx) => {
+                const isTotal = ['West Zone', 'Central Zone', 'Eeast Zone', 'Total'].includes(
+                  String(row.Factory || '').trim()
+                );
+                return (
+                  <tr
+                    key={idx}
+                    className={
+                      isTotal ? 'bg-[#dff0d8] font-semibold' : idx % 2 === 0 ? 'bg-white' : 'bg-[#f7fbf8]'
+                    }
+                  >
+                    <td className={tdBase}>{row.SN}</td>
+                    <td className={`${tdBase} text-left`}>{row.Factory}</td>
+                    <td className={tdBase}>{row.PreRatoon}</td>
+                    <td className={tdBase}>{row.PreAutumn}</td>
+                    <td className={tdBase}>{row.PrePlant}</td>
+                    <td className={tdBase}>{row.PreTotal}</td>
+                    <td className={tdBase}>{row.CRatoon}</td>
+                    <td className={tdBase}>{row.CRatoon2}</td>
+                    <td className={tdBase}>{row.CAutumn}</td>
+                    <td className={tdBase}>{row.CPlant}</td>
+                    <td className={tdBase}>{row.CTotal}</td>
+                    <td className={tdBase}>{row.VarianceH}</td>
+                    <td className={tdBase}>{row.VarianceP}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {!loading && rows.length === 0 && (
+        <div className="border border-gray-200 rounded-lg bg-white min-h-[220px] flex flex-col items-center justify-center text-gray-400">
+          <svg className="h-10 w-10 mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2a4 4 0 014-4h0a4 4 0 014 4v2M3 17v-2a4 4 0 014-4h0" />
+          </svg>
+          <p className="text-sm">Select filters and click Search.</p>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default SurveyReport_SurveyUnitWiseSurveyAreaSummary;

@@ -2472,3 +2472,341 @@ exports.TargetEntry = async (req, res) => {
     message: 'Use /tracking/target-entry and /tracking/target-entry-2 for target workflows.'
   });
 };
+
+exports.ActualVarietyWiseArea = async (req, res, next) => {
+  try {
+    const season = req.user?.season;
+    const factoryRaw = String(
+      req.query.unit ||
+      req.query.factoryCode ||
+      req.query.F_code ||
+      req.query.factory ||
+      ''
+    ).trim();
+    const typeRaw = String(req.query.type || req.query.CaneArea || req.query.caneAreaType || '1').trim();
+    const dateIso = parseFlexibleDateToIso(req.query.date || req.query.Date || req.query.DateFiller || '');
+
+    if (!factoryRaw || factoryRaw === '0' || factoryRaw.toLowerCase() === 'all') {
+      return res.status(200).json({ success: true, data: [] });
+    }
+    const factory = Number(factoryRaw);
+    if (!Number.isFinite(factory) || factory <= 0) {
+      return res.status(400).json({ success: false, message: 'factoryCode/unit must be a positive number' });
+    }
+    if (!dateIso) {
+      return res.status(400).json({ success: false, message: 'date is required (DD/MM/YYYY or YYYY-MM-DD)' });
+    }
+
+    const useAmity = String(typeRaw) === '2';
+    const gashtiTable = useAmity ? 'gashtiAmity' : 'gashti';
+    const gashtiSql = quoteSqlObjectName(gashtiTable);
+
+    const varietyRows = await executeQuery(
+      `SELECT factory,
+              CASE
+                WHEN canetype = 1 THEN '1'
+                WHEN canetype = 2 THEN '2'
+                WHEN canetype = 3 THEN '3'
+                WHEN canetype = 0 THEN '9'
+                ELSE '9'
+              END AS CType,
+              canetype,
+              CASE
+                WHEN canetype = 1 THEN 'Early'
+                WHEN canetype = 2 THEN 'General'
+                WHEN canetype = 3 THEN 'Rejected'
+                ELSE 'Burn'
+              END AS CaneTypeName,
+              vr_code,
+              vr_name
+       FROM (
+          SELECT gh_factory AS factory,
+                 vr_Cane_Type AS canetype,
+                 vr_code,
+                 vr_name
+          FROM ${gashtiSql} gg
+          JOIN variety ON gg.gh_factory = vr_factory AND gg.gh_vrcd = vr_code
+          WHERE vr_factory = @factory
+          UNION
+          SELECT m_factory AS factory,
+                 TRY_CONVERT(int, LEFT(m_categ, 1)) AS canetype,
+                 m_var AS vr_code,
+                 vr_name
+          FROM purchase
+          JOIN variety ON m_factory = vr_factory AND m_var = vr_code
+          WHERE m_factory = @factory
+            AND CAST(M_DATE AS date) <= @dateIso
+       ) variety
+       ORDER BY factory, CType, vr_code`,
+      { factory, dateIso },
+      season
+    );
+
+    const totalAreaRows = await executeQuery(
+      `SELECT ISNULL(SUM(gh_area), 0) AS area
+       FROM ${gashtiSql}
+       WHERE gh_factory = @factory`,
+      { factory },
+      season
+    );
+    const totalPurchaseRows = await executeQuery(
+      `SELECT ISNULL(SUM(m_finalwt), 0) AS Weight
+       FROM purchase
+       WHERE m_factory = @factory
+         AND CAST(M_DATE AS date) <= @dateIso`,
+      { factory, dateIso },
+      season
+    );
+    const totalYieldRows = await executeQuery(
+      `WITH cte AS (
+        SELECT SUM(gh_area) * ISNULL(dt_yield, 0) * 0.85 AS yi
+        FROM ${gashtiSql}
+        JOIN variety ON gh_factory = vr_factory AND gh_vrcd = vr_code
+        JOIN village ON v_factory = gh_factory AND gh_plvill = v_code
+        JOIN District ON dt_code = V_DisitictCode
+        WHERE V_SurveyRepFlag = 0
+          AND gh_factory = @factory
+        GROUP BY dt_yield
+      )
+      SELECT ISNULL(SUM(yi), 0) AS Yi FROM cte`,
+      { factory },
+      season
+    );
+
+    const totalArea = Number(totalAreaRows?.[0]?.area || 0);
+    const totalPurchase = Number(totalPurchaseRows?.[0]?.Weight || 0);
+    const totalYield = Number(totalYieldRows?.[0]?.Yi || 0);
+
+    const result = [];
+    let sn = 1;
+    let typeTracker = '';
+
+    let tcratoon = 0;
+    let tcautumn = 0;
+    let tcplant = 0;
+    let tctotal = 0;
+    let totWeight = 0;
+    let totYield = 0;
+
+    let typeRatoon = 0;
+    let typeAutumn = 0;
+    let typePlant = 0;
+    let typeTotal = 0;
+    let typeWeight = 0;
+    let typeYield = 0;
+
+    const round2 = (v) => Math.round((Number(v) || 0) * 100) / 100;
+    const toNum = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+    const typeLabel = (code) => {
+      if (String(code) === '1') return 'Early Total';
+      if (String(code) === '2') return 'General Total';
+      if (String(code) === '3') return 'Rejected Total';
+      return 'Burnt Total';
+    };
+
+    for (const row of varietyRows) {
+      const caneType = String(row.canetype ?? '');
+      if (typeTracker && typeTracker !== caneType) {
+        const areaPerc = totalArea > 0 ? round2((typeTotal * 100) / totalArea) : 0;
+        const yieldPerc = totalYield > 0 ? round2((typeYield * 100) / totalYield) : 0;
+        const purchasePerc = totalPurchase > 0 ? round2((typeWeight * 100) / totalPurchase) : 0;
+        result.push({
+          SN: '',
+          VarietyCode: typeLabel(typeTracker),
+          VarietyName: '',
+          CRatoon: typeRatoon,
+          CPlant: typeAutumn, // follow BajajMic mapping
+          CAutumn: typePlant,
+          CTotal: typeTotal,
+          APerc: areaPerc,
+          SYeild: typeYield,
+          YeildPerc: yieldPerc,
+          TotPurchse: typeWeight,
+          PurchasePerc: purchasePerc
+        });
+
+        typeRatoon = 0;
+        typeAutumn = 0;
+        typePlant = 0;
+        typeTotal = 0;
+        typeWeight = 0;
+        typeYield = 0;
+      }
+
+      typeTracker = caneType;
+
+      const areaRows = await executeQuery(
+        `SELECT gh_vrcd,
+                vr_name,
+                vr_Cane_Type,
+                ISNULL([1], 0) AS Ratoon,
+                ISNULL([2], 0) AS Autumn,
+                ISNULL([3], 0) AS Plant,
+                ISNULL([1], 0) + ISNULL([2], 0) + ISNULL([3], 0) AS Total
+         FROM (
+            SELECT gh_vrcd,
+                   vr_name,
+                   vr_Cane_Type,
+                   At_category,
+                   ISNULL(SUM(gh_area), 0) AS gh_area
+            FROM ${gashtiSql} g
+            JOIN Village v ON v.v_code = g.gh_vill AND v.v_factory = g.gh_factory
+            JOIN Variety vr ON vr.vr_factory = g.gh_factory AND vr.vr_code = g.gh_vrcd
+            JOIN activity_type ON at_code = gh_category AND at_factory = gh_factory
+            WHERE V_SurveyRepFlag = 0
+              AND g.gh_factory = @factory
+            GROUP BY gh_vrcd, vr_name, vr_Cane_Type, At_category
+         ) x
+         PIVOT (SUM(gh_area) FOR At_category IN ([1],[2],[3])) p
+         WHERE gh_vrcd = @vrcode AND vr_Cane_Type = @canetype
+         ORDER BY gh_vrcd, vr_Cane_Type ASC`,
+        { factory, vrcode: row.vr_code, canetype: row.canetype },
+        season
+      );
+
+      let cratoon = 0;
+      let cautumn = 0;
+      let cplant = 0;
+      let ctotal = 0;
+      if (areaRows?.length) {
+        for (const a of areaRows) {
+          cratoon += toNum(a.Ratoon);
+          cautumn += toNum(a.Autumn);
+          cplant += toNum(a.Plant);
+        }
+        ctotal = cratoon + cautumn + cplant;
+      }
+
+      const areaPerc = totalArea > 0 ? round2((ctotal * 100) / totalArea) : 0;
+
+      tcratoon += cratoon;
+      tcautumn += cautumn;
+      tcplant += cplant;
+      tctotal += ctotal;
+
+      typeRatoon += cratoon;
+      typeAutumn += cautumn;
+      typePlant += cplant;
+      typeTotal += ctotal;
+
+      const yieldRows = await executeQuery(
+        `WITH cte AS (
+          SELECT vr_cane_type,
+                 gh_vrcd,
+                 vr_name,
+                 SUM(gh_area) AS AREA,
+                 CAST((SUM(gh_area) * ISNULL(dt_yield, 0)) * 0.85 AS numeric(18, 2)) AS YAREA
+          FROM ${gashtiSql}
+          JOIN variety ON gh_factory = vr_factory AND gh_vrcd = vr_code
+          JOIN village ON v_factory = gh_factory AND gh_plvill = v_code
+          JOIN District ON dt_code = V_DisitictCode
+          WHERE V_SurveyRepFlag = 0
+            AND gh_factory = @factory
+            AND gh_vrcd = @vrcode
+            AND vr_cane_type = @canetype
+          GROUP BY vr_cane_type, gh_vrcd, vr_name, dt_yield
+        )
+        SELECT vr_cane_type,
+               gh_vrcd,
+               vr_name,
+               SUM(AREA) AS CaneArea,
+               SUM(YAREA) AS YieldArea
+        FROM cte
+        GROUP BY vr_cane_type, gh_vrcd, vr_name
+        ORDER BY gh_vrcd`,
+        { factory, vrcode: row.vr_code, canetype: row.canetype },
+        season
+      );
+
+      const yieldArea = toNum(yieldRows?.[0]?.YieldArea || 0);
+      const yieldPerc = totalYield > 0 ? round2((yieldArea * 100) / totalYield) : 0;
+      totYield += yieldArea;
+      typeYield += yieldArea;
+
+      const purchaseRows = await executeQuery(
+        `SELECT m_var,
+                vr_name,
+                LEFT(m_categ, 1) AS type,
+                SUM(m_finalwt) AS CaneQty
+         FROM purchase
+         JOIN variety ON m_factory = vr_factory AND m_var = vr_code
+         WHERE m_factory = @factory
+           AND m_var = @vrcode
+           AND LEFT(m_categ, 1) = @canetype
+           AND CAST(M_DATE AS date) <= @dateIso
+         GROUP BY m_var, vr_name, LEFT(m_categ, 1)
+         ORDER BY m_var, LEFT(m_categ, 1) DESC`,
+        { factory, vrcode: row.vr_code, canetype: String(row.canetype), dateIso },
+        season
+      );
+
+      const purchaseQty = toNum(purchaseRows?.[0]?.CaneQty || 0);
+      const purchasePerc = totalPurchase > 0 ? round2((purchaseQty * 100) / totalPurchase) : 0;
+      totWeight += purchaseQty;
+      typeWeight += purchaseQty;
+
+      result.push({
+        SN: String(sn++),
+        VarietyCode: String(row.vr_code || ''),
+        VarietyName: String(row.vr_name || ''),
+        CRatoon: cratoon,
+        CPlant: cautumn, // follow BajajMic mapping
+        CAutumn: cplant,
+        CTotal: ctotal,
+        APerc: areaPerc,
+        SYeild: yieldArea,
+        YeildPerc: yieldPerc,
+        TotPurchse: purchaseQty,
+        PurchasePerc: purchasePerc
+      });
+    }
+
+    if (typeTracker) {
+      const areaPerc = totalArea > 0 ? round2((typeTotal * 100) / totalArea) : 0;
+      const yieldPerc = totalYield > 0 ? round2((typeYield * 100) / totalYield) : 0;
+      const purchasePerc = totalPurchase > 0 ? round2((typeWeight * 100) / totalPurchase) : 0;
+      result.push({
+        SN: '',
+        VarietyCode: typeLabel(typeTracker),
+        VarietyName: '',
+        CRatoon: typeRatoon,
+        CPlant: typeAutumn,
+        CAutumn: typePlant,
+        CTotal: typeTotal,
+        APerc: areaPerc,
+        SYeild: typeYield,
+        YeildPerc: yieldPerc,
+        TotPurchse: typeWeight,
+        PurchasePerc: purchasePerc
+      });
+    }
+
+    const grandAreaPerc = totalArea > 0 ? round2((tctotal * 100) / totalArea) : 0;
+    const grandYieldPerc = totalYield > 0 ? round2((totYield * 100) / totalYield) : 0;
+    const grandPurchasePerc = totalPurchase > 0 ? round2((totWeight * 100) / totalPurchase) : 0;
+
+    result.push({
+      SN: '',
+      VarietyCode: 'Grand Total',
+      VarietyName: '',
+      CRatoon: tcratoon,
+      CPlant: tcautumn,
+      CAutumn: tcplant,
+      CTotal: tctotal,
+      APerc: grandAreaPerc,
+      SYeild: totYield,
+      YeildPerc: grandYieldPerc,
+      TotPurchse: totWeight,
+      PurchasePerc: grandPurchasePerc
+    });
+
+    return res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    logControllerError('ActualVarietyWiseArea', req, error, {
+      factory: req.query.unit || req.query.factoryCode || req.query.F_code || null,
+      date: req.query.date || req.query.Date || null,
+      type: req.query.type || req.query.CaneArea || null
+    });
+    return next(error);
+  }
+};

@@ -187,10 +187,20 @@ async function getOrSet(key, callback, ttlSeconds = 3600) {
  * Close cache connection
  */
 function close() {
-  if (redisClient) {
+  if (!redisClient) return;
+  try {
+    if (typeof redisClient.isOpen === 'boolean' && !redisClient.isOpen) {
+      redisClient = null;
+      return;
+    }
     redisClient.quit();
     redisClient = null;
     logger.info('Cache connection closed');
+  } catch (err) {
+    if (err?.name !== 'ClientClosedError') {
+      logger.warn('Cache close error', err);
+    }
+    redisClient = null;
   }
 }
 
