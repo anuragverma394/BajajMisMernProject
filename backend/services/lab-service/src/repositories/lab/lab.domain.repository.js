@@ -1,4 +1,4 @@
-const { executeQuery, executeProcedure } = require('../../core/db/query-executor');
+const { executeQuery, executeProcedure, executeScalar } = require('../../core/db/query-executor');
 
 const CONTROLLER = 'Lab';
 
@@ -7,6 +7,24 @@ function createProcedureHandler(controller, action, signature) {
     try {
       const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
       const params = { ...(req.query || {}), ...(req.body || {}) };
+
+      // Normalize common identifiers to prevent update/lookup mismatches
+      if (params.id != null && params.Rid == null) params.Rid = params.id;
+      if (params.Rid != null && params.id == null) params.id = params.Rid;
+      if (params.SLNO != null && params.id == null) params.id = params.SLNO;
+      if (params.SLNO != null && params.Rid == null) params.Rid = params.SLNO;
+
+      const factoryLike =
+        params.FACTORY ?? params.factory ?? params.F_Code ?? params.F_code ?? params.f_Code ?? params.f_code ?? params.Unit ?? params.unit;
+      if (factoryLike != null && params.FACTORY == null) params.FACTORY = factoryLike;
+      if (factoryLike != null && params.factory == null) params.factory = factoryLike;
+
+      if (typeof params.FACTORY === 'string' && params.FACTORY.toLowerCase() === 'all') params.FACTORY = '0';
+      if (typeof params.factory === 'string' && params.factory.toLowerCase() === 'all') params.factory = '0';
+
+      if (params.date != null && params.DDATE == null) params.DDATE = params.date;
+      if (params.DDATE != null && params.date == null) params.date = params.DDATE;
+
       const result = await executeProcedure(action, params, season);
       return res.status(200).json({
         success: true,
@@ -279,7 +297,7 @@ exports.SugarBagProducedView = async (req, res, next) => {
           CONVERT(VARCHAR, lh.H_DATE, 103) AS H_DATE,
           lh.FACTORY,
           lh.SHIFT,
-          lh.ADD_WATER,
+          ISNULL(lh.ADD_WATER, 0) AS ADD_WATER,
           lh.TIME,
           h.DIS_HOU AS TIME_IN_HOURS,
           lh.MILL_NO,
@@ -385,6 +403,8 @@ exports.SugarBagProducedAdd_2 = async (req, res, next) => {
       SHIFT: shiftRaw,
       MILL_NO: millNo,
       COL2: normalizeDecimal(body.COL2),
+      COL4: normalizeDecimal(body.COL4),
+      JUICE: normalizeDecimal(body.JUICE ?? body.JUIC ?? body.COL2),
       ADD_WATER: normalizeDecimal(body.ADD_WATER),
       ADD_TANK: normalizeDecimal(body.ADD_TANK),
       DRAIN_POL1: normalizeDecimal(body.DRAIN_POL1),
@@ -435,7 +455,10 @@ exports.SugarBagProducedAdd_2 = async (req, res, next) => {
       SBAG_TEMP: normalizeDecimal(body.SBAG_TEMP),
       BISS: normalizeDecimal(body.BISS),
       BISSCLR: normalizeDecimal(body.BISSCLR),
-      BISSRET: normalizeDecimal(body.BISSRET)
+      BISSRET: normalizeDecimal(body.BISSRET),
+      H_DATE_PRIMARY: dateIso.replace(/-/g, ''),
+      ADD_WT: 1,
+      SNO: timeRaw
     };
 
     const existing = await executeQuery(
@@ -457,10 +480,13 @@ exports.SugarBagProducedAdd_2 = async (req, res, next) => {
     if (existing.length > 0) {
       await executeQuery(
         `UPDATE ${labHourTable}
-            SET SHIFT = @SHIFT,
+            SET isweb = '0',
+                SHIFT = @SHIFT,
+                JUICE = @JUICE,
                 COL2 = @COL2,
                 ADD_WATER = @ADD_WATER,
                 ADD_TANK = @ADD_TANK,
+                ADD_WT = 1,
                 DRAIN_POL1 = @DRAIN_POL1,
                 DRAIN_POL2 = @DRAIN_POL2,
                 DRAIN_POL3 = @DRAIN_POL3,
@@ -509,7 +535,8 @@ exports.SugarBagProducedAdd_2 = async (req, res, next) => {
                 SBAG_TEMP = @SBAG_TEMP,
                 BISS = @BISS,
                 BISSCLR = @BISSCLR,
-                BISSRET = @BISSRET
+                BISSRET = @BISSRET,
+                COL4 = @COL4
           WHERE FACTORY = @FACTORY
             AND CAST(H_DATE AS date) = @H_DATE
             AND TIME = @TIME
@@ -521,24 +548,26 @@ exports.SugarBagProducedAdd_2 = async (req, res, next) => {
       await executeQuery(
         `INSERT INTO ${labHourTable} (
             FACTORY, H_DATE, TIME, SHIFT, MILL_NO,
-            COL2, ADD_WATER, ADD_TANK,
+            COL2, ADD_WATER,
             DRAIN_POL1, DRAIN_POL2, DRAIN_POL3, DRAIN_POL4, DRAIN_POL5,
             SPRAY_WATER_POL, SPRAY_WATER_POL2,
             EXHST_PRS_DEVCI, LIVE_ST_PRS, BACK_PRS_DEVCI, BACK_PRS_DEVCII,
             L_31, L_31CLR, L_31RET, L_30, L_30CLR, L_30RET, L_29, L_29CLR, L_29RET, LBAG_TEMP,
             M_31, M_31CLR, M_31RET, M31BAG_TEMP, M_30, M_30CLR, M_30RET, M30BAG_TEMP, M_29, M_29CLR, M_29RET, M29BAG_TEMP,
             S_31, S_31CLR, S_31RET, S_30, S_30CLR, S_30RET, S_29, S_29CLR, S_29RET, SS_31, SS_31CLR, SS_31RET,
-            SBAG_TEMP, BISS, BISSCLR, BISSRET
+            SBAG_TEMP, BISS, BISSCLR, BISSRET,
+            H_DATE_PRIMARY, ADD_TANK, SNO, COL4, ADD_WT, JUICE
          ) VALUES (
             @FACTORY, @H_DATE, @TIME, @SHIFT, @MILL_NO,
-            @COL2, @ADD_WATER, @ADD_TANK,
+            @COL2, @ADD_WATER,
             @DRAIN_POL1, @DRAIN_POL2, @DRAIN_POL3, @DRAIN_POL4, @DRAIN_POL5,
             @SPRAY_WATER_POL, @SPRAY_WATER_POL2,
             @EXHST_PRS_DEVCI, @LIVE_ST_PRS, @BACK_PRS_DEVCI, @BACK_PRS_DEVCII,
             @L_31, @L_31CLR, @L_31RET, @L_30, @L_30CLR, @L_30RET, @L_29, @L_29CLR, @L_29RET, @LBAG_TEMP,
             @M_31, @M_31CLR, @M_31RET, @M31BAG_TEMP, @M_30, @M_30CLR, @M_30RET, @M30BAG_TEMP, @M_29, @M_29CLR, @M_29RET, @M29BAG_TEMP,
             @S_31, @S_31CLR, @S_31RET, @S_30, @S_30CLR, @S_30RET, @S_29, @S_29CLR, @S_29RET, @SS_31, @SS_31CLR, @SS_31RET,
-            @SBAG_TEMP, @BISS, @BISSCLR, @BISSRET
+            @SBAG_TEMP, @BISS, @BISSCLR, @BISSRET,
+            @H_DATE_PRIMARY, @ADD_TANK, @SNO, @COL4, @ADD_WT, @JUICE
          )`,
         payload,
         season
@@ -913,37 +942,336 @@ exports.DailyLabAnalysisAdd = upsertDailyLabAnalysis;
 exports.DailyLabAnalysisAdd_2 = upsertDailyLabAnalysis;
 exports.AMassecuiteView = createMassecuiteViewHandler({ tableName: 'LAB_A_MASS' });
 exports.AMassecuite = createProcedureHandler(CONTROLLER, 'AMassecuite', '');
-exports.AMassecuite_2 = createProcedureHandler(CONTROLLER, 'AMassecuite', 'AMassecuiteView Model, string Command');
+exports.AMassecuite_2 = async (req, res, next) => {
+  try {
+    const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
+    const body = req.body || {};
+    const commandRaw = String(body.Command || body.command || body.id || '').trim();
+    const isUpdate = commandRaw.toLowerCase() === 'update' || commandRaw.toLowerCase() === 'btupdate';
+
+    const factory = Number(body.FACTORY ?? body.factory ?? 0);
+    const hour = Number(body.HOUR ?? body.TIME ?? 0);
+    const slno = Number(body.SLNO ?? body.Rid ?? body.id ?? 0);
+
+    const rawDate = body.DDATE ?? body.DATE ?? body.date ?? '';
+    const dateIso = parseFlexibleDateToIso(rawDate);
+    if (!factory || !dateIso) {
+      return res.status(200).json({
+        success: false,
+        message: 'FACTORY and DDATE are required.',
+        data: []
+      });
+    }
+
+    const to112 = (iso) => {
+      const parts = String(iso || '').split('-');
+      if (parts.length !== 3) return null;
+      return `${parts[0]}${parts[1]}${parts[2]}`;
+    };
+
+    const ddate112 = to112(dateIso);
+    if (!ddate112) {
+      return res.status(200).json({ success: false, message: 'Invalid DDATE.', data: [] });
+    }
+
+    const normalizeNum = (value) => {
+      if (value === null || value === undefined || value === '') return 0;
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : 0;
+    };
+
+    const payload = {
+      STRIKE_NO: normalizeNum(body.STRIKE_NO),
+      PAN_NO: normalizeNum(body.PAN_NO),
+      START_AT: normalizeNum(body.START_AT),
+      DROP_AT: normalizeNum(body.DROP_AT),
+      DROP_BY: normalizeNum(body.DROP_BY),
+      CRYST_NO: normalizeNum(body.CRYST_NO),
+      ANAL_BX: normalizeNum(body.ANAL_BX),
+      ANAL_POL: normalizeNum(body.ANAL_POL),
+      ANAL_PY: normalizeNum(body.ANAL_PY),
+      QTY: normalizeNum(body.QTY)
+    };
+
+    if (isUpdate) {
+      if (!slno) {
+        return res.status(200).json({ success: false, message: 'SLNO is required for update.', data: [] });
+      }
+
+      const rows = await executeQuery(
+        `UPDATE LAB_A_MASS
+           SET isweb = '0',
+               STRIKE_NO = @STRIKE_NO,
+               PAN_NO = @PAN_NO,
+               START_AT = @START_AT,
+               DROP_AT = @DROP_AT,
+               DROP_BY = @DROP_BY,
+               CRYST_NO = @CRYST_NO,
+               ANAL_BX = @ANAL_BX,
+               ANAL_POL = @ANAL_POL,
+               ANAL_PY = @ANAL_PY,
+               QTY = @QTY
+         WHERE FACTORY = @factory
+           AND CONVERT(NVARCHAR, DDATE, 112) = @ddate112
+           AND SLNO = @slno;
+         SELECT @@ROWCOUNT AS count;`,
+        { factory, ddate112, slno, ...payload },
+        season
+      );
+
+      const updated = Number(rows?.[0]?.count || 0);
+      return res.status(200).json({
+        success: updated > 0,
+        message: updated > 0 ? 'Record updated.' : 'No record updated.',
+        data: []
+      });
+    }
+
+    const today = new Date();
+    const todayIso = today.toISOString().split('T')[0];
+    if (dateIso > todayIso) {
+      return res.status(200).json({ success: false, message: 'Future date not allowed.', data: [] });
+    }
+
+    const nextSlno = await executeScalar(
+      `SELECT ISNULL(MAX(SLNO), 0) + 1 AS NextNo
+         FROM LAB_A_MASS
+        WHERE CONVERT(NVARCHAR, DDATE, 112) = @ddate112
+          AND FACTORY = @factory;`,
+      { ddate112, factory },
+      season
+    );
+
+    const insertSlno = Number(nextSlno || 0) || 0;
+    const dDatePrimary = to112(todayIso);
+
+    const insertRows = await executeQuery(
+      `INSERT INTO LAB_A_MASS
+         (FACTORY, HOUR, DDATE, STRIKE_NO, PAN_NO, START_AT, DROP_AT, DROP_BY, CRYST_NO,
+          ANAL_BX, ANAL_POL, ANAL_PY, QTY, SLNO, D_DATE_PRIMARY)
+       VALUES
+         (@factory, @hour, @ddate112, @STRIKE_NO, @PAN_NO, @START_AT, @DROP_AT, @DROP_BY, @CRYST_NO,
+          @ANAL_BX, @ANAL_POL, @ANAL_PY, @QTY, @slno, @dDatePrimary);
+       SELECT @@ROWCOUNT AS count;`,
+      { factory, hour, ddate112, slno: insertSlno, dDatePrimary, ...payload },
+      season
+    );
+
+    const inserted = Number(insertRows?.[0]?.count || 0);
+    return res.status(200).json({
+      success: inserted > 0,
+      message: inserted > 0 ? 'Record saved.' : 'Insert failed.',
+      data: []
+    });
+  } catch (error) {
+    if (typeof next === 'function') return next(error);
+    throw error;
+  }
+};
 exports.AMassecuiteDelete = createProcedureHandler(CONTROLLER, 'AMassecuiteDelete', 'string FACT, string DATE, string SLNO');
 exports.AMassecuiteUPId = createMassecuiteByIdHandler({ tableName: 'LAB_A_MASS' });
 exports.A1MassecuiteView = createMassecuiteViewHandler({ tableName: 'LAB_A1_MASS' });
 exports.A1Massecuite = createProcedureHandler(CONTROLLER, 'A1Massecuite', '');
-exports.A1Massecuite_2 = createProcedureHandler(CONTROLLER, 'A1Massecuite', 'A1MassecuiteView Model, string Command');
+function createMassecuiteSaveHandler({
+  tableName,
+  requireLocation = false,
+  insertLocationValue = null
+}) {
+  return async (req, res, next) => {
+    try {
+      const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
+      const body = req.body || {};
+      const commandRaw = String(body.Command || body.command || body.id || '').trim();
+      const isUpdate = commandRaw.toLowerCase() === 'update' || commandRaw.toLowerCase() === 'btupdate';
+
+      const factory = Number(body.FACTORY ?? body.factory ?? 0);
+      const hour = Number(body.HOUR ?? body.TIME ?? 0);
+      const slno = Number(body.SLNO ?? body.Rid ?? body.id ?? 0);
+
+      const rawDate = body.DDATE ?? body.DATE ?? body.date ?? '';
+      const dateIso = parseFlexibleDateToIso(rawDate);
+      if (!factory || !dateIso) {
+        return res.status(200).json({
+          success: false,
+          message: 'FACTORY and DDATE are required.',
+          data: []
+        });
+      }
+
+      const to112 = (iso) => {
+        const parts = String(iso || '').split('-');
+        if (parts.length !== 3) return null;
+        return `${parts[0]}${parts[1]}${parts[2]}`;
+      };
+
+      const ddate112 = to112(dateIso);
+      if (!ddate112) {
+        return res.status(200).json({ success: false, message: 'Invalid DDATE.', data: [] });
+      }
+
+      const normalizeNum = (value) => {
+        if (value === null || value === undefined || value === '') return 0;
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : 0;
+      };
+
+      const payload = {
+        STRIKE_NO: normalizeNum(body.STRIKE_NO),
+        PAN_NO: normalizeNum(body.PAN_NO),
+        START_AT: normalizeNum(body.START_AT),
+        DROP_AT: normalizeNum(body.DROP_AT),
+        DROP_BY: normalizeNum(body.DROP_BY),
+        CRYST_NO: normalizeNum(body.CRYST_NO),
+        ANAL_BX: normalizeNum(body.ANAL_BX),
+        ANAL_POL: normalizeNum(body.ANAL_POL),
+        ANAL_PY: normalizeNum(body.ANAL_PY),
+        QTY: normalizeNum(body.QTY)
+      };
+
+      const locationCode = String(
+        body.LOCATION_CODE ?? body.DIVN ?? body.locationCode ?? ''
+      ).trim();
+
+      if (requireLocation && !locationCode && isUpdate) {
+        return res.status(200).json({ success: false, message: 'LOCATION_CODE is required.', data: [] });
+      }
+
+      if (isUpdate) {
+        if (!slno) {
+          return res.status(200).json({ success: false, message: 'SLNO is required for update.', data: [] });
+        }
+
+        const whereLocation = requireLocation ? ' AND LOCATION_CODE = @locationCode' : '';
+        const updateRows = await executeQuery(
+          `UPDATE ${tableName}
+             SET isweb = '0',
+                 STRIKE_NO = @STRIKE_NO,
+                 PAN_NO = @PAN_NO,
+                 START_AT = @START_AT,
+                 DROP_AT = @DROP_AT,
+                 DROP_BY = @DROP_BY,
+                 CRYST_NO = @CRYST_NO,
+                 ANAL_BX = @ANAL_BX,
+                 ANAL_POL = @ANAL_POL,
+                 ANAL_PY = @ANAL_PY,
+                 QTY = @QTY
+           WHERE FACTORY = @factory
+             AND CONVERT(NVARCHAR, DDATE, 112) = @ddate112
+             AND SLNO = @slno${whereLocation};
+           SELECT @@ROWCOUNT AS count;`,
+          { factory, ddate112, slno, locationCode, ...payload },
+          season
+        );
+
+        const updated = Number(updateRows?.[0]?.count || 0);
+        return res.status(200).json({
+          success: updated > 0,
+          message: updated > 0 ? 'Record updated.' : 'No record updated.',
+          data: []
+        });
+      }
+
+      const today = new Date();
+      const todayIso = today.toISOString().split('T')[0];
+      if (dateIso > todayIso) {
+        return res.status(200).json({ success: false, message: 'Future date not allowed.', data: [] });
+      }
+
+      const nextSlno = await executeScalar(
+        `SELECT ISNULL(MAX(SLNO), 0) + 1 AS NextNo
+           FROM ${tableName}
+          WHERE CONVERT(NVARCHAR, DDATE, 112) = @ddate112
+            AND FACTORY = @factory;`,
+        { ddate112, factory },
+        season
+      );
+
+      const insertSlno = Number(nextSlno || 0) || 0;
+      const dDatePrimary = to112(todayIso);
+      const insertLocation = insertLocationValue ?? (requireLocation ? 'P1' : null);
+
+      const insertColumns = `
+        FACTORY, HOUR, DDATE, STRIKE_NO, PAN_NO, START_AT, DROP_AT, DROP_BY, CRYST_NO,
+        ANAL_BX, ANAL_POL, ANAL_PY, QTY, SLNO, D_DATE_PRIMARY${requireLocation ? ', LOCATION_CODE' : ''}
+      `;
+      const insertValues = `
+        @factory, @hour, @ddate112, @STRIKE_NO, @PAN_NO, @START_AT, @DROP_AT, @DROP_BY, @CRYST_NO,
+        @ANAL_BX, @ANAL_POL, @ANAL_PY, @QTY, @slno, @dDatePrimary${requireLocation ? ', @insertLocation' : ''}
+      `;
+
+      const insertRows = await executeQuery(
+        `INSERT INTO ${tableName} (${insertColumns})
+         VALUES (${insertValues});
+         SELECT @@ROWCOUNT AS count;`,
+        {
+          factory,
+          hour,
+          ddate112,
+          slno: insertSlno,
+          dDatePrimary,
+          insertLocation,
+          ...payload
+        },
+        season
+      );
+
+      const inserted = Number(insertRows?.[0]?.count || 0);
+      return res.status(200).json({
+        success: inserted > 0,
+        message: inserted > 0 ? 'Record saved.' : 'Insert failed.',
+        data: []
+      });
+    } catch (error) {
+      if (typeof next === 'function') return next(error);
+      throw error;
+    }
+  };
+}
+
+exports.A1Massecuite_2 = createMassecuiteSaveHandler({
+  tableName: 'LAB_A1_MASS'
+});
 exports.A1MassecuiteDelete = createProcedureHandler(CONTROLLER, 'A1MassecuiteDelete', 'string FACTORY, string DDATE, string SLNO');
 exports.A1MassecuiteUPId = createMassecuiteByIdHandler({ tableName: 'LAB_A1_MASS' });
 exports.BMassecuiteView = createMassecuiteViewHandler({ tableName: 'LAB_B_MASS', includeLocationCode: true });
 exports.BMassecuite = createProcedureHandler(CONTROLLER, 'BMassecuite', '');
-exports.BMassecuite_2 = createProcedureHandler(CONTROLLER, 'BMassecuite', 'string id, int F_Name, string DDATE, string TIME, string STRIKE_NO, string ANAL_BX, string ANAL_POL, string ANAL_PY, string QTY, string NO, string LOCATION_CODE');
+exports.BMassecuite_2 = createMassecuiteSaveHandler({
+  tableName: 'LAB_B_MASS',
+  requireLocation: true,
+  insertLocationValue: 'P1'
+});
 exports.BMassecuiteDelete = createProcedureHandler(CONTROLLER, 'BMassecuiteDelete', 'string FACT, string DATE, string SLNO, string DIVN');
 exports.BMassecuiteUPId = createMassecuiteByIdHandler({ tableName: 'LAB_B_MASS', includeLocationCode: true });
 exports.CMassecuiteView = createMassecuiteViewHandler({ tableName: 'LAB_C_MASS', includeLocationCode: true });
 exports.CMassecuite = createProcedureHandler(CONTROLLER, 'CMassecuite', '');
-exports.CMassecuite_2 = createProcedureHandler(CONTROLLER, 'CMassecuite', 'string id, int F_Name, string DDATE, string TIME, string STRIKE_NO, string ANAL_BX, string ANAL_POL, string ANAL_PY, string QTY, string NO, string LOCATION_CODE');
+exports.CMassecuite_2 = createMassecuiteSaveHandler({
+  tableName: 'LAB_C_MASS',
+  requireLocation: true,
+  insertLocationValue: 'P1'
+});
 exports.CMassecuiteDelete = createProcedureHandler(CONTROLLER, 'CMassecuiteDelete', 'string FACT, string DATE, string SLNO, string DIVN');
 exports.CMassecuiteUPId = createMassecuiteByIdHandler({ tableName: 'LAB_C_MASS', includeLocationCode: true });
 exports.C1MassecuiteView = createMassecuiteViewHandler({ tableName: 'LAB_C1_MASS', includeLocationCode: true });
 exports.C1Massecuite = createProcedureHandler(CONTROLLER, 'C1Massecuite', '');
-exports.C1Massecuite_2 = createProcedureHandler(CONTROLLER, 'C1Massecuite', 'string id, int F_Name, string DDATE, string TIME, string STRIKE_NO, string ANAL_BX, string ANAL_POL, string ANAL_PY, string QTY, string NO, string LOCATION_CODE');
+exports.C1Massecuite_2 = createMassecuiteSaveHandler({
+  tableName: 'LAB_C1_MASS',
+  requireLocation: true,
+  insertLocationValue: 'P1'
+});
 exports.C1MassecuiteDelete = createProcedureHandler(CONTROLLER, 'C1MassecuiteDelete', 'string FACT, string DATE, string SLNO, string DIVN');
 exports.C1MassecuiteUPId = createMassecuiteByIdHandler({ tableName: 'LAB_C1_MASS', includeLocationCode: true });
 exports.R1View = createMassecuiteViewHandler({ tableName: 'LAB_R1', includeLocationCode: true });
 exports.R1 = createProcedureHandler(CONTROLLER, 'R1', '');
-exports.R1_2 = createProcedureHandler(CONTROLLER, 'R1', 'string id, int F_Name, string DDATE, string TIME, string STRIKE_NO, string ANAL_BX, string ANAL_POL, string ANAL_PY, string QTY, string No');
+exports.R1_2 = createMassecuiteSaveHandler({
+  tableName: 'LAB_R1'
+});
 exports.R1Delete = createProcedureHandler(CONTROLLER, 'R1Delete', 'string FACT, string DATE, string SLNO');
 exports.R1UPId = createMassecuiteByIdHandler({ tableName: 'LAB_R1', includeLocationCode: true });
 exports.R2View = createMassecuiteViewHandler({ tableName: 'LAB_R2', includeLocationCode: true });
 exports.R2 = createProcedureHandler(CONTROLLER, 'R2', '');
-exports.R2_2 = createProcedureHandler(CONTROLLER, 'R2', 'string id, int F_Name, string DDATE, string TIME, string STRIKE_NO, string ANAL_BX, string ANAL_POL, string ANAL_PY, string QTY, string No');
+exports.R2_2 = createMassecuiteSaveHandler({
+  tableName: 'LAB_R2'
+});
 exports.R2Delete = createProcedureHandler(CONTROLLER, 'R2Delete', 'string FACT, string DATE, string SLNO');
 exports.R2UPId = createMassecuiteByIdHandler({ tableName: 'LAB_R2', includeLocationCode: true });
 exports.MolassesAnalysisView = async (req, res, next) => {

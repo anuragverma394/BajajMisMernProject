@@ -75,7 +75,7 @@ exports.getDailyTeamWiseSurveyProgressReport = catchAsync(async (req, res) => {
   const season = getSeason(req);
   const fCode = getValue(req, 'F_code', 'F_Code', 'factoryCode');
   const date = normalizeDateInput(getValue(req, 'Date', 'date'));
-  const userId = String(req.user?.userId || req.headers['x-user-id'] || getValue(req, 'Userid', 'userId') || '').trim();
+  const userId = String(req.user?.userId || req.headers['x-user-id'] || getValue(req, 'Userid', 'userId') || '1').trim();
   const data = await surveyReportService.getDailyTeamWiseSurveyProgressReport({
     fCode: fCode === '0' ? '' : fCode,
     date: toSqlDate(date),
@@ -107,8 +107,49 @@ exports.getDailyTeamWiseHourlySurveyProgressReport = catchAsync(async (req, res)
     data
   });
 });
-exports.getFinalVillageFirstSurveyReport = makeProcedureHandler('FinalVillageFirstSurveyReport');
-exports.getFinalVillageFirstSurveySummeryReport = makeProcedureHandler('FinalVillageFirstSurveySummeryReport');
+exports.getFinalVillageFirstSurveyReport = catchAsync(async (req, res) => {
+  const season = getSeason(req);
+  const fCode = getValue(req, 'F_code', 'F_Code', 'factoryCode', 'unitCode') || '0';
+  const caneType = getValue(req, 'CaneType', 'caneType') || '1';
+  const onlyCompleted = String(getValue(req, 'Check', 'onlyCompleted', 'onlyCompletedVillage') || '').toLowerCase() === 'true';
+  const connectionSeason = String(req.user?.connectionSeason || req.headers['x-user-connection-season'] || '').trim();
+
+  const result = await surveyReportService.getFinalVillageFirstSurveyReport({
+    fCode,
+    caneType,
+    onlyCompleted,
+    season,
+    connectionSeason
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: 'Final village first survey report',
+    data: result?.data || [],
+    totals: result?.totals || {}
+  });
+});
+
+exports.getFinalVillageFirstSurveySummeryReport = catchAsync(async (req, res) => {
+  const season = getSeason(req);
+  const caneType = getValue(req, 'CaneType', 'caneType') || '1';
+  const userId = String(req.user?.userId || req.headers['x-user-id'] || getValue(req, 'Userid', 'userId') || '').trim();
+  const connectionSeason = String(req.user?.connectionSeason || req.headers['x-user-connection-season'] || '').trim();
+
+  const result = await surveyReportService.getFinalVillageFirstSurveySummeryReport({
+    caneType,
+    userId,
+    season,
+    connectionSeason
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: 'Final village first survey summary report',
+    data: result?.data || [],
+    totals: result?.totals || {}
+  });
+});
 exports.getSurveyUnitWiseSurveyStatus = catchAsync(async (req, res) => {
   const season = getSeason(req);
   const fCode = getValue(req, 'F_code', 'F_Code', 'factoryCode') || '0';
@@ -203,7 +244,7 @@ exports.categoryWiseSummary = async (req, res, next) => {
     const date = normalizeDateInput(getValue(req, 'date', 'Date'));
     const catg = getValue(req, 'catg', 'category') || '0';
     const data = await surveyReportService.getCategoryWiseSummary({
-      params: { fact: F_Name, date: toSqlDate(date), category: catg },
+      params: { fact: F_Name, date, category: catg },
       season
     });
     return res.status(200).json({ success: true, message: 'Category wise summary', data });

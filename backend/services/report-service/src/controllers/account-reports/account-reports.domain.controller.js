@@ -54,7 +54,13 @@ exports.VarietyWiseCanePurchase_2 = catchAsync(async (req, res) => {
 });
 
 exports.Capasityutilisation = catchAsync(async (req, res) => {
-  return notImplemented(res, 'Capacity utilisation');
+  const result = await service.getCapacityUtilisation(req);
+  if (result?.error) {
+    const err = new Error(result.error.message || 'Request failed');
+    err.statusCode = result.error.status || 500;
+    throw err;
+  }
+  return res.status(200).json(result);
 });
 
 exports.Capasityutilisation_2 = catchAsync(async (req, res) => {
@@ -70,7 +76,13 @@ exports.CaneQtyandSugarCapacity_2 = catchAsync(async (req, res) => {
 });
 
 exports.CapasityutilisationFromdate = catchAsync(async (req, res) => {
-  return notImplemented(res, 'Capacity utilisation from date');
+  const result = await service.getCapacityUtilisationPeriodical(req);
+  if (result?.error) {
+    const err = new Error(result.error.message || 'Request failed');
+    err.statusCode = result.error.status || 500;
+    throw err;
+  }
+  return res.status(200).json(result);
 });
 
 exports.CapasityutilisationFromdate_2 = catchAsync(async (req, res) => {
@@ -109,7 +121,13 @@ exports.CogenReport_2 = catchAsync(async (req, res) => {
 });
 
 exports.DISTILLERYReport = catchAsync(async (req, res) => {
-  return notImplemented(res, 'Distillery report');
+  const result = await service.getDistilleryReport(req);
+  if (result?.error) {
+    const err = new Error(result.error.message || 'Request failed');
+    err.statusCode = result.error.status || 500;
+    throw err;
+  }
+  return res.status(200).json(result);
 });
 
 exports.DISTILLERYReport_2 = catchAsync(async (req, res) => {

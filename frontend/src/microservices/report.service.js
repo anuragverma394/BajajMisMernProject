@@ -108,5 +108,10 @@ export const reportService = {
     getDriageClerkCentreDetail: async (params) => {
         const response = await apiClient.get('/report/driage-clerk-centre-detail', { params });
         return response.data;
+    },
+
+    getCentreCode: async (params) => {
+        const response = await apiClient.get('/report/centre-code', { params });
+        return response.data;
     }
 };

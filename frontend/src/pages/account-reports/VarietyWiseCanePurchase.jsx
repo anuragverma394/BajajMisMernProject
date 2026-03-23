@@ -56,11 +56,15 @@ import '../../styles/VarietyWiseCanePurchase_1.css';const __cx = (...vals) => va
   };
 
   const handleExport = () => {
-    if (reportRows.length === 0) {
-      toast.error("No data to export!");
+    if (!reportRows.length) {
+      toast.error('No data to export!');
       return;
     }
-    toast.error("Export to Excel functionality requires external library mapping.");
+    if (window.exportTableToCSV) {
+      window.exportTableToCSV('variety-wise-cane-purchase-table', 'VarietyWiseCanePurchase.csv');
+      return;
+    }
+    toast.error('Export utility not available');
   };
 
   const handlePrint = () => {
@@ -148,7 +152,7 @@ import '../../styles/VarietyWiseCanePurchase_1.css';const __cx = (...vals) => va
       reportRows.length > 0 &&
       <div className={__cx("page-card", "mt-[10px]")}>
                         <div className={__cx("table-wrapper", "max-h-[65vh] overflow-y-auto")}>
-                            <table ref={tableRef} className="data-table">
+                            <table ref={tableRef} id="variety-wise-cane-purchase-table" className="data-table">
                                 <thead>
                                     <tr>
                                         <th className="text-left">Particulars</th>

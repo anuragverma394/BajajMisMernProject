@@ -194,26 +194,26 @@ const Report_EffectedCaneAreaReport = () => {
       <div className="mt-6 rounded-lg border border-emerald-200 bg-white shadow-sm" id="effected-report-print">
         <div className="p-4">
           <div className="max-h-[520px] overflow-auto">
-            <table id="effected-cane-area-table" className="min-w-[1200px] table-auto border-collapse text-sm">
+            <table id="effected-cane-area-table" className="mx-auto min-w-[1200px] table-auto border-collapse text-sm">
               <thead className="sticky top-0 bg-emerald-100">
                 <tr>
-                  <th rowSpan={2} className="border border-emerald-200 px-2 py-2 text-center">S.No</th>
-                  <th rowSpan={2} className="border border-emerald-200 px-2 py-2 text-center">Grower Vill</th>
-                  <th rowSpan={2} className="border border-emerald-200 px-2 py-2 text-center">Village Name</th>
-                  <th rowSpan={2} className="border border-emerald-200 px-2 py-2 text-center">No of Member</th>
-                  <th rowSpan={2} className="border border-emerald-200 px-2 py-2 text-center">Bonded Member</th>
-                  <th rowSpan={2} className="border border-emerald-200 px-2 py-2 text-center">CLA</th>
-                  <th rowSpan={2} className="border border-emerald-200 px-2 py-2 text-center">Total Cane Area</th>
-                  <th colSpan={5} className="border border-emerald-200 px-2 py-2 text-center">Calendring Not Done</th>
-                  <th rowSpan={2} className="border border-emerald-200 px-2 py-2 text-center">Effected Cane Area</th>
-                  <th rowSpan={2} className="border border-emerald-200 px-2 py-2 text-center">%Age</th>
+                  <th rowSpan={2} className="border border-emerald-200 px-3 py-3 text-center font-semibold text-emerald-900">S.No</th>
+                  <th rowSpan={2} className="border border-emerald-200 px-3 py-3 text-center font-semibold text-emerald-900">Grower Vill</th>
+                  <th rowSpan={2} className="border border-emerald-200 px-3 py-3 text-center font-semibold text-emerald-900">Village Name</th>
+                  <th rowSpan={2} className="border border-emerald-200 px-3 py-3 text-center font-semibold text-emerald-900">No of Member</th>
+                  <th rowSpan={2} className="border border-emerald-200 px-3 py-3 text-center font-semibold text-emerald-900">Bonded Member</th>
+                  <th rowSpan={2} className="border border-emerald-200 px-3 py-3 text-center font-semibold text-emerald-900">CLA</th>
+                  <th rowSpan={2} className="border border-emerald-200 px-3 py-3 text-center font-semibold text-emerald-900">Total Cane Area</th>
+                  <th colSpan={5} className="border border-emerald-200 px-3 py-3 text-center font-semibold text-emerald-900">Calendring Not Done</th>
+                  <th rowSpan={2} className="border border-emerald-200 px-3 py-3 text-center font-semibold text-emerald-900">Effected Cane Area</th>
+                  <th rowSpan={2} className="border border-emerald-200 px-3 py-3 text-center font-semibold text-emerald-900">%Age</th>
                 </tr>
                 <tr>
-                  <th className="border border-emerald-200 px-2 py-2 text-center">More Than CLA</th>
-                  <th className="border border-emerald-200 px-2 py-2 text-center">Zero CLA</th>
-                  <th className="border border-emerald-200 px-2 py-2 text-center">Non Mem</th>
-                  <th className="border border-emerald-200 px-2 py-2 text-center">Lock Grower</th>
-                  <th className="border border-emerald-200 px-2 py-2 text-center">Total</th>
+                  <th className="border border-emerald-200 px-3 py-2 text-center font-semibold text-emerald-900">More Than CLA</th>
+                  <th className="border border-emerald-200 px-3 py-2 text-center font-semibold text-emerald-900">Zero CLA</th>
+                  <th className="border border-emerald-200 px-3 py-2 text-center font-semibold text-emerald-900">Non Mem</th>
+                  <th className="border border-emerald-200 px-3 py-2 text-center font-semibold text-emerald-900">Lock Grower</th>
+                  <th className="border border-emerald-200 px-3 py-2 text-center font-semibold text-emerald-900">Total</th>
                 </tr>
               </thead>
               <tbody>
@@ -231,20 +231,20 @@ const Report_EffectedCaneAreaReport = () => {
                   const noOfMember = row?.NoOfMember || row?.NoofMember || row?.NO_OF_MEMBER || row?.NO_OF_MEM || row?.NOOFMEMBER || row?.NOOFMEM || row?.NOOFMEM1 || row?.noofmember || row?.No_of_member || row?.MEMBERCOUNT || row?.MEMBERS || row?.NOMEMBER || row?.NO_MEMBER || row?.MEMBER_COUNT || row?.MEMCOUNT || row?.['No of Member'] || row?.['No Of Member'] || row?.['No_Of_Member'] || row?.['NoOfMember'] || row?.['NOOFMEMBER'] || 0;
                   return (
                     <tr key={`${row?.V_Code}-${idx}`} className={highlight ? 'bg-emerald-200' : 'bg-emerald-50'}>
-                      <td className="border border-emerald-200 px-2 py-2 text-center">{idx + 1}</td>
-                      <td className="border border-emerald-200 px-2 py-2 text-center">{growerVill}</td>
-                      <td className="border border-emerald-200 px-2 py-2 text-left">{villageName}</td>
-                      <td className="border border-emerald-200 px-2 py-2 text-right">{noOfMember}</td>
-                      <td className="border border-emerald-200 px-2 py-2 text-right">{row?.BondedMember ?? row?.BONDEDMEMBER ?? row?.bondedmember ?? 0}</td>
-                      <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(row?.CLA ?? row?.Cla ?? row?.cla)}</td>
-                      <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(row?.TotalCaneArea ?? row?.TOTALCANEAREA ?? row?.totalcanearea)}</td>
-                      <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(row?.MoreThanCLA ?? row?.MORETHANCLA ?? row?.morethancla)}</td>
-                      <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(row?.ZeroCLA ?? row?.ZEROCLA ?? row?.zerocla)}</td>
-                      <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(row?.NonMem ?? row?.NONMEM ?? row?.nonmem)}</td>
-                      <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(row?.LockGrower ?? row?.LOCKGROWER ?? row?.lockgrower)}</td>
-                      <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(row?.Total ?? row?.TOTAL ?? row?.total)}</td>
-                      <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(row?.EffectedCaneArea ?? row?.EFFECTEDCANEAREA ?? row?.effectedcanearea)}</td>
-                      <td className="border border-emerald-200 px-2 py-2 text-right">{formatNum(row?.Percent ?? row?.PERCENT ?? row?.percent, 2)}</td>
+                      <td className="border border-emerald-200 px-3 py-2 text-center">{idx + 1}</td>
+                      <td className="border border-emerald-200 px-3 py-2 text-center">{growerVill}</td>
+                      <td className="border border-emerald-200 px-3 py-2 text-left font-medium text-emerald-950">{villageName}</td>
+                      <td className="border border-emerald-200 px-3 py-2 text-right font-semibold">{noOfMember}</td>
+                      <td className="border border-emerald-200 px-3 py-2 text-right">{row?.BondedMember ?? row?.BONDEDMEMBER ?? row?.bondedmember ?? 0}</td>
+                      <td className="border border-emerald-200 px-3 py-2 text-right">{formatNum(row?.CLA ?? row?.Cla ?? row?.cla)}</td>
+                      <td className="border border-emerald-200 px-3 py-2 text-right">{formatNum(row?.TotalCaneArea ?? row?.TOTALCANEAREA ?? row?.totalcanearea)}</td>
+                      <td className="border border-emerald-200 px-3 py-2 text-right">{formatNum(row?.MoreThanCLA ?? row?.MORETHANCLA ?? row?.morethancla)}</td>
+                      <td className="border border-emerald-200 px-3 py-2 text-right">{formatNum(row?.ZeroCLA ?? row?.ZEROCLA ?? row?.zerocla)}</td>
+                      <td className="border border-emerald-200 px-3 py-2 text-right">{formatNum(row?.NonMem ?? row?.NONMEM ?? row?.nonmem)}</td>
+                      <td className="border border-emerald-200 px-3 py-2 text-right">{formatNum(row?.LockGrower ?? row?.LOCKGROWER ?? row?.lockgrower)}</td>
+                      <td className="border border-emerald-200 px-3 py-2 text-right">{formatNum(row?.Total ?? row?.TOTAL ?? row?.total)}</td>
+                      <td className="border border-emerald-200 px-3 py-2 text-right font-semibold">{formatNum(row?.EffectedCaneArea ?? row?.EFFECTEDCANEAREA ?? row?.effectedcanearea)}</td>
+                      <td className="border border-emerald-200 px-3 py-2 text-right font-semibold">{formatNum(row?.Percent ?? row?.PERCENT ?? row?.percent, 2)}</td>
                     </tr>
                   );
                 })}

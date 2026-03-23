@@ -2250,6 +2250,7 @@ exports.MonthlyEntryReportView = async (req, res, next) => {
         {},
         season
       );
+      
     } catch (queryError) {
       parameterRows = monthlyParameterFallback();
     }

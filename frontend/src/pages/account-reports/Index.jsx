@@ -11,7 +11,7 @@ const AccountReportsHome = () => {
         { name: 'Transfer and Received Unit', path: '/AccountReports/TransferandRecievedUnit', icon: 'fa-exchange-alt' },
         { name: 'Cogen Report', path: '/AccountReports/CogenReport', icon: 'fa-bolt' },
         { name: 'Distillery boiler report', path: '/AccountReports/DISTILLERYReport', icon: 'fa-fire' },
-        { name: 'Centre/Variety Group Wise Cane Purchase', path: '/AccountReports/VarietyWiseCanePurchase', icon: 'fa-leaf' },
+        { name: 'Centre/Variety Group Wise Cane Purchase', path: '/Report/CentreCode', icon: 'fa-leaf' },
         { name: 'Variety Wise Cane Purchase Amt', path: '/AccountReports/VarietyWiseCanePurchaseAmt', icon: 'fa-rupee-sign' },
         { name: 'Loan Summary Report', path: '/AccountReports/LoanSummaryReport', icon: 'fa-money-check-alt' },
     ];

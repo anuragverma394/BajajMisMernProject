@@ -70,6 +70,15 @@ const Lab_SugarBagProducedView = () => {
   const [productionData, setProductionData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  const handleEdit = (row) => {
+    const time = row.TIME || row.Time || '';
+    const hDate = row.H_DATE || row.DATE || row.Date || '';
+    const factory = row.FACTORY || row.Factory || '';
+    const millNo = row.MILL_NO || row.MILLNO || row.MillNo || '';
+    if (!time || !hDate || !factory || !millNo) return;
+    navigate(`/Lab/SugarBagProducedAdd?TIME=${encodeURIComponent(time)}&H_DATE=${encodeURIComponent(hDate)}&FACTORY=${encodeURIComponent(factory)}&MILL_NO=${encodeURIComponent(millNo)}`);
+  };
+
   useEffect(() => {
     masterService.getUnits().then((d) => setFactories(Array.isArray(d) ? d : [])).catch(() => {});
     const now = new Date();
@@ -95,19 +104,19 @@ const Lab_SugarBagProducedView = () => {
   };
 
   return (
-    <div className="p-[20px] bg-white min-h-[100vh] font-['Poppins', Arial, sans-serif]">
+    <div className="min-h-screen bg-white px-5 py-5 font-['Poppins',Arial,sans-serif]">
             <Toaster position="top-right" />
 
-            <div className={__cx("page-card", "rounded-lg")}>
-                <div className={__cx("page-card-header", "text-center text-[15px]")}>
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 shadow-sm">
+                <div className="rounded-t-xl bg-emerald-600 px-4 py-2 text-center text-sm font-semibold text-white">
                     Sugar Bag Produced View
                 </div>
 
-                <div className={__cx("page-card-body", "bg-[#f5f5e8]")}>
-                    <div className={__cx("form-grid-4", "mb-[20px]")}>
-                        <div className="form-group">
-                            <label>Factory</label>
-                            <select className="form-control" value={selectedFactory} onChange={(e) => setSelectedFactory(e.target.value)}>
+                <div className="space-y-4 p-4">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <div className="space-y-1">
+                            <label className="text-sm font-semibold text-slate-700">Factory</label>
+                            <select className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm" value={selectedFactory} onChange={(e) => setSelectedFactory(e.target.value)}>
                                 <option value="All">All</option>
                                 {factories.map((f, idx) =>
                 <option key={`${f.F_Code || f.f_Code || f.id}-${idx}`} value={f.F_Code || f.f_Code || f.id}>
@@ -116,48 +125,60 @@ const Lab_SugarBagProducedView = () => {
                 )}
                             </select>
                         </div>
-                        <div className="form-group">
-                            <label>Date</label>
-                            <input type="text" className="form-control" value={reportDate} onChange={(e) => setReportDate(e.target.value)} placeholder="DD/MM/YYYY" />
+                        <div className="space-y-1">
+                            <label className="text-sm font-semibold text-slate-700">Date</label>
+                            <input type="text" className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm" value={reportDate} onChange={(e) => setReportDate(e.target.value)} placeholder="DD/MM/YYYY" />
                         </div>
                     </div>
 
-                    <div className={__cx("form-actions", "border-t-0 mt-[0] pt-[0]")}>
-                        <button className="btn btn-primary" onClick={handleSearch} disabled={isLoading}>
+                    <div className="flex flex-wrap gap-2">
+                        <button className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60" onClick={handleSearch} disabled={isLoading}>
                             {isLoading ? 'Searching...' : 'Search'}
                         </button>
-                        <button className="btn btn-primary" onClick={() => navigate('/Lab/SugarBagProducedAdd')}>
+                        <button className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700" onClick={() => navigate('/Lab/SugarBagProducedAdd')}>
                             Add New
                         </button>
-                        <button className="btn btn-primary" onClick={() => navigate(-1)}>
+                        <button className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700" onClick={() => navigate(-1)}>
                             Exit
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div className={__cx("page-card", "mt-[10px]")}>
-                <div className={__cx("table-wrapper", "max-h-[65vh] overflow-y-auto overflow-x-auto")}>
-                    <table className={__cx("data-table", "min-w-[3200px]")}>
+            <div className="mt-3 rounded-xl border border-emerald-200 bg-white shadow-sm">
+                <div className="max-h-[65vh] overflow-y-auto overflow-x-auto">
+                    <table className="min-w-[3200px] border-collapse text-sm">
                         <thead>
-                            <tr>
+                            <tr className="bg-emerald-100 text-slate-800">
                                 {tableColumns.map((col) =>
-                <th key={col.key}>{col.label}</th>
+                <th key={col.key} className="whitespace-nowrap border border-emerald-200 px-3 py-2 text-center font-semibold">{col.label}</th>
                 )}
                             </tr>
                         </thead>
                         <tbody>
                             {productionData.length > 0 ?
               productionData.map((row, idx) =>
-              <tr key={idx}>
-                                        {tableColumns.map((col) =>
-                <td key={`${idx}-${col.key}`}>{row[col.key] ?? '0'}</td>
-                )}
+              <tr key={idx} className="odd:bg-white even:bg-emerald-50/30">
+                                        {tableColumns.map((col) => {
+                  const value = row[col.key] ?? '0';
+                  const isEditCell = col.key === 'TIME' || col.key === 'TIME_IN_HOURS';
+                  return (
+                    <td key={`${idx}-${col.key}`} className="border border-emerald-200 px-3 py-2 text-center">
+                      {isEditCell ? (
+                        <button className="text-[#0f766e] font-semibold underline" onClick={() => handleEdit(row)}>
+                          {value}
+                        </button>
+                      ) : (
+                        value
+                      )}
+                    </td>
+                  );
+                })}
                                     </tr>
               ) :
 
               <tr>
-                                    <td colSpan={tableColumns.length} className="text-center font-bold">
+                                    <td colSpan={tableColumns.length} className="border border-emerald-200 px-3 py-6 text-center font-semibold">
                                         No Record Available
                                     </td>
                                 </tr>

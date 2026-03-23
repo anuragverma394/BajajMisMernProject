@@ -122,7 +122,11 @@ const AccountReports_CapasityutilisationFromdate = () => {
                 onChange={(e) => setUnitCode(e.target.value)} className="w-[100%] py-[10px] px-[12px] text-[13px] border border-[#ddd] rounded text-[#333] bg-white">
                 
                                 <option value="0">All</option>
-                                {unitsMaster.map((f, idx) => <option key={`${f.id ?? 'unit'}-${idx}`} value={f.id}>{f.name}</option>)}
+                                {unitsMaster.map((f, idx) => (
+                                  <option key={`${f.F_Code || f.f_Code || idx}`} value={f.F_Code || f.f_Code}>
+                                    {f.F_Name || f.f_Name}
+                                  </option>
+                                ))}
                             </select>
                         </div>
 
@@ -169,19 +173,19 @@ const AccountReports_CapasityutilisationFromdate = () => {
       <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden animate-in slide-in-from-bottom-4 duration-500">
                     <div className="overflow-x-auto max-h-[600px]">
                         <table ref={tableRef} id="example" className="min-w-full divide-y divide-slate-200 border-collapse">
-                            <thead className="bg-indigo-50 sticky top-0 z-10 shadow-sm">
+                            <thead className="bg-emerald-50 sticky top-0 z-10 shadow-sm">
                                 <tr>
-                                    <th scope="col" className="px-6 py-4 text-left text-sm font-bold text-slate-800 sticky left-0 bg-indigo-100 z-20 whitespace-nowrap border-b border-r border-indigo-200">
+                                    <th scope="col" className="px-6 py-4 text-left text-sm font-bold text-slate-800 sticky left-0 bg-emerald-100 z-20 whitespace-nowrap border-b border-r border-emerald-200">
                                         Particulars
                                     </th>
-                                    <th scope="col" className="px-6 py-4 text-left text-sm font-bold text-slate-800 whitespace-nowrap border-b border-r border-indigo-200">
+                                    <th scope="col" className="px-6 py-4 text-left text-sm font-bold text-slate-800 whitespace-nowrap border-b border-r border-emerald-200">
                                         UOM
                                     </th>
-                                    <th scope="col" className="px-6 py-4 text-right text-sm font-bold text-blue-900 whitespace-nowrap border-b border-indigo-200 bg-indigo-100">
+                                    <th scope="col" className="px-6 py-4 text-right text-sm font-bold text-teal-900 whitespace-nowrap border-b border-emerald-200 bg-emerald-100">
                                         Total
                                     </th>
                                     {factoryHeaders.map((header, idx) =>
-                <th key={`${header}-${idx}`} scope="col" className="px-6 py-4 text-right text-sm font-bold text-slate-800 whitespace-nowrap border-b border-r border-indigo-200">
+                <th key={`${header}-${idx}`} scope="col" className="px-6 py-4 text-right text-sm font-bold text-slate-800 whitespace-nowrap border-b border-r border-emerald-200">
                                             {header}
                                         </th>
                 )}
@@ -196,7 +200,7 @@ const AccountReports_CapasityutilisationFromdate = () => {
                                         <td className="px-6 py-3 text-sm text-slate-700 border-r border-slate-200">
                                             {row.uom}
                                         </td>
-                                        <td className="px-6 py-3 text-sm text-right font-bold text-blue-800 bg-indigo-50/30 border-r border-slate-200 font-mono">
+                                        <td className="px-6 py-3 text-sm text-right font-bold text-teal-800 bg-emerald-50/30 border-r border-slate-200 font-mono">
                                             {row.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </td>
                                         {row.factoryValues.map((val, fIdx) =>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
-import { masterService } from '../../microservices/api.service';
+import { masterService, reportNewService } from '../../microservices/api.service';
 import '../../styles/ReportNew.css';
 
 const ReportNew_SampleOfTransporter = () => {
@@ -9,15 +9,22 @@ const ReportNew_SampleOfTransporter = () => {
   const [loading, setLoading] = useState(false);
   const [units, setUnits] = useState([]);
   const [showSummary, setShowSummary] = useState(false);
-  const [reportData, setReportData] = useState(null);
-  const [summaryData, setSummaryData] = useState(null);
+  const [reportData, setReportData] = useState([]);
+  const [summaryData, setSummaryData] = useState([]);
+
+  const formatDdMmYyyy = (date = new Date()) => {
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  };
 
   const [form, setForm] = useState({
     Zone: '0',
     F_code: '0',
     TR_CODE: '0',
-    FromDate: new Date().toISOString().split('T')[0],
-    ToDate: new Date().toISOString().split('T')[0]
+    FromDate: formatDdMmYyyy(new Date()),
+    ToDate: formatDdMmYyyy(new Date())
   });
 
   async function fetchUnits() {
@@ -53,93 +60,27 @@ const ReportNew_SampleOfTransporter = () => {
     }
 
     setLoading(true);
-    // Simulating the getdataCanePurcaseReport from .NET
-    setTimeout(() => {
-      // Mock Detailed Data
-      const mockDetailed = [
-      {
-        SrNo: 1,
-        F_name: 'KINAUNI',
-        billno: 'B2024-001',
-        FromDate: '2024-01-01',
-        ToDate: '2024-01-15',
-        tr_code: 101,
-        tr_name: 'Rahul Logistics',
-        recordCount: 45,
-        weight: 1250.50,
-        amount: 250000,
-        diffwt: 10.20,
-        diffamt: 2000,
-        totalamt: 252000,
-        sec: 5000,
-        tds: 2500,
-        other: 1500,
-        totded: 9000,
-        netpaidamount: 243000
-      },
-      {
-        SrNo: 2,
-        F_name: 'BILAI',
-        billno: 'B2024-002',
-        FromDate: '2024-01-01',
-        ToDate: '2024-01-15',
-        tr_code: 102,
-        tr_name: 'Sharma Carriers',
-        recordCount: 30,
-        weight: 800.75,
-        amount: 160000,
-        diffwt: 5.40,
-        diffamt: 1080,
-        totalamt: 161080,
-        sec: 3200,
-        tds: 1600,
-        other: 800,
-        totded: 5600,
-        netpaidamount: 155480
-      }];
-
-
-      // Mock Summary Data (By Factory)
-      const mockSummary = [
-      {
-        SrNo: 1,
-        F_name: 'KINAUNI',
-        weight: 1250.50,
-        amount: 250000,
-        diffwt: 10.20,
-        diffamt: 2000,
-        totalamt: 252000,
-        sec: 5000,
-        tds: 2500,
-        other: 1500,
-        totded: 9000,
-        netpaidamount: 243000
-      },
-      {
-        SrNo: 2,
-        F_name: 'BILAI',
-        weight: 800.75,
-        amount: 160000,
-        diffwt: 5.40,
-        diffamt: 1080,
-        totalamt: 161080,
-        sec: 3200,
-        tds: 1600,
-        other: 800,
-        totded: 5600,
-        netpaidamount: 155480
-      }];
-
-
-      setReportData(mockDetailed);
-      setSummaryData(mockSummary);
-      setLoading(false);
+    try {
+      const response = await reportNewService.getSampleOfTransporter(form);
+      const data = response?.data || {};
+      setReportData(Array.isArray(data.rows) ? data.rows : []);
+      setSummaryData(Array.isArray(data.summary) ? data.summary : []);
       toast.success('Data fetched successfully!');
-    }, 1200);
+    } catch (error) {
+      console.error('SampleOfTransporter fetch error', error);
+      toast.error('Failed to fetch data');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleExport = () => {
-    toast.success("Exporting to Excel...");
+    const tableId = showSummary ? 'sample-transporter-summary' : 'sample-transporter-detail';
+    if (window.exportTableToCSV) {
+      window.exportTableToCSV(tableId, showSummary ? 'TransporterSummary.csv' : 'TransporterDetail.csv');
+      return;
+    }
+    toast.error('Export utility not available');
   };
 
   const handlePrint = () => {
@@ -208,7 +149,7 @@ const ReportNew_SampleOfTransporter = () => {
                         <div>
                             <label className="block mb-[8px] text-[13px] text-[#111] font-semibold">From Date</label>
                             <input
-                type="date"
+                type="text"
 
                 value={form.FromDate}
                 onChange={handleInputChange}
@@ -221,7 +162,7 @@ const ReportNew_SampleOfTransporter = () => {
                         <div className="max-w-[300px]">
                             <label className="block mb-[8px] text-[13px] text-[#111] font-semibold">To Date</label>
                             <input
-                type="date"
+                type="text"
 
                 value={form.ToDate}
                 onChange={handleInputChange}
@@ -255,11 +196,11 @@ const ReportNew_SampleOfTransporter = () => {
                 </div>
       }
 
-            {!loading && (reportData || summaryData) &&
+            {!loading && (reportData.length || summaryData.length) &&
       <div className="results-card animate-in slide-in-bottom">
                     <div className="table-responsive">
                         {showSummary ?
-          <table className="report-table">
+          <table className="report-table" id="sample-transporter-summary">
                                 <thead>
                                     <tr>
                                         <th>Sr.No</th>
@@ -309,21 +250,29 @@ const ReportNew_SampleOfTransporter = () => {
                                 </tbody>
                             </table> :
 
-          <table className="report-table">
+          <table className="report-table" id="sample-transporter-detail">
                                 <thead>
                                     <tr>
-                                        <th>Sr.No</th>
-                                        <th>Factory</th>
-                                        <th>Bill No</th>
-                                        <th>Cycle</th>
+                                        <th rowSpan="2">Sr.No.</th>
+                                        <th rowSpan="2">Factory Name</th>
+                                        <th rowSpan="2">Bill Number</th>
+                                        <th rowSpan="2">Cycle</th>
+                                        <th colSpan="2">Transporter</th>
+                                        <th rowSpan="2">Tot Trips</th>
+                                        <th rowSpan="2">Cane Weight (Qttls)</th>
+                                        <th rowSpan="2">Amount(Rs)</th>
+                                        <th rowSpan="2">Extra Weight(Qtls)</th>
+                                        <th rowSpan="2">Extra Amount(Rs)</th>
+                                        <th rowSpan="2">Total Amount(Rs)</th>
+                                        <th rowSpan="2">Retension Amount(Rs)</th>
+                                        <th rowSpan="2">TDS Amount(Rs)</th>
+                                        <th rowSpan="2">OtherDed Amount(Rs)</th>
+                                        <th rowSpan="2">TotalDed.Amount(Rs)</th>
+                                        <th rowSpan="2">NetPayable Amount(Rs)</th>
+                                    </tr>
+                                    <tr>
                                         <th>Code</th>
                                         <th>Name</th>
-                                        <th>Trips</th>
-                                        <th>Weight (Qt)</th>
-                                        <th>Amount (Rs)</th>
-                                        <th>Total Amt (Rs)</th>
-                                        <th>Total Ded (Rs)</th>
-                                        <th>Net Payable</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -336,11 +285,16 @@ const ReportNew_SampleOfTransporter = () => {
                                             <td>{item.tr_code}</td>
                                             <td className="font-semibold">{item.tr_name}</td>
                                             <td>{item.recordCount}</td>
-                                            <td>{item.weight.toFixed(2)}</td>
-                                            <td>{item.amount.toLocaleString()}</td>
-                                            <td className="font-bold">{item.totalamt.toLocaleString()}</td>
-                                            <td className="text-red-500">{item.totded.toLocaleString()}</td>
-                                            <td className="font-bold text-emerald-600">{item.netpaidamount.toLocaleString()}</td>
+                                            <td>{Number(item.weight || 0).toFixed(2)}</td>
+                                            <td>{Number(item.amount || 0).toLocaleString()}</td>
+                                            <td>{Number(item.diffwt || 0).toFixed(2)}</td>
+                                            <td>{Number(item.diffamt || 0).toLocaleString()}</td>
+                                            <td className="font-bold">{Number(item.totalamt || 0).toLocaleString()}</td>
+                                            <td>{Number(item.sec || 0).toLocaleString()}</td>
+                                            <td>{Number(item.tds || 0).toLocaleString()}</td>
+                                            <td>{Number(item.other || 0).toLocaleString()}</td>
+                                            <td className="text-red-500">{Number(item.totded || 0).toLocaleString()}</td>
+                                            <td className="font-bold text-emerald-600">{Number(item.netpaidamount || 0).toLocaleString()}</td>
                                         </tr>
               )}
                                 </tbody>
@@ -350,7 +304,7 @@ const ReportNew_SampleOfTransporter = () => {
                 </div>
       }
 
-            {!loading && !reportData && !summaryData &&
+            {!loading && !reportData.length && !summaryData.length &&
       <div className="results-card p-12 text-center text-slate-400">
                     <i className="fas fa-info-circle fa-3x mb-4 opacity-20"></i>
                     <h3>No report generated yet</h3>

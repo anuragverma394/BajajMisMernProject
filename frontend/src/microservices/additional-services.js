@@ -38,6 +38,10 @@ export const accountReportsService = {
         const response = await apiClient.get('/account-reports/capasityutilisation-fromdate', { params });
         return response.data;
     },
+    getDistilleryReport: async (params) => {
+        const response = await apiClient.get('/account-reports/distilleryreport', { params });
+        return response.data;
+    },
 
     getVarietyWiseCanePurchase: async (params) => {
         const response = await apiClient.get('/account-reports/variety-wise-cane-purchase', { params });

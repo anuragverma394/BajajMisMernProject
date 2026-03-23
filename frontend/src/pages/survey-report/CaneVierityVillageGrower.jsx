@@ -1,227 +1,272 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
-import { surveyService, masterService } from '../../microservices/api.service';
-import '../../styles/SurveyReports.css';const __cx = (...vals) => vals.filter(Boolean).join(" ");
+import { masterService, surveyService } from '../../microservices/api.service';
 import { openPrintWindow } from '../../utils/print';
+
+const today = () => {
+  const d = new Date();
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+};
+
+const normalizeUnit = (u) => ({
+  code: String(u?.F_Code || u?.f_Code || u?.id || '').trim(),
+  name: String(u?.F_Name || u?.f_Name || u?.name || '').trim()
+});
 
 const SurveyReport_CaneVierityVillageGrower = () => {
   const navigate = useNavigate();
-  const [factories, setFactories] = useState([]);
+  const [units, setUnits] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [reportData, setReportData] = useState([]);
+  const [rows, setRows] = useState([]);
   const [filters, setFilters] = useState({
     F_code: '',
     Categry: 'varietychange',
-    Fdate: new Date().toISOString().split('T')[0],
-    Tdate: new Date().toISOString().split('T')[0]
+    Fdate: today(),
+    Tdate: today()
   });
 
   useEffect(() => {
-    const loadUnits = async () => {
-      try {
-        const units = await masterService.getUnits();
-        setFactories(units);
-        if (units.length > 0) {
-          setFilters((prev) => ({ ...prev, F_code: units[0].F_Code || units[0].id }));
-        }
-      } catch (error) {
-        toast.error("Telemetry link failure: Unit master offline");
-      }
-    };
-    loadUnits();
+    masterService.getUnits()
+      .then((d) => setUnits(Array.isArray(d) ? d.map(normalizeUnit).filter((u) => u.code) : []))
+      .catch(() => { });
   }, []);
 
-  const handleSearch = async (e) => {
-    if (e) e.preventDefault();
+  const handleChange = (e) => setFilters((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+  const handleSearch = async () => {
     if (!filters.F_code) {
-      toast.error("Command node identification required");
+      toast.error('Please select a Factory');
       return;
     }
-
     setLoading(true);
     try {
-      const response = await surveyService.getCaneVarietyVillageGrower(filters);
-      setReportData(response.data || response || []);
-      toast.success("Audit trail synchronized: Changes decrypted");
-    } catch (error) {
-      toast.error("Anomalous data flux: Verification aborted");
-      setReportData([]);
+      const res = await surveyService.getCaneVarietyVillageGrower(filters);
+      const data = res?.data ?? res?.recordsets?.[0] ?? (Array.isArray(res) ? res : []);
+      if (!Array.isArray(data) || data.length === 0) {
+        toast('No data found.', { icon: 'ℹ️' });
+        setRows([]);
+      } else {
+        setRows(data);
+        toast.success(`${data.length} rows loaded.`);
+      }
+    } catch {
+      toast.error('Failed to load report');
+      setRows([]);
     } finally {
       setLoading(false);
     }
   };
 
   const handlePrint = () => {
-    const content = document.getElementById('cv-report-print');
+    const content = document.getElementById('cvvg-print');
     openPrintWindow({
-      title: "Cane Variety Village Grower",
-      subtitle: `Unit: ${filters.F_code} | Range: ${filters.Fdate} to ${filters.Tdate}`,
-      contentHtml: content ? content.outerHTML : ""
+      title: 'Cane Variety Village Grower Report',
+      subtitle: `Factory: ${filters.F_code} | ${filters.Fdate} to ${filters.Tdate}`,
+      contentHtml: content ? content.outerHTML : ''
     });
   };
 
   const handleExport = () => {
-    if (reportData.length === 0) return;
-    const csvContent = "data:text/csv;charset=utf-8," +
-    Object.keys(reportData[0]).join(",") + "\n" +
-    reportData.map((row) => Object.values(row).join(",")).join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `AuditTrail_${filters.Categry}_${filters.Fdate}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    toast.success("Audit data exported to CSV");
+    if (window.exportTableToCSV) {
+      window.exportTableToCSV('cvvg-table', 'CaneVarietyVillageGrower.csv');
+    }
   };
 
+  const beforeLabel = useMemo(() => {
+    if (filters.Categry === 'categorychange') return 'Before Category Plot Update';
+    if (filters.Categry === 'canetypechange') return 'Before CaneType Plot Update';
+    if (filters.Categry === 'growerchange') return 'Before Grower Plot Update';
+    return 'Before Variety Plot Update';
+  }, [filters.Categry]);
+
+  const afterLabel = useMemo(() => {
+    if (filters.Categry === 'categorychange') return 'After Category Plot Update';
+    if (filters.Categry === 'canetypechange') return 'After CaneType Plot Update';
+    if (filters.Categry === 'growerchange') return 'After Grower Plot Update';
+    return 'After Variety Plot Update';
+  }, [filters.Categry]);
+
+  const highlightClass = (type) => {
+    if (filters.Categry === type) {
+      return 'text-emerald-900 font-semibold';
+    }
+    return '';
+  };
+
+  const thBase = 'px-3 py-3 border border-[#a7c49d] bg-[#dff0d8] text-[#1b3b2f] font-semibold text-center whitespace-nowrap text-xs';
+  const tdBase = 'px-3 py-2 border-b border-[#c7d9c5] text-xs whitespace-nowrap';
+
   return (
-    <div className="p-[20px] bg-white min-h-[100vh] font-['Poppins', Arial, sans-serif]">
-            <Toaster position="top-right" />
+    <div className="px-4 pb-10">
+      <Toaster position="top-right" />
 
-            <div className={__cx("page-card", "rounded-lg border-0 shadow-[0 4px 12px rgba(0,0,0,0.1)]")}>
-                <div className={__cx("page-card-header", "text-left text-[15px] py-[12px] px-[20px] bg-[#1F9E8A]")}>
-                    Cane Variety Village Grower Report
-                </div>
-                <div className="bg-[#e2efda] py-[10px] px-[20px] text-[13px] text-[#333] border-b border-b-[#c8e6c9] font-bold">
-                    Cane Variety Village Grower Report
-                </div>
+      <div className="rounded-lg border border-emerald-200 bg-white shadow-sm">
+        <div className="rounded-t-lg bg-emerald-600 px-6 py-3 text-white">
+          Cane Variety Village Grower Report
+        </div>
+        <div className="border border-emerald-100 bg-emerald-50 px-6 py-3 text-emerald-900">
+          Cane Variety Village Grower Report
+        </div>
 
-                <div className={__cx("page-card-body", "p-[20px]")}>
-                    <div className={__cx("form-row", "flex gap-[20px] items-end mb-[20px]")}>
-                        <div className={__cx("form-group", "min-w-[250px]")}>
-                            <label className="block text-[12px] font-bold text-[#333] mb-[4px]">Factory</label>
-                            <select
-                className={__cx("form-control", "w-[100%] p-[8px] border border-[#ccc] rounded")}
+        <div className="px-6 py-5">
+          <div className="grid gap-4 md:grid-cols-4">
+            <div>
+              <label className="block text-sm font-semibold text-emerald-900">Factory</label>
+              <select
+                name="F_code"
                 value={filters.F_code}
-                onChange={(e) => setFilters({ ...filters, F_code: e.target.value })}
-
-                required>
-                
-                                <option value="">-Select-</option>
-                                {factories.map((f, idx) => <option key={`${f.F_Code || f.id}-${idx}`} value={f.F_Code || f.id}>{f.F_Name || f.name}</option>)}
-                            </select>
-                        </div>
-                        <div className={__cx("form-group", "min-w-[250px]")}>
-                            <label className="block text-[12px] font-bold text-[#333] mb-[4px]">Type</label>
-                            <select
-                className={__cx("form-control", "w-[100%] p-[8px] border border-[#ccc] rounded")}
-                value={filters.Categry}
-                onChange={(e) => setFilters({ ...filters, Categry: e.target.value })}>
-
-                
-                                <option value="varietychange">Variety Shift Audit</option>
-                                <option value="categorychange">Category Reclass</option>
-                                <option value="growerchange">Entity Ownership Change</option>
-                                <option value="canetypechange">Cane Geometry Mod</option>
-                            </select>
-                        </div>
-                        <div className={__cx("form-group", "min-w-[200px]")}>
-                            <label className="block text-[12px] font-bold text-[#333] mb-[4px]">From Date</label>
-                            <input
-                type="date"
-                className={__cx("form-control", "w-[100%] p-[8px] border border-[#ccc] rounded")}
-                value={filters.Fdate}
-                onChange={(e) => setFilters({ ...filters, Fdate: e.target.value })} />
-
-              
-                        </div>
-                        <div className={__cx("form-group", "min-w-[200px]")}>
-                            <label className="block text-[12px] font-bold text-[#333] mb-[4px]">To Date</label>
-                            <input
-                type="date"
-                className={__cx("form-control", "w-[100%] p-[8px] border border-[#ccc] rounded")}
-                value={filters.Tdate}
-                onChange={(e) => setFilters({ ...filters, Tdate: e.target.value })} />
-
-              
-                        </div>
-                    </div>
-
-                    <div className={__cx("form-actions", "flex gap-[8px] mt-[10px]")}>
-                        <button className={__cx("btn", "py-[8px] px-[16px] bg-[#1F9E8A] text-white border-0 rounded cursor-pointer")} onClick={handleSearch} disabled={loading}>
-                            {loading ? 'Searching...' : 'Search'}
-                        </button>
-                        <button className={__cx("btn", "py-[8px] px-[16px] bg-[#1F9E8A] text-white border-0 rounded cursor-pointer")} onClick={handleExport} disabled={!reportData.length}>
-                            Excel
-                        </button>
-                        <button className={__cx("btn", "py-[8px] px-[16px] bg-[#1F9E8A] text-white border-0 rounded cursor-pointer")} onClick={handlePrint} disabled={!reportData.length}>
-                            Print
-                        </button>
-                        <button className={__cx("btn", "py-[8px] px-[16px] bg-[#1F9E8A] text-white border-0 rounded cursor-pointer")} onClick={() => navigate(-1)}>
-                            Exit
-                        </button>
-                    </div>
-                </div>
-
-                {reportData.length > 0 ?
-        <div className="space-y-10 animate-in slide-in-from-bottom-10 duration-1000" id="cv-report-print">
-                        <div className="bg-white rounded-[4rem] shadow-2xl border border-white overflow-hidden">
-                            <div className="px-10 py-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
-                                <h3 className="font-black text-slate-800 uppercase tracking-widest text-[13px]">Historical Modification Matrix</h3>
-                                <div className="flex gap-2 bg-white p-1 rounded-xl shadow-inner border border-slate-100">
-                                    <span className="px-4 py-2 bg-amber-600 text-white rounded-lg text-[9px] font-black uppercase tracking-widest">Validated Trail</span>
-                                </div>
-                            </div>
-                            <div className="table-wrapper-premium overflow-x-auto p-4">
-                                <table className="table-premium w-full border-separate border-spacing-0">
-                                    <thead>
-                                        <tr className="bg-slate-900 text-white">
-                                            <th className="p-6 text-center text-[10px] font-black uppercase border-r border-slate-800 rounded-tl-[3.5rem]">Idx</th>
-                                            <th className="p-6 text-left text-[10px] font-black uppercase border-r border-slate-800">Cluster Node</th>
-                                            <th className="p-6 text-left text-[10px] font-black uppercase border-r border-slate-800">Subject Alias</th>
-                                            <th className="p-6 text-center text-[10px] font-black uppercase border-r border-slate-800 bg-rose-900/50 text-rose-300">Latent Value</th>
-                                            <th className="p-6 text-center text-[10px] font-black uppercase border-r border-slate-800 bg-emerald-900/50 text-emerald-300">Target Value</th>
-                                            <th className="p-6 text-center text-[10px] font-black uppercase border-r border-slate-800">Time Point</th>
-                                            <th className="p-6 text-center text-[10px] font-black uppercase border-r border-slate-800">Agent Node</th>
-                                            <th className="p-6 text-center text-[10px] font-black uppercase rounded-tr-[3.5rem]">Heuristics / Remark</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {reportData.map((row, idx) =>
-                  <tr key={idx} className="hover:bg-amber-50/50 transition-all border-b border-slate-50 group">
-                                                <td className="p-4 text-center mono text-[10px] text-slate-300 border-r border-slate-50">[{idx + 1}]</td>
-                                                <td className="p-4 text-left font-black text-slate-700 border-r border-slate-50 italic">{row.Village || row.village || 'N/A'}</td>
-                                                <td className="p-4 text-left border-r border-slate-50 font-black text-slate-800">{row.GrowerName || row.growerName}</td>
-                                                <td className="p-4 text-center border-r border-slate-50 bg-rose-50/20">
-                                                    <span className="line-through text-rose-500 font-black text-[11px] block">{row.OldValue || row.oldValue}</span>
-                                                </td>
-                                                <td className="p-4 text-center border-r border-slate-50 bg-emerald-50/20">
-                                                    <span className="text-emerald-600 font-black text-[14px] uppercase tracking-tighter">{row.NewValue || row.newValue}</span>
-                                                </td>
-                                                <td className="p-4 text-center mono border-r border-slate-50">
-                                                    <div className="text-[10px] font-black text-slate-600">{row.ChangeDate || row.changeDate}</div>
-                                                </td>
-                                                <td className="p-4 text-center border-r border-slate-50 text-[10px] font-black text-amber-600">{row.UserID || row.userID}</td>
-                                                <td className="p-4 text-left italic text-slate-400 text-[10px] max-w-xs">{row.Remark || row.remark || '--- System Entry ---'}</td>
-                                            </tr>
-                  )}
-                                    </tbody>
-                                    <tfoot className="bg-slate-900 text-white border-t-4 border-amber-500">
-                                        <tr className="font-black uppercase tracking-tighter">
-                                            <td colSpan="4" className="p-6 text-right text-[12px] text-amber-400 border-r border-slate-800 rounded-bl-[3.5rem]">Collective Modification Count</td>
-                                            <td className="p-6 text-center text-4xl mono text-white bg-amber-500/10 border-r border-slate-800">{reportData.length}</td>
-                                            <td colSpan="3" className="p-6 text-center text-slate-500 rounded-br-[3.5rem]">Unique Agents Active: {new Set(reportData.map((r) => r.UserID)).size}</td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                        </div>
-                    </div> :
-        !loading &&
-        <div className="py-40 flex flex-col items-center justify-center bg-white rounded-[4rem] shadow-2xl border border-white">
-                        <div className="w-40 h-40 bg-amber-50 rounded-full flex items-center justify-center mb-10 shadow-inner group hover:scale-110 transition-all duration-700">
-                            <i className="fas fa-microscope text-amber-200 group-hover:text-amber-500 text-6xl transition-colors"></i>
-                        </div>
-                        <h3 className="text-2xl font-black text-slate-800 tracking-tight italic uppercase">Audit Archive Latent</h3>
-                        <p className="text-slate-400 text-center max-w-sm mt-4 font-bold uppercase tracking-widest text-[9px] leading-loose">
-                            Select an operation and time window to decrypt historical system modification and audit heuristics from the ledger.
-                        </p>
-                    </div>
-        }
+                onChange={handleChange}
+                className="mt-2 w-full rounded-md border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+              >
+                <option value="">-- Select Factory --</option>
+                {units.map((u, i) => (
+                  <option key={`${u.code}-${i}`} value={u.code}>{u.name}</option>
+                ))}
+              </select>
             </div>
-        </div>);
+            <div>
+              <label className="block text-sm font-semibold text-emerald-900">Type</label>
+              <select
+                name="Categry"
+                value={filters.Categry}
+                onChange={handleChange}
+                className="mt-2 w-full rounded-md border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+              >
+                <option value="0">-Select-</option>
+                <option value="varietychange">Variety Change</option>
+                <option value="categorychange">Category Change</option>
+                <option value="growerchange">Grower Change</option>
+                <option value="canetypechange">CaneType Change</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-emerald-900">From Date</label>
+              <input
+                type="text"
+                name="Fdate"
+                value={filters.Fdate}
+                onChange={handleChange}
+                placeholder="DD/MM/YYYY"
+                className="mt-2 w-full rounded-md border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-emerald-900">To Date</label>
+              <input
+                type="text"
+                name="Tdate"
+                value={filters.Tdate}
+                onChange={handleChange}
+                placeholder="DD/MM/YYYY"
+                className="mt-2 w-full rounded-md border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
+              />
+            </div>
+          </div>
 
+          <div className="mt-5 flex flex-wrap gap-3">
+            <button
+              onClick={handleSearch}
+              disabled={loading}
+              className="rounded-md bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-700 disabled:opacity-70"
+            >
+              {loading ? 'Searching...' : 'Search'}
+            </button>
+            <button
+              onClick={handleExport}
+              className="rounded-md bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-700"
+            >
+              Excel
+            </button>
+            <button
+              onClick={handlePrint}
+              className="rounded-md bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-700"
+            >
+              Print
+            </button>
+            <button
+              onClick={() => navigate(-1)}
+              className="rounded-md bg-emerald-500 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-600"
+            >
+              Exit
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-6 rounded-lg border border-emerald-200 bg-white shadow-sm" id="cvvg-print">
+        <div className="p-4 relative">
+          <button
+            type="button"
+            className="absolute right-4 top-4 h-8 w-8 rounded-full bg-emerald-600 text-white text-sm font-bold shadow"
+            aria-label="Help"
+          >
+            ?
+          </button>
+          <div className="max-h-[420px] overflow-auto rounded-md border border-emerald-200 bg-[#f9fbf6]">
+            <table id="cvvg-table" className="w-full min-w-[1600px] table-auto border-collapse text-sm">
+              <thead className="sticky top-0 bg-emerald-100">
+                <tr>
+                  <th rowSpan={2} className={thBase}>Plot Village Code</th>
+                  <th rowSpan={2} className={thBase}>Plot Village Name</th>
+                  <th rowSpan={2} className={thBase}>Plot No</th>
+                  <th colSpan={5} className={thBase}>{beforeLabel}</th>
+                  <th colSpan={5} className={thBase}>{afterLabel}</th>
+                  <th rowSpan={2} className={thBase}>EastDim</th>
+                  <th rowSpan={2} className={thBase}>WestDim</th>
+                  <th rowSpan={2} className={thBase}>NorthDim</th>
+                  <th rowSpan={2} className={thBase}>SouthDim</th>
+                </tr>
+                <tr>
+                  <th className={`${thBase} ${highlightClass('varietychange')}`}>Before Variety Name</th>
+                  <th className={`${thBase} ${highlightClass('categorychange')}`}>Before Category Name</th>
+                  <th className={thBase}>Before Grower Village</th>
+                  <th className={`${thBase} ${highlightClass('growerchange')}`}>Before Grower Code</th>
+                  <th className={`${thBase} ${highlightClass('canetypechange')}`}>Before Cane Type Name</th>
+
+                  <th className={`${thBase} ${highlightClass('varietychange')}`}>Update Variety Name</th>
+                  <th className={`${thBase} ${highlightClass('categorychange')}`}>Update Category Name</th>
+                  <th className={thBase}>Update Grower Village</th>
+                  <th className={`${thBase} ${highlightClass('growerchange')}`}>Update Grower Code</th>
+                  <th className={`${thBase} ${highlightClass('canetypechange')}`}>After Cane Type Name</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.length === 0 && (
+                  <tr>
+                    <td colSpan={17} className="border border-emerald-200 px-4 py-6 text-center text-sm text-red-600">
+                      {loading ? 'Loading data...' : 'No Data Found ............'}
+                    </td>
+                  </tr>
+                )}
+                {rows.map((row, idx) => (
+                  <tr key={idx} className={idx % 2 === 0 ? 'bg-white hover:bg-[#eef7f0]' : 'bg-[#f7fbf8] hover:bg-[#eef7f0]'}>
+                    <td className={`${tdBase} text-center`}>{row.PlotVillCode ?? row.plotvillcode ?? ''}</td>
+                    <td className={tdBase}>{row.PlotVillName ?? row.plotvillname ?? ''}</td>
+                    <td className={`${tdBase} text-center`}>{row.PlotNo ?? row.plotno ?? ''}</td>
+                    <td className={`${tdBase}`}>{row.BeforeVarietyName ?? ''}</td>
+                    <td className={`${tdBase}`}>{row.BaforeCategoryName ?? ''}</td>
+                    <td className={`${tdBase} text-center`}>{row.beforegrowervillage ?? ''}</td>
+                    <td className={`${tdBase} text-center`}>{row.BeforeGrowercode ?? ''}</td>
+                    <td className={`${tdBase}`}>{row.BeforeCaneTypeName ?? ''}</td>
+                    <td className={`${tdBase}`}>{row.UpdateVarietyName ?? ''}</td>
+                    <td className={`${tdBase}`}>{row.UpdateCategoryName ?? ''}</td>
+                    <td className={`${tdBase} text-center`}>{row.AfterGrowerVillage ?? ''}</td>
+                    <td className={`${tdBase} text-center`}>{row.aftergrowercode ?? ''}</td>
+                    <td className={`${tdBase}`}>{row.AfterCaneTypeName ?? ''}</td>
+                    <td className={`${tdBase} text-right`}>{row.EastDim ?? ''}</td>
+                    <td className={`${tdBase} text-right`}>{row.WestDim ?? ''}</td>
+                    <td className={`${tdBase} text-right`}>{row.NorthDim ?? ''}</td>
+                    <td className={`${tdBase} text-right`}>{row.SouthDim ?? ''}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default SurveyReport_CaneVierityVillageGrower;

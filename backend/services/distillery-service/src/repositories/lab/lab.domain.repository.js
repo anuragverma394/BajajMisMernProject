@@ -1,4 +1,4 @@
-const { executeQuery, executeProcedure } = require('../../core/db/query-executor');
+const { executeQuery, executeProcedure, executeScalar } = require('../../core/db/query-executor');
 
 const CONTROLLER = 'Lab';
 
@@ -7,6 +7,23 @@ function createProcedureHandler(controller, action, signature) {
     try {
       const season = req.user?.season || req.query?.season || req.body?.season || process.env.DEFAULT_SEASON || '2526';
       const params = { ...(req.query || {}), ...(req.body || {}) };
+
+      if (params.id != null && params.Rid == null) params.Rid = params.id;
+      if (params.Rid != null && params.id == null) params.id = params.Rid;
+      if (params.SLNO != null && params.id == null) params.id = params.SLNO;
+      if (params.SLNO != null && params.Rid == null) params.Rid = params.SLNO;
+
+      const factoryLike =
+        params.FACTORY ?? params.factory ?? params.F_Code ?? params.F_code ?? params.f_Code ?? params.f_code ?? params.Unit ?? params.unit;
+      if (factoryLike != null && params.FACTORY == null) params.FACTORY = factoryLike;
+      if (factoryLike != null && params.factory == null) params.factory = factoryLike;
+
+      if (typeof params.FACTORY === 'string' && params.FACTORY.toLowerCase() === 'all') params.FACTORY = '0';
+      if (typeof params.factory === 'string' && params.factory.toLowerCase() === 'all') params.factory = '0';
+
+      if (params.date != null && params.DDATE == null) params.DDATE = params.date;
+      if (params.DDATE != null && params.date == null) params.date = params.DDATE;
+
       const result = await executeProcedure(action, params, season);
       return res.status(200).json({
         success: true,
@@ -338,7 +355,214 @@ exports.SugarBagProducedView = async (req, res, next) => {
   }
 };
 exports.SugarBagProducedAdd = createProcedureHandler(CONTROLLER, 'SugarBagProducedAdd', '');
-exports.SugarBagProducedAdd_2 = createProcedureHandler(CONTROLLER, 'SugarBagProducedAdd', 'SugarBagProducedView Model,string command');
+exports.SugarBagProducedAdd_2 = async (req, res, next) => {
+  try {
+    const season = req.user?.season;
+    const body = req.body || {};
+    const factoryRaw = String(body.FACTORY || body.factory || '').trim();
+    const dateRaw = body.H_DATE || body.date || body.DDATE || '';
+    const timeRaw = String(body.TIME || '').trim();
+    const shiftRaw = String(body.SHIFT || '').trim();
+    const millRaw = String(body.MILL_NO || body.MILLNO || '').trim();
+
+    if (!factoryRaw || !dateRaw || !timeRaw || !millRaw) {
+      return res.status(400).json({ success: false, message: 'FACTORY, H_DATE, TIME, and MILL_NO are required' });
+    }
+
+    const factoryCode = Number(factoryRaw);
+    const millNo = Number(millRaw);
+    if (!Number.isFinite(factoryCode) || factoryCode <= 0 || !Number.isFinite(millNo) || millNo <= 0) {
+      return res.status(400).json({ success: false, message: 'FACTORY and MILL_NO must be positive numbers' });
+    }
+
+    const dateIso = parseFlexibleDateToIso(dateRaw);
+    if (!dateIso) {
+      return res.status(400).json({ success: false, message: 'Valid H_DATE is required (DD/MM/YYYY or YYYY-MM-DD)' });
+    }
+
+    const payload = {
+      FACTORY: factoryCode,
+      H_DATE: dateIso,
+      TIME: timeRaw,
+      SHIFT: shiftRaw,
+      MILL_NO: millNo,
+      COL2: normalizeDecimal(body.COL2),
+      COL4: normalizeDecimal(body.COL4),
+      JUICE: normalizeDecimal(body.JUICE ?? body.JUIC ?? body.COL2),
+      ADD_WATER: normalizeDecimal(body.ADD_WATER),
+      ADD_TANK: normalizeDecimal(body.ADD_TANK),
+      DRAIN_POL1: normalizeDecimal(body.DRAIN_POL1),
+      DRAIN_POL2: normalizeDecimal(body.DRAIN_POL2),
+      DRAIN_POL3: normalizeDecimal(body.DRAIN_POL3),
+      DRAIN_POL4: normalizeDecimal(body.DRAIN_POL4),
+      DRAIN_POL5: normalizeDecimal(body.DRAIN_POL5),
+      SPRAY_WATER_POL: normalizeDecimal(body.SPRAY_WATER_POL),
+      SPRAY_WATER_POL2: normalizeDecimal(body.SPRAY_WATER_POL2),
+      EXHST_PRS_DEVCI: normalizeDecimal(body.EXHST_PRS_DEVCI),
+      LIVE_ST_PRS: normalizeDecimal(body.LIVE_ST_PRS),
+      BACK_PRS_DEVCI: normalizeDecimal(body.BACK_PRS_DEVCI),
+      BACK_PRS_DEVCII: normalizeDecimal(body.BACK_PRS_DEVCII),
+      L_31: normalizeDecimal(body.L_31),
+      L_31CLR: normalizeDecimal(body.L_31CLR),
+      L_31RET: normalizeDecimal(body.L_31RET),
+      L_30: normalizeDecimal(body.L_30),
+      L_30CLR: normalizeDecimal(body.L_30CLR),
+      L_30RET: normalizeDecimal(body.L_30RET),
+      L_29: normalizeDecimal(body.L_29),
+      L_29CLR: normalizeDecimal(body.L_29CLR),
+      L_29RET: normalizeDecimal(body.L_29RET),
+      LBAG_TEMP: normalizeDecimal(body.LBAG_TEMP),
+      M_31: normalizeDecimal(body.M_31),
+      M_31CLR: normalizeDecimal(body.M_31CLR),
+      M_31RET: normalizeDecimal(body.M_31RET),
+      M31BAG_TEMP: normalizeDecimal(body.M31BAG_TEMP),
+      M_30: normalizeDecimal(body.M_30),
+      M_30CLR: normalizeDecimal(body.M_30CLR),
+      M_30RET: normalizeDecimal(body.M_30RET),
+      M30BAG_TEMP: normalizeDecimal(body.M30BAG_TEMP),
+      M_29: normalizeDecimal(body.M_29),
+      M_29CLR: normalizeDecimal(body.M_29CLR),
+      M_29RET: normalizeDecimal(body.M_29RET),
+      M29BAG_TEMP: normalizeDecimal(body.M29BAG_TEMP),
+      S_31: normalizeDecimal(body.S_31),
+      S_31CLR: normalizeDecimal(body.S_31CLR),
+      S_31RET: normalizeDecimal(body.S_31RET),
+      S_30: normalizeDecimal(body.S_30),
+      S_30CLR: normalizeDecimal(body.S_30CLR),
+      S_30RET: normalizeDecimal(body.S_30RET),
+      S_29: normalizeDecimal(body.S_29),
+      S_29CLR: normalizeDecimal(body.S_29CLR),
+      S_29RET: normalizeDecimal(body.S_29RET),
+      SS_31: normalizeDecimal(body.SS_31),
+      SS_31CLR: normalizeDecimal(body.SS_31CLR),
+      SS_31RET: normalizeDecimal(body.SS_31RET),
+      SBAG_TEMP: normalizeDecimal(body.SBAG_TEMP),
+      BISS: normalizeDecimal(body.BISS),
+      BISSCLR: normalizeDecimal(body.BISSCLR),
+      BISSRET: normalizeDecimal(body.BISSRET),
+      H_DATE_PRIMARY: dateIso.replace(/-/g, ''),
+      ADD_WT: 1,
+      SNO: timeRaw
+    };
+
+    const existing = await executeQuery(
+      `SELECT 1 AS existsRow
+         FROM LAB_HOUR
+        WHERE FACTORY = @FACTORY
+          AND CAST(H_DATE AS date) = @H_DATE
+          AND TIME = @TIME
+          AND MILL_NO = @MILL_NO`,
+      {
+        FACTORY: payload.FACTORY,
+        H_DATE: payload.H_DATE,
+        TIME: payload.TIME,
+        MILL_NO: payload.MILL_NO
+      },
+      season
+    );
+
+    if (existing.length > 0) {
+      await executeQuery(
+        `UPDATE LAB_HOUR
+            SET isweb = '0',
+                SHIFT = @SHIFT,
+                JUICE = @JUICE,
+                COL2 = @COL2,
+                ADD_WATER = @ADD_WATER,
+                ADD_TANK = @ADD_TANK,
+                ADD_WT = 1,
+                DRAIN_POL1 = @DRAIN_POL1,
+                DRAIN_POL2 = @DRAIN_POL2,
+                DRAIN_POL3 = @DRAIN_POL3,
+                DRAIN_POL4 = @DRAIN_POL4,
+                DRAIN_POL5 = @DRAIN_POL5,
+                SPRAY_WATER_POL = @SPRAY_WATER_POL,
+                SPRAY_WATER_POL2 = @SPRAY_WATER_POL2,
+                EXHST_PRS_DEVCI = @EXHST_PRS_DEVCI,
+                LIVE_ST_PRS = @LIVE_ST_PRS,
+                BACK_PRS_DEVCI = @BACK_PRS_DEVCI,
+                BACK_PRS_DEVCII = @BACK_PRS_DEVCII,
+                L_31 = @L_31,
+                L_31CLR = @L_31CLR,
+                L_31RET = @L_31RET,
+                L_30 = @L_30,
+                L_30CLR = @L_30CLR,
+                L_30RET = @L_30RET,
+                L_29 = @L_29,
+                L_29CLR = @L_29CLR,
+                L_29RET = @L_29RET,
+                LBAG_TEMP = @LBAG_TEMP,
+                M_31 = @M_31,
+                M_31CLR = @M_31CLR,
+                M_31RET = @M_31RET,
+                M31BAG_TEMP = @M31BAG_TEMP,
+                M_30 = @M_30,
+                M_30CLR = @M_30CLR,
+                M_30RET = @M_30RET,
+                M30BAG_TEMP = @M30BAG_TEMP,
+                M_29 = @M_29,
+                M_29CLR = @M_29CLR,
+                M_29RET = @M_29RET,
+                M29BAG_TEMP = @M29BAG_TEMP,
+                S_31 = @S_31,
+                S_31CLR = @S_31CLR,
+                S_31RET = @S_31RET,
+                S_30 = @S_30,
+                S_30CLR = @S_30CLR,
+                S_30RET = @S_30RET,
+                S_29 = @S_29,
+                S_29CLR = @S_29CLR,
+                S_29RET = @S_29RET,
+                SS_31 = @SS_31,
+                SS_31CLR = @SS_31CLR,
+                SS_31RET = @SS_31RET,
+                SBAG_TEMP = @SBAG_TEMP,
+                BISS = @BISS,
+                BISSCLR = @BISSCLR,
+                BISSRET = @BISSRET,
+                COL4 = @COL4
+          WHERE FACTORY = @FACTORY
+            AND CAST(H_DATE AS date) = @H_DATE
+            AND TIME = @TIME
+            AND MILL_NO = @MILL_NO`,
+        payload,
+        season
+      );
+    } else {
+      await executeQuery(
+        `INSERT INTO LAB_HOUR (
+            FACTORY, H_DATE, TIME, SHIFT, MILL_NO,
+            COL2, ADD_WATER,
+            DRAIN_POL1, DRAIN_POL2, DRAIN_POL3, DRAIN_POL4, DRAIN_POL5,
+            SPRAY_WATER_POL, SPRAY_WATER_POL2,
+            EXHST_PRS_DEVCI, LIVE_ST_PRS, BACK_PRS_DEVCI, BACK_PRS_DEVCII,
+            L_31, L_31CLR, L_31RET, L_30, L_30CLR, L_30RET, L_29, L_29CLR, L_29RET, LBAG_TEMP,
+            M_31, M_31CLR, M_31RET, M31BAG_TEMP, M_30, M_30CLR, M_30RET, M30BAG_TEMP, M_29, M_29CLR, M_29RET, M29BAG_TEMP,
+            S_31, S_31CLR, S_31RET, S_30, S_30CLR, S_30RET, S_29, S_29CLR, S_29RET, SS_31, SS_31CLR, SS_31RET,
+            SBAG_TEMP, BISS, BISSCLR, BISSRET,
+            H_DATE_PRIMARY, ADD_TANK, SNO, COL4, ADD_WT, JUICE
+         ) VALUES (
+            @FACTORY, @H_DATE, @TIME, @SHIFT, @MILL_NO,
+            @COL2, @ADD_WATER,
+            @DRAIN_POL1, @DRAIN_POL2, @DRAIN_POL3, @DRAIN_POL4, @DRAIN_POL5,
+            @SPRAY_WATER_POL, @SPRAY_WATER_POL2,
+            @EXHST_PRS_DEVCI, @LIVE_ST_PRS, @BACK_PRS_DEVCI, @BACK_PRS_DEVCII,
+            @L_31, @L_31CLR, @L_31RET, @L_30, @L_30CLR, @L_30RET, @L_29, @L_29CLR, @L_29RET, @LBAG_TEMP,
+            @M_31, @M_31CLR, @M_31RET, @M31BAG_TEMP, @M_30, @M_30CLR, @M_30RET, @M30BAG_TEMP, @M_29, @M_29CLR, @M_29RET, @M29BAG_TEMP,
+            @S_31, @S_31CLR, @S_31RET, @S_30, @S_30CLR, @S_30RET, @S_29, @S_29CLR, @S_29RET, @SS_31, @SS_31CLR, @SS_31RET,
+            @SBAG_TEMP, @BISS, @BISSCLR, @BISSRET,
+            @H_DATE_PRIMARY, @ADD_TANK, @SNO, @COL4, @ADD_WT, @JUICE
+         )`,
+        payload,
+        season
+      );
+    }
+
+    return res.status(200).json({ success: true, message: 'Saved successfully' });
+  } catch (error) {
+    return next(error);
+  }
+};
 exports.ShiftSet = createProcedureHandler(CONTROLLER, 'ShiftSet', 'string TIME');
 exports.TestAnurag1 = createProcedureHandler(CONTROLLER, 'TestAnurag1', 'string pol,string brix');
 exports.TestRohit1 = exports.TestAnurag1;

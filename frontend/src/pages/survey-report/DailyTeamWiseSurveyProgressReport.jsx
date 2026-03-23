@@ -54,6 +54,9 @@ const SurveyReport_DailyTeamWiseSurveyProgressReport = () => {
     const thBase = 'px-2 py-2 border border-[#8fbfa4] bg-[#dff0d8] text-[#1b3b2f] font-semibold text-center whitespace-nowrap text-xs';
     const tdBase = 'px-2 py-1.5 border-b border-[#c7d9c5] text-xs whitespace-nowrap';
     const tableId = 'daily-team-wise-survey-progress-report-table';
+    const getBlockName = (row) => row.Block ?? row.BlockName ?? row.BLK_NAME ?? row.Zone ?? row.bl_Name ?? '';
+    const getPerToDate = (row) =>
+        row.PerToDate ?? row.Per_ToDate ?? row.NonMemberToDate ?? row.NonMemToDate ?? row.PercentageToDate ?? 0;
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 font-sans">
@@ -147,7 +150,7 @@ const SurveyReport_DailyTeamWiseSurveyProgressReport = () => {
                                     <td className={`${tdBase} text-center`}>{row.SN}</td>
                                     <td className={`${tdBase}`}>{row.Manager}</td>
                                     <td className={`${tdBase}`}>{row.Blockincharge}</td>
-                                    <td className={`${tdBase} font-medium text-[#0b5f4e]`}>{row.Zone}</td>
+                                    <td className={`${tdBase} font-medium text-[#0b5f4e]`}>{getBlockName(row)}</td>
                                     <td className={`${tdBase} text-[#0b5f4e]`}>{row.Surveyor}</td>
                                     <td className={`${tdBase} text-center`}>{row.StartSurvey}</td>
                                     <td className={`${tdBase} text-center`}>{row.EndSurvey}</td>
@@ -158,7 +161,7 @@ const SurveyReport_DailyTeamWiseSurveyProgressReport = () => {
                                     <td className={`${tdBase} text-right`}>{row.AvgOnDate}</td>
                                     <td className={`${tdBase} text-right`}>{row.AvgToDate}</td>
                                     <td className={`${tdBase} text-right`}>{row.PerOnDate}</td>
-                                    <td className={`${tdBase} text-right`}>{row.PerToDate}</td>
+                                    <td className={`${tdBase} text-right`}>{getPerToDate(row)}</td>
                                     </tr>
                                 );
                             })}

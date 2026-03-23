@@ -433,7 +433,7 @@ async function getEffectedCaneAreaReport(req = {}) {
   const stateDropdown = String(p.stateDropdown || p.state || '').trim();
 
   if (!fcode || fcode === '0' || fcode.toLowerCase() === 'all') {
-    return [];
+    return { centres: [], societies: [] };
   }
 
   const useAmity = caneArea === '2';
@@ -468,6 +468,148 @@ async function getEffectedCaneAreaReport(req = {}) {
   }
   return safeRows;
 }
+
+async function getCentreCode(req = {}) {
+  const p = { ...(req.query || {}), ...(req.body || {}) };
+  const season = req.user?.season || p.season;
+  const fcode = String(p.F_code || p.F_Code || p.FACT || p.fact || p.factoryCode || '').trim();
+  const fromRaw = String(p.FormDate || p.FromDate || p.Fdate || p.fromDate || p.from || '').trim();
+  const toRaw = String(p.ToDate || p.Todate || p.toDate || p.to || '').trim();
+
+  if (!fcode || fcode === '0' || fcode.toLowerCase() === 'all') {
+    return [];
+  }
+
+  const fromDate = toYmdFromDmy(fromRaw);
+  const toDate = toYmdFromDmy(toRaw);
+  if (!fromDate || !toDate) {
+    return { centres: [], societies: [] };
+  }
+
+  const rawRows = await reportRepository.fetchCentreCodeSummary(fcode, fromDate, toDate, season).catch(() => []);
+  const rows = Array.isArray(rawRows) ? rawRows : [];
+  if (!rows.length) {
+    return { centres: [], societies: [] };
+  }
+
+  const centreCodes = Array.from(new Set(rows.map((r) => String(r.c_code || r.C_CODE || '').trim()).filter(Boolean)));
+  const rateRows = await reportRepository.fetchCentreRates(fcode, centreCodes, season).catch(() => []);
+  const rateMap = new Map();
+  (rateRows || []).forEach((r) => {
+    const code = String(r.C_CODE || r.c_code || '').trim();
+    if (!code) return;
+    const cnSap = Number(r.CN_SAP || 0);
+    const cnErPrem = Number(r.CN_ERPREM || 0);
+    const cnRjDiff = Number(r.CN_RJDIFF || 0);
+    rateMap.set(code, {
+      general: cnSap,
+      early: cnSap + cnErPrem,
+      rejected: cnSap - cnRjDiff
+    });
+  });
+
+  const centreOrder = [];
+  const centreMap = new Map();
+  rows.forEach((r) => {
+    const centreCode = String(r.c_code || r.C_CODE || '').trim();
+    if (!centreCode) return;
+    if (!centreMap.has(centreCode)) {
+      const centreName = String(r.c_name || r.C_NAME || '').trim();
+      const distance = Number(r.c_Distance || r.C_DISTANCE || 0);
+      const rates = rateMap.get(centreCode) || { general: 0, early: 0, rejected: 0 };
+      centreMap.set(centreCode, {
+        CentreCode: centreCode,
+        CentreName: centreName,
+        c_Distance: distance,
+        Early_Rate: Number(rates.early || 0),
+        Early_Value: 0,
+        Early_Amount: 0,
+        Genral_Rate: Number(rates.general || 0),
+        Genral_Value: 0,
+        Genral_Amount: 0,
+        Rejected_Rate: Number(rates.rejected || 0),
+        Rejected_Value: 0,
+        Rejected_Amount: 0,
+        BurntCane_Value: 0,
+        BurntCane_Amount: 0
+      });
+      centreOrder.push(centreCode);
+    }
+
+    const target = centreMap.get(centreCode);
+    const category = String(r.name || r.NAME || '').trim().toLowerCase();
+    const weight = Number(r.Weight || r.WEIGHT || 0);
+    const amount = Number(r.Amount || r.AMOUNT || 0);
+
+    if (category === 'genral' || category === 'general') {
+      target.Genral_Value = weight;
+      target.Genral_Amount = amount;
+    } else if (category === 'burnt cane' || category === 'burnt') {
+      target.BurntCane_Value = weight;
+      target.BurntCane_Amount = amount;
+    } else if (category === 'early') {
+      target.Early_Value = weight;
+      target.Early_Amount = amount;
+    } else if (category === 'rejected') {
+      target.Rejected_Value = weight;
+      target.Rejected_Amount = amount;
+    }
+  });
+
+  const output = centreOrder.map((code) => centreMap.get(code));
+
+  const fcodeSingle = String(fcode).split(',').map((v) => v.trim()).filter(Boolean)[0] || fcode;
+  const societyRowsRaw = await reportRepository.fetchSocietyReport(fcodeSingle, fromDate, toDate, season).catch(() => []);
+  const societyRows = Array.isArray(societyRowsRaw) ? societyRowsRaw : [];
+  if (societyRows.length) {
+    const sumFields = (rows) => rows.reduce((acc, r) => {
+      acc.Weight += Number(r.Weight || 0);
+      acc.Amount += Number(r.Amount || 0);
+      acc.Early_Weight += Number(r.Early_Weight || 0);
+      acc.Early_Amount += Number(r.Early_Amount || 0);
+      acc.General_Weight += Number(r.General_Weight || 0);
+      acc.General_Amount += Number(r.General_Amount || 0);
+      acc.Rejected_Weight += Number(r.Rejected_Weight || 0);
+      acc.Rejected_Amount += Number(r.Rejected_Amount || 0);
+      acc.Burnt_Weight += Number(r.Burnt_Weight || 0);
+      acc.Burnt_Amount += Number(r.Burnt_Amount || 0);
+      return acc;
+    }, {
+      Weight: 0, Amount: 0,
+      Early_Weight: 0, Early_Amount: 0,
+      General_Weight: 0, General_Amount: 0,
+      Rejected_Weight: 0, Rejected_Amount: 0,
+      Burnt_Weight: 0, Burnt_Amount: 0
+    });
+
+    const gateTotals = sumFields(societyRows.filter((r) => String(r.Type || '').toLowerCase() === 'gate'));
+    const centreTotals = sumFields(societyRows.filter((r) => String(r.Type || '').toLowerCase() === 'centre'));
+    const grandTotals = sumFields([
+      gateTotals,
+      centreTotals
+    ]);
+
+    societyRows.push({
+      so_code: '',
+      SO_Name: 'Total Gate',
+      Type: 'Total Gate',
+      ...gateTotals
+    });
+    societyRows.push({
+      so_code: '',
+      SO_Name: 'Total Centre',
+      Type: 'Total Centre',
+      ...centreTotals
+    });
+    societyRows.push({
+      so_code: '',
+      SO_Name: 'Grand Total',
+      Type: 'Grand Total',
+      ...grandTotals
+    });
+  }
+  return { centres: output, societies: societyRows };
+}
 module.exports = {
   getDriageSummary,
   getDriageDetail,
@@ -476,5 +618,6 @@ module.exports = {
   getTargetActualMISPeriodReport,
   getIndentFailSummaryNew,
   getIndentFailDetails,
-  getEffectedCaneAreaReport
+  getEffectedCaneAreaReport,
+  getCentreCode
 };

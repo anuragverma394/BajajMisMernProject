@@ -1,23 +1,43 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
-import '../../styles/Report.css'; // Importing specific CSS for the Distillery report DataGrid styling
 import '../../styles/Report.css';
+import '../../styles/DISTILLERYReport.css';
 import { openPrintWindow } from '../../utils/print';
+import { accountReportsService, masterService } from '../../microservices/api.service';
 
 const AccountReports_DISTILLERYReport = () => {
   const navigate = useNavigate();
   const tableRef = useRef(null);
 
   // Form Search State
-  const [unitCode, setUnitCode] = useState('');
+  const [unitCode, setUnitCode] = useState('0');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [units, setUnits] = useState([]);
 
   // Mock Data mimicking the complex DistilleryReportViewModel MonthlyData mapping
   const [reportMonths, setReportMonths] = useState([]);
   const [reportRows, setReportRows] = useState([]);
+
+  useEffect(() => {
+    const loadUnits = async () => {
+      try {
+        const list = await masterService.getUnits();
+        setUnits(Array.isArray(list) ? list : []);
+      } catch (error) {
+        toast.error('Failed to fetch units');
+      }
+    };
+    loadUnits();
+  }, []);
+
+  const formatMonth = (isoDate) => {
+    const dt = new Date(isoDate);
+    if (Number.isNaN(dt.getTime())) return '';
+    return dt.toLocaleString('en-US', { month: 'short', year: '2-digit' });
+  };
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -33,80 +53,97 @@ const AccountReports_DISTILLERYReport = () => {
     }
 
     setIsLoading(true);
-    // Simulate network API request to load the ViewModel MonthlyData breakdown
-    setTimeout(() => {
-      const months = ['Oct-23', 'Nov-23', 'Dec-23'];
+    try {
+      const params = {
+        F_Code: unitCode,
+        FDate: fromDate || toDate,
+        TDate: toDate
+      };
+      const response = await accountReportsService.getDistilleryReport(params);
+      if (response?.status !== 'success') {
+        toast.error(response?.message || 'Failed to fetch report');
+        return;
+      }
+      const monthlyData = response?.data?.monthlyData || [];
+      const months = Array.from(new Set(monthlyData.map((m) => formatMonth(m.MonthEndDate)).filter(Boolean)));
 
-      // Structured data mimicking the .NET HTML rows from DistilleryReportViewModel
-      const rows = [
-      { sr: "1", label: "Own Bagasse", um: "", isBold: true, data: [] },
-      { sr: "", label: "Recd from Self Sugar Plant (+)", um: "QTL", isBold: false, data: ["24000", "55000", "65000"] },
-      { sr: "", label: "Recd from Other Plants (Qty as per MM) (+)", um: "QTL", isBold: false, data: ["1200", "4000", "3000"] },
-      { sr: "", label: "Recd from Cogen Div. (+)", um: "QTL", isBold: false, data: ["0", "5000", "7000"] },
-      { sr: "", label: "Consumption (-)", um: "QTL", isBold: false, data: ["25000", "60000", "72000"] },
-      { sr: "", label: "Excess / (Shortage) (+ / -)", um: "QTL", isBold: false, data: ["0", "0", "0"] },
-      { sr: "", label: "Closing Stock", um: "QTL", isBold: false, data: ["200", "4200", "7200"] },
-      { sr: "", label: "Closing Stock as per SAP", um: "QTL", isBold: false, data: ["200", "4200", "7200"] },
-      { sr: "", label: "Check", um: "QTL", isBold: false, data: ["0", "0", "0"] },
-      { sr: "", label: "Break up of closing stock", um: "QTL", isBold: false, data: [] },
-      { sr: "", label: "Bagasse in transit", um: "", isBold: false, data: ["0", "500", "100"] },
-      { sr: "", label: "Physical Closing Stock at Plant", um: "QTL", isBold: false, data: ["200", "3700", "7100"] },
-      { sr: "2", label: "Bagasse Purchased from Outside Vendors:", um: "", isBold: true, data: [] },
-      { sr: "", label: "Opening stock (Finished Sugar)", um: "", isBold: true, data: [] },
-      { sr: "", label: "Purchase from Outside (+)", um: "QTL", isBold: false, data: ["0", "2000", "5000"] },
-      { sr: "", label: "Recd from Cogen Div. (+)", um: "QTL", isBold: false, data: ["0", "0", "0"] },
-      { sr: "", label: "Consumption (-)", um: "QTL", isBold: false, data: ["0", "1500", "4800"] },
-      { sr: "", label: "Excess / (Shortage) (+ / -)", um: "QTL", isBold: false, data: ["0", "0", "0"] },
-      { sr: "", label: "Closing Stock", um: "QTL", isBold: false, data: ["0", "500", "700"] },
-      { sr: "", label: "LIVE STEAM :", um: "", isBold: true, data: [] },
-      { sr: "", label: "Bagasse Consumed (-)", um: "QTL", isBold: false, data: ["25000", "61500", "76800"] },
-      { sr: "", label: "Bio Gas Consumed in Boiler (-)", um: "NMQ", isBold: false, data: ["120000", "350000", "480000"] },
-      { sr: "", label: "Slop Consumed In Boiler (-)", um: "QTL", isBold: false, data: ["1500", "4000", "5500"] },
-      { sr: "", label: "Live steam Generated from Bagasse", um: "MT", isBold: true, data: ["5500", "13500", "16800"] },
-      { sr: "", label: "Live steam Generated from Bio Gas", um: "MT", isBold: false, data: ["2000", "5800", "8000"] },
-      { sr: "", label: "Live steam Generated from Slop", um: "MT", isBold: false, data: ["300", "800", "1100"] },
-      { sr: "", label: "Sub Total of Steam generation", um: "MT", isBold: true, data: ["7800", "20100", "25900"] },
-      { sr: "", label: "Live steam received from Cogen Boiler", um: "MT", isBold: true, data: ["0", "200", "500"] },
-      { sr: "", label: "Total Live Steam available at Distllery", um: "MT", isBold: true, data: ["7800", "20300", "26400"] },
-      { sr: "", label: "Live steam given to Sugar Division (-)", um: "MT", isBold: false, data: ["0", "0", "0"] },
-      { sr: "", label: "Live steam given to Cogen Division (-)", um: "MT", isBold: false, data: ["0", "0", "0"] },
-      { sr: "", label: "Live steam Consumed in Distillery Division(-)", um: "MT", isBold: false, data: ["7500", "19000", "25000"] },
-      { sr: "", label: "Live steam Consumed in Distillery Division (Boiler)/Captive (-)", um: "MT", isBold: false, data: ["150", "400", "550"] },
-      { sr: "", label: "Live steam given to Disttilery Back pressure Turbine (-)", um: "MT", isBold: false, data: ["0", "0", "0"] },
-      { sr: "", label: "Live steam Given to Distillery Condensate Turbine (-)", um: "MT", isBold: false, data: ["0", "0", "0"] },
-      { sr: "", label: "Losses Etc (-)", um: "MT", isBold: false, data: ["150", "900", "850"] },
-      { sr: "", label: "Check", um: "MT", isBold: false, data: ["0", "0", "0"] },
-      { sr: "", label: "EXHAUST STEAM", um: "", isBold: true, data: [] },
-      { sr: "", label: "Live steam given to Turbine Back Pressure", um: "MT", isBold: false, data: ["0", "0", "0"] },
-      { sr: "", label: "Exhaust Steam Generated (+)", um: "MT", isBold: false, data: ["0", "0", "0"] },
-      { sr: "", label: "Exhaust Steam Given to Sugar Division (-)", um: "MT", isBold: false, data: ["0", "0", "0"] },
-      { sr: "", label: "Exhaust Steam Given to Distillery process (-)", um: "MT", isBold: true, data: ["0", "0", "0"] },
-      { sr: "", label: "Exhaust Steam Losses etc (-)", um: "MT", isBold: false, data: ["0", "0", "0"] },
-      { sr: "", label: "Check", um: "MT", isBold: false, data: ["0", "0", "0"] },
-      { sr: "", label: "Disttilery Turbine:", um: "", isBold: true, data: [] },
-      { sr: "", label: "Live steam consumed", um: "MT", isBold: false, data: ["0", "0", "0"] },
-      { sr: "", label: "Production of Power (+)", um: "KWH", isBold: false, data: ["850000", "2100000", "2800000"] },
-      { sr: "", label: "Power Export to UPPCL (-)", um: "KWH", isBold: false, data: ["400000", "1100000", "1400000"] },
-      { sr: "", label: "Power Export to UPPCL Previous month adjustment(+ / -)", um: "KWH", isBold: true, data: ["0", "0", "0"] },
-      { sr: "", label: "Power Banked during the month (-)", um: "%", isBold: true, data: ["0", "0", "0"] },
-      { sr: "", label: "Power Transfer to Sugar Division (-)", um: "%", isBold: true, data: ["0", "150000", "250000"] },
-      { sr: "", label: "Power Transfer to Distillery Division (self) for Process (-)", um: "QTL", isBold: false, data: ["350000", "700000", "950000"] },
-      { sr: "", label: "Power Captive Consumption by Disttilery Boiler (-)", um: "QTL", isBold: false, data: ["50000", "80000", "120000"] },
-      { sr: "", label: "Power Transfer to Co gen Division (-)", um: "QTL", isBold: false, data: ["0", "0", "0"] },
-      { sr: "", label: "Power Transfer to ECO Tech (-)", um: "QTL", isBold: false, data: ["0", "0", "0"] },
-      { sr: "", label: "Losses Etc (-)", um: "QTL", isBold: false, data: ["50000", "70000", "80000"] },
-      { sr: "", label: "Total", um: "QTL", isBold: true, data: ["850000", "2100000", "2800000"] },
-      { sr: "", label: "Distillery Boiler ratio", um: "", isBold: true, data: [] },
-      { sr: "", label: "Bagasse to Steam Ratio", um: "%", isBold: false, data: ["2.20", "2.19", "2.18"] },
-      { sr: "", label: "Bio Gas to Steam ratio", um: "%", isBold: false, data: ["0.016", "0.016", "0.016"] },
-      { sr: "", label: "Slop to Steam ratio", um: "%", isBold: false, data: ["0.20", "0.20", "0.20"] }];
+      const rowDefs = [
+        { sr: "1", label: "Own Bagasse", um: "", isBold: true },
+        { sr: "", label: "Recd from Self Sugar Plant (+)", um: "QTL", key: "AS_SD_BAG_TR_OWN_DIST" },
+        { sr: "", label: "Recd from Other Plants (Qty as per MM) (+)", um: "QTL", key: "AS_DISTBO_BAG_RECD_OTH_PL" },
+        { sr: "", label: "Recd from Cogen Div. (+)", um: "QTL", key: "AS_DISTBO_BAG_RECD_COGEN" },
+        { sr: "", label: "Consumption (-)", um: "QTL", key: "AS_DISTBO_BAG_CONSU" },
+        { sr: "", label: "Excess / (Shortage) (+ / -)", um: "QTL", key: "AS_DISTBO_BAG_EX_SH" },
+        { sr: "", label: "Closing Stock", um: "QTL", key: "Closing_Stock_Own_Baggase" },
+        { sr: "", label: "Closing Stock as per SAP", um: "QTL", key: "AS_DISTBO_BAG_CLSTOCK" },
+        { sr: "", label: "Check", um: "QTL", key: "Check" },
+        { sr: "", label: "Break up of closing stock", um: "QTL", isBold: false },
+        { sr: "", label: "Bagasse in transit", um: "", key: "AS_DISTBO_BAG_TRANSIT" },
+        { sr: "", label: "Physical Closing Stock at Plant", um: "QTL", key: "AS_DISTBO_BAG_PHY_STOCK" },
+        { sr: "2", label: "Bagasse Purchased from Outside Vendors:", um: "", isBold: true },
+        { sr: "", label: "Opening stock (Finished Sugar)", um: "", isBold: true },
+        { sr: "", label: "Purchase from Outside (+)", um: "QTL", key: "AS_DISTBO_BAG_PUR_OOTSIDE" },
+        { sr: "", label: "Recd from Cogen Div. (+)", um: "QTL", key: "Bagasse_Purchased_from_Outside_Vendors_recd_from_cogen_div" },
+        { sr: "", label: "Consumption (-)", um: "QTL", key: "AS_DISTBO_BAG_CONSU" },
+        { sr: "", label: "Excess / (Shortage) (+ / -)", um: "QTL", key: "AS_DISTBO_BAG_EX_SH" },
+        { sr: "", label: "Closing Stock", um: "QTL", key: "Closing_Stock_from_outside_vendors" },
+        { sr: "", label: "LIVE STEAM :", um: "", isBold: true },
+        { sr: "", label: "Bagasse Consumed (-)", um: "QTL", key: "Live_steam_bagasse_consumed" },
+        { sr: "", label: "Bio Gas Consumed in Boiler (-)", um: "NMQ", key: "AS_DISTBO_LS_BIOG_CONSU" },
+        { sr: "", label: "Slop Consumed In Boiler (-)", um: "QTL", key: "AS_DISTBO_LS_SLOP_CONSU" },
+        { sr: "", label: "Live steam Generated from Bagasse", um: "MT", key: "AS_DISTBO_LS_GENET_BAG", isBold: true },
+        { sr: "", label: "Live steam Generated from Bio Gas", um: "MT", key: "AS_DISTBO_LS_GENET_BOIG" },
+        { sr: "", label: "Live steam Generated from Slop", um: "MT", key: "AS_DISTBO_LS_GENET_SLOP" },
+        { sr: "", label: "Sub Total of Steam generation", um: "MT", key: "Sub_Total_of_Steam_generation", isBold: true },
+        { sr: "", label: "Live steam received from Cogen Boiler", um: "MT", key: "Live_steam_received_from_Cogen_Boiler", isBold: true },
+        { sr: "", label: "Total Live Steam available at Distllery", um: "MT", key: "Total_Live_Steam_available_at_Distllery", isBold: true },
+        { sr: "", label: "Live steam given to Sugar Division (-)", um: "MT", key: "AS_DISTBO_LS_GIV_SUG" },
+        { sr: "", label: "Live steam given to Cogen Division (-)", um: "MT", key: "AS_COG_LS_GIV_DIST" },
+        { sr: "", label: "Live steam Consumed in Distillery Division(-)", um: "MT", key: "AS_DISTBO_LS_CONSU_DIST" },
+        { sr: "", label: "Live steam Consumed in Distillery Division (Boiler)/Captive (-)", um: "MT", key: "AS_DISTBO_LS_CONSU_DISTBOI" },
+        { sr: "", label: "Live steam given to Disttilery Back pressure Turbine (-)", um: "MT", key: "AS_DISTBO_LS_GIV_BACKP_TURB" },
+        { sr: "", label: "Live steam Given to Distillery Condensate Turbine (-)", um: "MT", key: "AS_DISTBO_LS_GIV_CONDE_TURB" },
+        { sr: "", label: "Losses Etc (-)", um: "MT", key: "AS_DISTBO_LS_LOSSES" },
+        { sr: "", label: "Check", um: "MT", key: "Check_1" },
+        { sr: "", label: "EXHAUST STEAM", um: "", isBold: true },
+        { sr: "", label: "Live steam given to Turbine Back Pressure", um: "MT", key: "AS_DISTBO_LS_GIV_BACKP_TURB" },
+        { sr: "", label: "Exhaust Steam Generated (+)", um: "MT", key: "Exhaust_Steam_Generated" },
+        { sr: "", label: "Exhaust Steam Given to Sugar Division (-)", um: "MT", key: "AS_DISTBO_EXS_GIV_SUG" },
+        { sr: "", label: "Exhaust Steam Given to Distillery process (-)", um: "MT", key: "AS_DISTBO_EXS_GIV_DIST", isBold: true },
+        { sr: "", label: "Exhaust Steam Losses etc (-)", um: "MT", key: "AS_DISTBO_EXS_LOSSES" },
+        { sr: "", label: "Check", um: "MT", key: "Check_2" },
+        { sr: "", label: "Disttilery Turbine:", um: "", isBold: true },
+        { sr: "", label: "Live steam consumed", um: "MT", key: "Live_steam_consumed" },
+        { sr: "", label: "Production of Power (+)", um: "KWH", key: "AS_DISTBO_TUR_PROD_POWER" },
+        { sr: "", label: "Power Export to UPPCL (-)", um: "KWH", key: "AS_DISTBO_TUR_EXP_UPPCL" },
+        { sr: "", label: "Power Export to UPPCL Previous month adjustment(+ / -)", um: "KWH", key: "AS_DISTBO_TUR_EXP_LMONTH", isBold: true },
+        { sr: "", label: "Power Banked during the month (-)", um: "%", key: "AS_DISTBO_TUR_BNK_MONTH", isBold: true },
+        { sr: "", label: "Power Transfer to Sugar Division (-)", um: "%", key: "AS_DISTBO_TUR_TR_POWER_SUG", isBold: true },
+        { sr: "", label: "Power Transfer to Distillery Division (self) for Process (-)", um: "QTL", key: "AS_DISTBO_TUR_TR_DIST_PROCESS" },
+        { sr: "", label: "Power Captive Consumption by Disttilery Boiler (-)", um: "QTL", key: "AS_DISTBO_TUR_DIST_BOI" },
+        { sr: "", label: "Power Transfer to Co gen Division (-)", um: "QTL", key: "AS_DISTBO_TUR_TR_CONGEN" },
+        { sr: "", label: "Power Transfer to ECO Tech (-)", um: "QTL", key: "AS_DISTBO_TUR_ECOT" },
+        { sr: "", label: "Losses Etc (-)", um: "QTL", key: "AS_DISTBO_TUR_LOSSES" },
+        { sr: "", label: "Total", um: "QTL", key: "Total", isBold: true },
+        { sr: "", label: "Distillery Boiler ratio", um: "", isBold: true },
+        { sr: "", label: "Bagasse to Steam Ratio", um: "%", key: "Bagasse_to_Steam_Ratio" },
+        { sr: "", label: "Bio Gas to Steam ratio", um: "%", key: "Bio_Gas_to_Steam_ratio" },
+        { sr: "", label: "Slop to Steam ratio", um: "%", key: "Slop_to_Steam_ratio" }
+      ];
 
+      const rows = rowDefs.map((row) => ({
+        ...row,
+        data: row.key ? monthlyData.map((m) => Number(m[row.key] || 0)) : []
+      }));
 
       setReportMonths(months);
       setReportRows(rows);
-      setIsLoading(false);
       toast.success('Distillery Boiler Report generated successfully!');
-    }, 800);
+    } catch (error) {
+      toast.error('Failed to fetch report');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleExport = () => {
@@ -123,7 +160,7 @@ const AccountReports_DISTILLERYReport = () => {
       return;
     }
     openPrintWindow({
-      title: "Distillery Report",
+      title: "Distillery Boiler Report",
       subtitle: `From: ${fromDate || 'N/A'} To: ${toDate || 'N/A'}`,
       contentHtml: tableRef.current ? tableRef.current.outerHTML : ""
     });
@@ -136,7 +173,7 @@ const AccountReports_DISTILLERYReport = () => {
             {/* Card with teal header */}
             <div className="border border-[#e0e0e0] rounded-lg overflow-hidden bg-white mb-[20px]">
                 <div className="bg-[#1F9E8A] text-white py-[12px] px-[20px] text-[15px] font-medium">
-                    Distillery Report
+                    Distillery Boiler Report
                 </div>
 
                 <div className="p-[25px] bg-[#fcfcfc]">
@@ -144,13 +181,14 @@ const AccountReports_DISTILLERYReport = () => {
                         <div>
                             <label className="block mb-[8px] text-[13px] text-[#111] font-semibold">Factory</label>
                             <select
-
                 value={unitCode}
                 onChange={(e) => setUnitCode(e.target.value)} className="w-[100%] py-[10px] px-[12px] text-[13px] border border-[#ddd] rounded text-[#333] bg-white">
-                
-                                <option value="">All</option>
-                                <option value="1">Unit 1</option>
-                                <option value="2">Unit 2</option>
+                                <option value="0">All</option>
+                                {units.map((u, idx) => (
+                                  <option key={`${u.F_Code || u.f_Code || idx}`} value={u.F_Code || u.f_Code}>
+                                    {u.F_Name || u.f_Name}
+                                  </option>
+                                ))}
                             </select>
                         </div>
 
@@ -204,7 +242,7 @@ const AccountReports_DISTILLERYReport = () => {
                                 <th className="distillery-header-sticky-col-2 w-[350px]">Particulars</th>
                                 <th className="distillery-header-sticky-col-3 w-[80px]">U/M</th>
                                 {reportMonths.map((m, idx) =>
-              <th key={idx} className="text-right px-4 py-3 border-r border-[#7e22ce]/20 whitespace-nowrap min-w-[120px]">
+              <th key={idx} className="text-center px-4 py-3 border-r border-[#0f7f6b] whitespace-nowrap min-w-[120px]">
                                         {m}
                                     </th>
               )}
@@ -216,17 +254,17 @@ const AccountReports_DISTILLERYReport = () => {
 
               return (
                 <tr key={idx} className={`${trClass} border-b border-gray-100`}>
-                                        <td className="distillery-sticky-col-1 text-center py-2 px-3 text-gray-500 text-xs">
+                                        <td className="distillery-sticky-col-1 text-center py-2 px-3 text-slate-700 text-xs">
                                             {row.sr}
                                         </td>
-                                        <td className="distillery-sticky-col-2 py-2 px-4 text-gray-800 break-words">
+                                        <td className="distillery-sticky-col-2 py-2 px-4 text-slate-900 break-words">
                                             {row.label}
                                         </td>
-                                        <td className="distillery-sticky-col-3 text-center py-2 px-3 text-gray-500 font-medium">
+                                        <td className="distillery-sticky-col-3 text-center py-2 px-3 text-slate-700 font-medium">
                                             {!row.isBold && row.um}
                                         </td>
                                         {reportMonths.map((m, mIdx) =>
-                  <td key={mIdx} className="text-right py-2 px-4 border-r border-gray-100 font-mono text-gray-700">
+                  <td key={mIdx} className="text-right py-2 px-4 border-r border-slate-200 font-mono text-slate-800">
                                                 {row.data[mIdx] ? row.data[mIdx] : ''}
                                             </td>
                   )}

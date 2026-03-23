@@ -116,7 +116,11 @@ const AccountReports_Capasityutilisation = () => {
                 onChange={(e) => setUnitCode(e.target.value)} className="w-[100%] py-[10px] px-[12px] text-[13px] border border-[#ddd] rounded text-[#333] bg-white">
                 
                                 <option value="0">All</option>
-                                {factories.map((f, idx) => <option key={`${f.id ?? 'factory'}-${idx}`} value={f.id}>{f.name}</option>)}
+                                {factories.map((f, idx) => (
+                                  <option key={`${f.F_Code || f.f_Code || idx}`} value={f.F_Code || f.f_Code}>
+                                    {f.F_Name || f.f_Name}
+                                  </option>
+                                ))}
                             </select>
                         </div>
 

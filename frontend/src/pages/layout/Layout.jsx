@@ -86,7 +86,7 @@ export default function Layout() {
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      const safeTitle = String(printTitle || 'Export').replace(/[^\w\-]+/g, '_');
+      const safeTitle = String(printTitle || 'Export').replace(/[^\w-]+/g, '_');
       link.download = `${safeTitle}.csv`;
       link.click();
       URL.revokeObjectURL(link.href);
@@ -316,7 +316,7 @@ export default function Layout() {
                         <Link to="/AccountReports/DISTILLERYReport">Distillery Report</Link>
                         <Link to="/ReportNew/SampleOfTransporter">Transporter / Loader Bill</Link>
                         <Link to="/ReportNew/ApiStatusReport">Api Status Report</Link>
-                        <Link to="/AccountReports/VarietyWiseCanePurchase">Centre/VarGroup Wise Cane Purchase</Link>
+                        <Link to="/Report/CentreCode">Centre/VarGroup Wise Cane Purchase</Link>
                         <Link to="/AccountReports/LoanSummaryReport">Loan Summary Report</Link>
                     </div>
                 </div>

@@ -8,6 +8,7 @@ const { createNotImplementedHandler } = require('./notImplemented');
 
 // Date utilities
 const date = require('../../utils/date');
+const sql = require('./sql');
 
 module.exports = {
   // Logger
@@ -21,6 +22,9 @@ module.exports = {
   
   // Date utils
   date,
+
+  // SQL utils
+  sql,
 
   // Not implemented helper
   createNotImplementedHandler,

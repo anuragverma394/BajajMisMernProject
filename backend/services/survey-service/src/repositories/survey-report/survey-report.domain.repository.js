@@ -8,6 +8,23 @@ async function executeSurveyReportProcedure({ action, params, season }) {
   return executeProcedure(action, params, season);
 }
 
+async function hasDbObject({ name, season }) {
+  const rows = await executeQuery(
+    `SELECT type
+     FROM sys.objects
+     WHERE name = @name`,
+    { name },
+    season
+  );
+  return rows?.[0]?.type || '';
+}
+
+async function executeIfExists({ action, params, season }) {
+  const type = await hasDbObject({ name: action, season });
+  if (!type) return { rows: [], recordsets: [] };
+  return executeProcedure(action, params, season);
+}
+
 async function getPlotWiseDetails({ params, season }) {
   return executeProcedure('Sp_PlotWiseDetails', params, season);
 }
@@ -18,6 +35,25 @@ async function getCategoryWiseSummary({ params, season }) {
 
 async function getCaneVierityVillageGrower({ params, season }) {
   return executeProcedure('Sp_VrGrCnTyChange', params, season);
+}
+
+async function getFinalVillageFirstSurveyReport({ params, season }) {
+  return executeIfExists({ action: params?.procedure, params: params?.queryParams || {}, season });
+}
+
+async function getFinalVillageFirstSurveySummeryReport({ params, season }) {
+  return executeIfExists({ action: params?.procedure, params: params?.queryParams || {}, season });
+}
+
+async function getFinalVillageList({ fCode, season }) {
+  return executeQuery(
+    `SELECT Factory AS fact, VillCode AS gh_plvill, IsSurveyComp
+     FROM SupervisorVillageMapping
+     WHERE Factory = @fact
+       AND IsSurveyComp = 1`,
+    { fact: fCode },
+    season
+  );
 }
 
 async function getWeeklySubmissionOfAutumnPlantingIndent({ params, season }) {
@@ -613,6 +649,9 @@ module.exports = {
   getSurveyTotalWorking,
   getSurveyFactory,
   getSurveyUnitWiseSurveyStatus,
+  getFinalVillageFirstSurveyReport,
+  getFinalVillageFirstSurveySummeryReport,
+  getFinalVillageList,
   databaseExists,
   getUnitwiseSurveyAreaSummaryPre,
   getUnitwiseSurveyAreaSummaryCur,

@@ -303,10 +303,149 @@ async function mutateCanePurchaseReport(model, command) {
 /**
  * GET: Sample Of Transporter
  */
-async function getSampleOfTransporter(season) {
+function toYmd(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+  const dmy = raw.match(/^(\d{2})[-\/](\d{2})[-\/](\d{4})$/);
+  if (dmy) return `${dmy[3]}-${dmy[2]}-${dmy[1]}`;
+  const parsed = new Date(raw);
+  if (!Number.isNaN(parsed.getTime())) {
+    const dd = String(parsed.getDate()).padStart(2, '0');
+    const mm = String(parsed.getMonth() + 1).padStart(2, '0');
+    const yyyy = parsed.getFullYear();
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  return raw;
+}
+
+async function getSampleOfTransporter(params, season) {
   try {
-    const data = await repository.getSampleOfTransporter(season);
-    return data || [];
+    const zone = String(params?.Zone ?? params?.zone ?? '0').trim() || '0';
+    const rawFactory = String(params?.F_code ?? params?.F_Code ?? params?.factoryCode ?? '0').trim();
+    const trCode = String(params?.TR_CODE ?? params?.tr_code ?? params?.paymentType ?? '').trim();
+    const fromDate = toYmd(params?.FromDate ?? params?.fromDate ?? '');
+    const toDate = toYmd(params?.ToDate ?? params?.toDate ?? '');
+
+    let fcodes = [];
+    if (!rawFactory || rawFactory === '0' || rawFactory.toLowerCase() === 'all') {
+      const userid = params?.userid || params?.Userid || params?.userId || params?.WUserID || params?.WUSERID || params?.WUserId || '';
+      const unitsRaw = await repository.getZoneByFactory(zone, userid, season);
+      const unitArray = Array.isArray(unitsRaw?.rows)
+        ? unitsRaw.rows
+        : Array.isArray(unitsRaw?.recordsets?.[0])
+          ? unitsRaw.recordsets[0]
+          : Array.isArray(unitsRaw)
+            ? unitsRaw
+            : [];
+      const unitsList = Array.isArray(unitArray) ? unitArray : [];
+      fcodes = unitsList.map((u) => String(u?.f_Code || u?.F_Code || u?.code || '').trim()).filter(Boolean);
+    } else {
+      fcodes = String(rawFactory).split(',').map((v) => v.trim()).filter(Boolean);
+    }
+
+    if (!fcodes.length || !fromDate || !toDate) {
+      return { rows: [], summary: [] };
+    }
+
+    const dataRows = await repository.getSampleOfTransporter({
+      fcodes,
+      TR_CODE: trCode,
+      FromDate: fromDate,
+      ToDate: toDate
+    }, season);
+
+    const list = (dataRows || []).map((row) => ({
+      tr_code: Number(row.tt_trans || 0),
+      F_code: String(row.tt_factory || ''),
+      tr_name: String(row.tr_name || ''),
+      billno: String(row.billno || ''),
+      F_name: String(row.F_name || ''),
+      FromDate: String(row.p_date_fr || ''),
+      ToDate: String(row.p_date_to || ''),
+      totalamt: Number(row.m_amount || 0),
+      weight: Number(row.tt_netWeight || 0),
+      amount: Number(row.tt_netAmount || 0),
+      sec: Number(row.RetDed || 0),
+      tds: Number(row.TDS || row.tds || 0),
+      totded: Number(row.Loan || 0),
+      other: Number(row.otherded || 0),
+      diffwt: Number(row.diffwt || 0),
+      diffamt: Number(row.diffamt || 0),
+      netpaidamount: Number(row.PayAMT || 0)
+    }));
+
+    const uniqueKeys = new Set();
+    const detailed = [];
+    list.forEach((r) => {
+      const key = `${r.tr_code}|${r.FromDate}|${r.ToDate}|${r.F_code}|${r.billno}`;
+      if (uniqueKeys.has(key)) return;
+      uniqueKeys.add(key);
+      const recordCount = list.filter((w) => w.tr_code === r.tr_code && w.FromDate === r.FromDate && w.ToDate === r.ToDate && w.F_code === r.F_code).length;
+      const weight = list.filter((w) => w.tr_code === r.tr_code && w.FromDate === r.FromDate && w.ToDate === r.ToDate && w.F_code === r.F_code).reduce((s, x) => s + x.weight, 0);
+      const diffwt = list.filter((w) => w.tr_code === r.tr_code && w.FromDate === r.FromDate && w.ToDate === r.ToDate && w.F_code === r.F_code).reduce((s, x) => s + x.diffwt, 0);
+      const diffamt = list.filter((w) => w.tr_code === r.tr_code && w.FromDate === r.FromDate && w.ToDate === r.ToDate && w.F_code === r.F_code).reduce((s, x) => s + x.diffamt, 0);
+      const amount = list.filter((w) => w.tr_code === r.tr_code && w.FromDate === r.FromDate && w.ToDate === r.ToDate && w.F_code === r.F_code).reduce((s, x) => s + x.amount, 0);
+      const sec = list.filter((w) => w.tr_code === r.tr_code && w.FromDate === r.FromDate && w.ToDate === r.ToDate && w.F_code === r.F_code).reduce((s, x) => s + x.sec, 0);
+      const tds = list.filter((w) => w.tr_code === r.tr_code && w.FromDate === r.FromDate && w.ToDate === r.ToDate && w.F_code === r.F_code).reduce((s, x) => s + x.tds, 0);
+      const other = list.filter((w) => w.tr_code === r.tr_code && w.FromDate === r.FromDate && w.ToDate === r.ToDate && w.F_code === r.F_code).reduce((s, x) => s + x.other, 0);
+      const totalamt1 = list.filter((w) => w.tr_code === r.tr_code && w.FromDate === r.FromDate && w.ToDate === r.ToDate && w.F_code === r.F_code).reduce((s, x) => s + x.totalamt, 0);
+      const netpaidamount = list.filter((w) => w.tr_code === r.tr_code && w.FromDate === r.FromDate && w.ToDate === r.ToDate && w.F_code === r.F_code).reduce((s, x) => s + x.netpaidamount, 0);
+
+      detailed.push({
+        tr_code: r.tr_code,
+        tr_name: r.tr_name,
+        billno: r.billno,
+        weight,
+        amount,
+        sec: Math.round(sec),
+        tds: Math.round(tds),
+        other: Math.round(other, 2),
+        diffwt,
+        diffamt,
+        totalamt: Math.round(totalamt1),
+        recordCount,
+        totded: Math.round(sec) + Math.round(tds) + Math.round(other),
+        netpaidamount: Math.round(amount) - (Math.round(sec) + Math.round(tds) + Math.round(other)),
+        FromDate: r.FromDate,
+        ToDate: r.ToDate,
+        F_name: r.F_name,
+        F_code: r.F_code
+      });
+    });
+
+    const summary = Object.values(detailed.reduce((acc, r) => {
+      if (!acc[r.F_code]) {
+        acc[r.F_code] = {
+          F_name: r.F_name,
+          weight: 0,
+          amount: 0,
+          diffwt: 0,
+          diffamt: 0,
+          totalamt: 0,
+          sec: 0,
+          tds: 0,
+          other: 0,
+          totded: 0,
+          netpaidamount: 0
+        };
+      }
+      const tgt = acc[r.F_code];
+      tgt.weight += r.weight;
+      tgt.amount += r.amount;
+      tgt.diffwt += r.diffwt;
+      tgt.diffamt += r.diffamt;
+      tgt.totalamt += r.totalamt;
+      tgt.sec += r.sec;
+      tgt.tds += r.tds;
+      tgt.other += r.other;
+      tgt.totded += r.totded;
+      tgt.netpaidamount += r.netpaidamount;
+      return acc;
+    }, {}));
+
+    return { rows: detailed, summary };
   } catch (error) {
     throw new Error(`Failed to fetch transporter samples: ${error.message}`);
   }
@@ -361,9 +500,9 @@ async function getTransporterByFactory(factoryCode) {
 /**
  * GET: API Status Report
  */
-async function getApiStatusReport(season) {
+async function getApiStatusReport(params, season) {
   try {
-    const data = await repository.getApiStatusReport(season);
+    const data = await repository.getApiStatusReport(params, season);
     return data || [];
   } catch (error) {
     throw new Error(`Failed to fetch API status report: ${error.message}`);
@@ -389,13 +528,15 @@ async function mutateApiStatusReport(model, command) {
 /**
  * POST: Resend API Status Report
  */
-async function resendApiStatusReport(id, factoryCode) {
+async function resendApiStatusReport(params, season) {
   try {
+    const id = String(params?.id ?? params?.ID ?? '').trim();
+    const factoryCode = String(params?.FactoryCode ?? params?.factoryCode ?? params?.fcode ?? params?.F_code ?? '').trim();
     if (!id || !factoryCode) {
       return { error: true, status: 400, message: 'ID and factory code are required' };
     }
-    
-    const result = await repository.resendApiStatusReport(id, factoryCode);
+
+    const result = await repository.resendApiStatusReport({ id, factoryCode }, season);
     return { error: false, status: 200, data: result };
   } catch (error) {
     return { error: true, status: 500, message: error.message };

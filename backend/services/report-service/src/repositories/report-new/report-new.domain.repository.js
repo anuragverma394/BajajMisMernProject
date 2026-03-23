@@ -554,9 +554,137 @@ async function mutateCanePurchaseReport(model, command) {
 /**
  * Get Sample Of Transporter
  */
-async function getSampleOfTransporter(season) {
+function buildInClause(prefix, values, params) {
+  const names = [];
+  values.forEach((val, idx) => {
+    const key = `${prefix}${idx}`;
+    params[key] = val;
+    names.push(`@${key}`);
+  });
+  return names.join(',');
+}
+
+async function getSampleOfTransporter(params = {}, season) {
   try {
-    const result = await executeProcedure('sp_GetSampleOfTransporter', { Season: season });
+    const fCodes = Array.isArray(params.fcodes) ? params.fcodes : [];
+    const trCode = String(params.TR_CODE || '').trim();
+    const fromDate = String(params.FromDate || '').trim();
+    const toDate = String(params.ToDate || '').trim();
+
+    if (!trCode || trCode === '3') {
+      return [];
+    }
+    if (!fromDate || !toDate) {
+      return [];
+    }
+
+    const baseParams = { fromDate, toDate };
+    const inClause = fCodes.length ? buildInClause('f', fCodes, baseParams) : '';
+    const factoryFilter = fCodes.length ? `AND p_factory IN (${inClause})` : '';
+
+    let query = '';
+    if (trCode === '1') {
+      query = `
+        SELECT
+          P_Factory tt_factory,
+          F_name,
+          c_code tt_center,
+          LEFT(tr_name,20) tr_name,
+          LEFT(c_name,20) c_name,
+          P_Challan_NO tt_chalanno,
+          p_finwt - p_DiffWt AS tt_netWeight,
+          p_finwt - p_DiffWt AS CaneWeight,
+          P_Trans_Code tt_trans,
+          P_FinWt ActualWt,
+          P_DUE_AMT m_amount,
+          P_DED_AMT Loan,
+          P_HsdDed hsd,
+          P_TDS tds,
+          (P_DED_AMT - (P_RetDed + P_TDS)) otherded,
+          (P_DED_AMT - (P_RetDed + P_TDS)) AS other,
+          p_ActualAmt AS tt_netAmount,
+          P_AdvDed adv,
+          P_RetDed RetDed,
+          P_PrPurPAYAMT PayAMT,
+          P_DED_AMT Loan,
+          P_Centre,
+          P_TruckNo tt_truckno,
+          CONVERT(VARCHAR(10), P_RecieptDate, 103) tt_date,
+          P_ChallanCateg tt_canecateg,
+          p_DiffWt AS diffwt,
+          p_DiffAmt diffamt,
+          P_BillNo billno,
+          P_Rate Rate,
+          p_NilltripFlg tt_nilltrip,
+          TR_VENDOR_SAP,
+          TR_PAN_NO,
+          tr_accountno,
+          tr_bankcode,
+          tr_father,
+          tr_phone,
+          CONVERT(VARCHAR(10), p_date_fr, 103) p_date_fr,
+          CONVERT(VARCHAR(10), p_date_to, 103) p_date_to
+        FROM transpayment
+        JOIN Transporter ON TR_CODE = P_Trans_Code AND P_Factory = TR_FACTORY
+        JOIN Centre ON c_code = P_Centre AND c_factory = P_Factory
+        JOIN Factory ON f_code = P_Factory
+        WHERE 1=1 AND P_PayFlg = 1
+          ${factoryFilter}
+          AND CAST(P_RecieptDate AS date) BETWEEN @fromDate AND @toDate
+        ORDER BY P_Factory, TR_CODE`;
+    } else if (trCode === '2') {
+      query = `
+        SELECT
+          P_Factory tt_factory,
+          F_name,
+          c_code tt_center,
+          LEFT(co_name,20) tr_name,
+          LEFT(c_name,20) c_name,
+          P_Challan_NO tt_chalanno,
+          p_finwt - p_DiffWt AS tt_netWeight,
+          p_finwt - p_DiffWt AS CaneWeight,
+          P_Trans_Code tt_trans,
+          P_FinWt ActualWt,
+          P_DUE_AMT m_amount,
+          P_DED_AMT Loan,
+          P_HsdDed hsd,
+          P_TDS tds,
+          (P_DED_AMT - (P_RetDed + P_TDS)) otherded,
+          (P_DED_AMT - (P_RetDed + P_TDS)) AS other,
+          p_ActualAmt AS tt_netAmount,
+          P_AdvDed adv,
+          P_RetDed RetDed,
+          P_PrPurPAYAMT PayAMT,
+          P_DED_AMT Loan,
+          P_Centre,
+          P_TruckNo tt_truckno,
+          CONVERT(VARCHAR(10), P_RecieptDate, 103) tt_date,
+          P_ChallanCateg tt_canecateg,
+          p_DiffWt AS diffwt,
+          p_DiffAmt diffamt,
+          P_BillNo billno,
+          P_Rate Rate,
+          p_NilltripFlg tt_nilltrip,
+          LD_VENDOR_SAP TR_VENDOR_SAP,
+          LD_PAN_NO TR_PAN_NO,
+          co_accountno tr_accountno,
+          co_bankcode tr_bankcode,
+          co_father tr_father,
+          co_phone tr_phone,
+          CONVERT(VARCHAR(10), p_date_fr, 103) p_date_fr,
+          CONVERT(VARCHAR(10), p_date_to, 103) p_date_to
+        FROM transpayment
+        JOIN Contract ON co_code = P_Trans_Code AND P_Factory = co_factory
+        JOIN Centre ON c_code = P_Centre AND c_factory = P_Factory
+        JOIN Factory ON f_code = P_Factory
+        WHERE 1=1 AND P_PayFlg = 2
+          ${factoryFilter}
+          AND CAST(P_RecieptDate AS date) BETWEEN @fromDate AND @toDate
+        ORDER BY P_Factory, co_code`;
+    }
+
+    if (!query) return [];
+    const result = await executeQuery(query, baseParams, season);
     return result || [];
   } catch (error) {
     console.error('[ReportNewRepository] getSampleOfTransporter error:', error.message);
@@ -581,13 +709,32 @@ async function mutateSampleOfTransporter(model, command) {
 /**
  * Get Zone By Factory
  */
-async function getZoneByFactory(zone, userid) {
+async function getZoneByFactory(zone, userid, season) {
   try {
-    const result = await executeProcedure('sp_GetZoneByFactory', { Zone: zone, Userid: userid });
-    return result || [];
+    const result = await executeProcedure('sp_GetZoneByFactory', { Zone: zone, Userid: userid }, season);
+    return result?.rows || result?.recordsets?.[0] || result || [];
   } catch (error) {
-    console.error('[ReportNewRepository] getZoneByFactory error:', error.message);
-    throw error;
+    const msg = String(error?.message || '').toLowerCase();
+    if (!msg.includes('could not find stored procedure')) {
+      console.error('[ReportNewRepository] getZoneByFactory error:', error.message);
+      return [];
+    }
+    const z = String(zone || '').trim();
+    const u = String(userid || '').trim();
+    const params = { zone: z, userid: u };
+    let sql = `
+      SELECT f_Code, f_Name + ' (' + F_Short + ')' AS F_Name, f_Name AS FName
+      FROM MI_Factory
+      WHERE 1=1`;
+    if (u) {
+      sql += ` AND f_code IN (SELECT FactID FROM MI_UserFact WHERE userid = @userid)`;
+    }
+    if (z && z !== '0') {
+      sql += ` AND F_Zone = @zone`;
+    }
+    sql += ` ORDER BY SN ASC`;
+    const rows = await executeQuery(sql, params, season);
+    return rows || [];
   }
 }
 
@@ -607,10 +754,81 @@ async function getTransporterByFactory(factoryCode) {
 /**
  * Get API Status Report
  */
-async function getApiStatusReport(season) {
+async function getApiStatusReport(params = {}, season) {
   try {
-    const result = await executeProcedure('sp_GetApiStatusReport', { Season: season });
-    return result || [];
+    const rawFactory = String(params.F_code || params.F_Code || params.factory || '').trim();
+    const type = String(params.Type || params.type || '0').trim();
+    const apiType = String(params.ApiType || params.apiType || '0').trim();
+    const fromDate = toSqlDate(params.FromDate || params.fromDate || '');
+    const toDate = toSqlDate(params.ToDate || params.toDate || '');
+
+    let sql = `
+      select
+        IT_DESC,
+        oth_api_flag,
+        OTH_API_REM,
+        format(OTH_API_LHTM,'dd/MM/yyyy') OTH_API_LHTM,
+        OTH_NO,
+        OTH_ITEM,
+        oth_tpt_nm,
+        OTH_TRUCK,
+        OTH_GROSS,
+        OTH_TARE,
+        format(OTH_GROSS_DATE,'dd/MM/yyyy') OTH_GROSS_DATE,
+        OTH_GROSS_TIME,
+        format(OTH_TARE_DATE,'dd/MM/yyyy') OTH_TARE_DATE,
+        format(OTH_TAREDATETIME,'HH:mm:ss') OTH_TAREDATETIME,
+        CASE
+          WHEN oth_api_flag > 0 AND LEN(isnull(OTH_API_REM,'')) = 0 THEN 'Pending'
+          WHEN OTH_API_REM LIKE '%Submitted successfully%' THEN 'Success'
+          WHEN LEN(isnull(OTH_API_REM,'')) > 0 AND OTH_API_REM NOT LIKE '%Submitted successfully%' THEN 'Failed'
+          ELSE 'Unknown'
+        END AS Status
+      from other_cane
+      join OTHER_ITEM on OTH_ITEM = IT_CODE and OTH_FACTORY = IT_FACTORY
+      where 1=1
+    `;
+
+    const sqlParams = {};
+
+    const factoryList = rawFactory
+      ? rawFactory.split(',').map((v) => v.trim()).filter(Boolean)
+      : [];
+
+    if (factoryList.length && !factoryList.includes('0')) {
+      const placeholders = factoryList.map((_, i) => `@f${i}`).join(',');
+      sql += ` and OTH_FACTORY in (${placeholders})`;
+      factoryList.forEach((code, i) => {
+        sqlParams[`f${i}`] = code;
+      });
+    }
+
+    if (fromDate && toDate) {
+      sql += ` and cast(OTH_REP_DATE as date) between @fromDate and @toDate`;
+      sqlParams.fromDate = fromDate;
+      sqlParams.toDate = toDate;
+    }
+
+    if (type === '1') {
+      sql += ` and oth_api_flag in (1,2) and LEN(OTH_API_REM) = 0`;
+    } else if (type === '2') {
+      sql += ` and OTH_API_REM LIKE '%Submitted successfully%'`;
+    } else if (type === '3') {
+      sql += ` and LEN(isnull(OTH_API_REM,'')) > 0 and OTH_API_REM NOT LIKE '%Submitted successfully%'`;
+    } else {
+      sql += ` and (oth_api_flag in (1,2) or LEN(OTH_API_REM) > 0)`;
+    }
+
+    if (apiType === '1') {
+      sql += ` and oth_api_flag = 1`;
+    } else if (apiType === '2') {
+      sql += ` and oth_api_flag = 2`;
+    }
+
+    sql += ` order by OTH_NO`;
+
+    const rows = await executeQuery(sql, sqlParams, season);
+    return rows || [];
   } catch (error) {
     console.error('[ReportNewRepository] getApiStatusReport error:', error.message);
     throw error;
@@ -634,10 +852,21 @@ async function mutateApiStatusReport(model, command) {
 /**
  * Resend API Status Report
  */
-async function resendApiStatusReport(id, factoryCode) {
+async function resendApiStatusReport(params = {}, season) {
   try {
-    const result = await executeProcedure('sp_ResendApiStatusReport', { ID: id, FactoryCode: factoryCode });
-    return result || { success: true };
+    const id = String(params.ID ?? params.id ?? params.OTH_NO ?? '').trim();
+    const factoryCode = String(params.FactoryCode ?? params.factoryCode ?? params.fcode ?? params.F_code ?? '').trim();
+    if (!id || !factoryCode) {
+      return { success: false, message: 'ID and FactoryCode are required' };
+    }
+    const rows = await executeQuery(
+      `update OTHER_CANE set OTH_API_REM='' where oth_no=@id and OTH_FACTORY=@factoryCode;
+       select @@ROWCOUNT as count;`,
+      { id, factoryCode },
+      season
+    );
+    const updated = Number(rows?.[0]?.count || 0);
+    return { success: updated > 0 };
   } catch (error) {
     console.error('[ReportNewRepository] resendApiStatusReport error:', error.message);
     throw error;

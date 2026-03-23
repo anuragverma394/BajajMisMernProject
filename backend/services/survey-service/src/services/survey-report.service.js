@@ -631,6 +631,152 @@ const resolveConnectionSeason = (season, connectionSeason) => {
   return `BajajCane${part1.toString().padStart(2, '0')}${part2.toString().padStart(2, '0')}`;
 };
 
+const mapFinalVillageRow = (row = {}) => {
+  const RATOON_LY = toNumberSafe(row?.RATOON_LY);
+  const AUTUMN_LY = toNumberSafe(row?.AUTUMN_LY);
+  const PLANT_LY = toNumberSafe(row?.PLANT_LY);
+  const Total_LY = toNumberSafe(row?.Total_LY) || RATOON_LY + AUTUMN_LY + PLANT_LY;
+
+  const RATOON = toNumberSafe(row?.RATOON);
+  const RATOONII = toNumberSafe(row?.RATOONII);
+  const AUTUMN = toNumberSafe(row?.AUTUMN);
+  const PLANT = toNumberSafe(row?.PLANT);
+  const Total = toNumberSafe(row?.Total) || RATOON + RATOONII + AUTUMN + PLANT;
+
+  const RatoonDiff = toNumberSafe(row?.RatoonDiff) || RATOON - RATOON_LY;
+  const AUTUMNDIFF = toNumberSafe(row?.AUTUMNDIFF) || AUTUMN - AUTUMN_LY;
+  const PLANTDIFF = toNumberSafe(row?.PLANTDIFF) || PLANT - PLANT_LY;
+  const TotalDiff = toNumberSafe(row?.TotalDiff) || Total - Total_LY;
+  const DiffPer = toNumberSafe(row?.DiffPer) || (Total_LY === 0 ? TotalDiff * 100 : (TotalDiff / Total_LY) * 100);
+  const Ratoonagainstlastyearplant = toNumberSafe(row?.Ratoonagainstlastyearplant)
+    || ((PLANT_LY + AUTUMN_LY) === 0 ? RATOON * 100 : (RATOON / (PLANT_LY + AUTUMN_LY)) * 100);
+
+  return {
+    gh_plvill: row?.gh_plvill ?? row?.VillCode ?? row?.VillageCode ?? row?.Village ?? 0,
+    v_name: row?.v_name ?? row?.V_Name ?? row?.VillageName ?? '',
+    RATOON_LY,
+    AUTUMN_LY,
+    PLANT_LY,
+    Total_LY,
+    RATOON,
+    RATOONII,
+    AUTUMN,
+    PLANT,
+    Total,
+    RatoonDiff,
+    AUTUMNDIFF,
+    PLANTDIFF,
+    TotalDiff,
+    DiffPer,
+    Ratoonagainstlastyearplant
+  };
+};
+
+const sumFinalVillageTotals = (rows = []) => rows.reduce((acc, row) => {
+  acc.RATOON_LY += toNumberSafe(row.RATOON_LY);
+  acc.AUTUMN_LY += toNumberSafe(row.AUTUMN_LY);
+  acc.PLANT_LY += toNumberSafe(row.PLANT_LY);
+  acc.Total_LY += toNumberSafe(row.Total_LY);
+  acc.RATOON += toNumberSafe(row.RATOON);
+  acc.RATOONII += toNumberSafe(row.RATOONII);
+  acc.AUTUMN += toNumberSafe(row.AUTUMN);
+  acc.PLANT += toNumberSafe(row.PLANT);
+  acc.Total += toNumberSafe(row.Total);
+  acc.RatoonDiff += toNumberSafe(row.RatoonDiff);
+  acc.AUTUMNDIFF += toNumberSafe(row.AUTUMNDIFF);
+  acc.PLANTDIFF += toNumberSafe(row.PLANTDIFF);
+  acc.TotalDiff += toNumberSafe(row.TotalDiff);
+  return acc;
+}, {
+  RATOON_LY: 0,
+  AUTUMN_LY: 0,
+  PLANT_LY: 0,
+  Total_LY: 0,
+  RATOON: 0,
+  RATOONII: 0,
+  AUTUMN: 0,
+  PLANT: 0,
+  Total: 0,
+  RatoonDiff: 0,
+  AUTUMNDIFF: 0,
+  PLANTDIFF: 0,
+  TotalDiff: 0
+});
+
+async function getFinalVillageFirstSurveyReport({ fCode, caneType, onlyCompleted, season, connectionSeason }) {
+  const caneAreaType = String(caneType || '').toLowerCase().includes('caneup') ? '2' : '1';
+  const procedure = caneAreaType === '2' ? 'Mis_FinalVillageGashtiAmity' : 'Mis_FinalVillage';
+  const listCode = String(fCode || '0').trim();
+  const connection = resolveConnectionSeason(season, connectionSeason);
+
+  const result = await surveyReportRepository.getFinalVillageFirstSurveyReport({
+    params: {
+      procedure,
+      queryParams: { fact: listCode, ConnectionSeason: connection }
+    },
+    season
+  });
+
+  const rows = (result?.rows || []).map(mapFinalVillageRow);
+
+  let filteredRows = rows;
+  if (onlyCompleted) {
+    const list1 = await surveyReportRepository.getFinalVillageList({ fCode: listCode, season });
+    const villages = new Set((list1 || []).map((r) => String(r?.gh_plvill)));
+    filteredRows = rows.filter((r) => villages.has(String(r?.gh_plvill)));
+  }
+
+  const totals = sumFinalVillageTotals(filteredRows);
+  const diffPer = totals.Total_LY === 0 ? totals.TotalDiff * 100 : (totals.TotalDiff / totals.Total_LY) * 100;
+  const ratoonAgainst = (totals.PLANT_LY + totals.AUTUMN_LY) === 0
+    ? totals.RATOON * 100
+    : (totals.RATOON / (totals.PLANT_LY + totals.AUTUMN_LY)) * 100;
+
+  return {
+    data: filteredRows,
+    totals: {
+      ...totals,
+      DiffPer: diffPer,
+      Ratoonagainstlastyearplant: ratoonAgainst
+    }
+  };
+}
+
+async function getFinalVillageFirstSurveySummeryReport({ caneType, userId, season, connectionSeason }) {
+  const caneAreaType = String(caneType || '').toLowerCase().includes('caneup') ? '2' : '1';
+  const procedure = caneAreaType === '2' ? 'mis_final_rpt_sumgashtiAmity' : 'mis_final_rpt_sum';
+  const connection = resolveConnectionSeason(season, connectionSeason);
+
+  const result = await surveyReportRepository.getFinalVillageFirstSurveySummeryReport({
+    params: {
+      procedure,
+      queryParams: { factuser: userId || '1', ConnectionSeason: connection }
+    },
+    season
+  });
+
+  const rows = (result?.rows || []).map(mapFinalVillageRow).map((row) => ({
+    ...row,
+    Factory: row?.Factory ?? row?.FactoryCode ?? row?.fact ?? 0,
+    FactName: row?.FactName ?? row?.FactoryName ?? row?.F_Name ?? ''
+  }));
+
+  const totals = sumFinalVillageTotals(rows);
+  const diffPer = totals.Total_LY === 0 ? totals.TotalDiff * 100 : (totals.TotalDiff / totals.Total_LY) * 100;
+  const ratoonAgainst = (totals.PLANT_LY + totals.AUTUMN_LY) === 0
+    ? totals.RATOON * 100
+    : (totals.RATOON / (totals.PLANT_LY + totals.AUTUMN_LY)) * 100;
+
+  return {
+    data: rows,
+    totals: {
+      ...totals,
+      DiffPer: diffPer,
+      Ratoonagainstlastyearplant: ratoonAgainst
+    }
+  };
+}
+
 async function getSurveyUnitWiseSurveyStatusReport({ fCode, caneType, season }) {
   const factoryCode = String(fCode || '').trim();
   const listCode = factoryCode === '0' ? '' : factoryCode;
@@ -915,6 +1061,8 @@ module.exports = {
   getCaneVierityVillageGrower,
   getWeeklySubmissionOfAutumnPlantingIndent,
   getWeeklySubmissionOfIndents,
+  getFinalVillageFirstSurveyReport,
+  getFinalVillageFirstSurveySummeryReport,
   getDailyTeamWiseSurveyProgressReport,
   getDailyTeamWiseHourlySurveyProgressReport,
   getSurveyUnitWiseSurveyStatusReport,

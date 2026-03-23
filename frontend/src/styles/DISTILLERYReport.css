@@ -2,8 +2,7 @@
 
 .distillery-report-container {
     min-height: 100vh;
-    background-color: #faf5ff;
-    /* Light purple tint representing Distillery processes */
+    background-color: #ffffff;
     padding: 2rem 1rem;
     animation: fadeIn 0.5s ease-in-out;
 }
@@ -21,9 +20,9 @@
 .distillery-table-wrapper {
     max-height: 70vh;
     overflow: auto;
-    border: 1px solid #e9d5ff;
+    border: 1px solid #cfe8cf;
     border-radius: 0.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: none;
 }
 
 .distillery-table {
@@ -36,12 +35,11 @@
     position: sticky;
     top: 0;
     z-index: 30;
-    background-color: #9333ea;
-    /* purple-600 */
-    color: #333;
+    background-color: #129a81;
+    color: #ffffff;
     font-weight: 700;
     padding: 0.75rem 1rem;
-    border-bottom: 2px solid #7e22ce;
+    border-bottom: 2px solid #0f7f6b;
     white-space: nowrap;
 }
 
@@ -49,7 +47,7 @@
     position: sticky;
     left: 0;
     z-index: 20;
-    background-color: #333;
+    background-color: #ffffff;
     border-right: 1px solid #e5e7eb;
 }
 
@@ -58,7 +56,7 @@
     left: 60px;
     /* Width of col 1 */
     z-index: 20;
-    background-color: #333;
+    background-color: #ffffff;
     border-right: 1px solid #e5e7eb;
 }
 
@@ -67,39 +65,37 @@
     left: 360px;
     /* Width of col 1 + 2 */
     z-index: 20;
-    background-color: #333;
-    border-right: 2px solid #e9d5ff;
+    background-color: #ffffff;
+    border-right: 2px solid #cfe8cf;
 }
 
 .distillery-header-sticky-col-1 {
     position: sticky;
     left: 0;
     z-index: 40;
-    background-color: #7e22ce;
-    /* Darker purple for intersection */
+    background-color: #129a81;
 }
 
 .distillery-header-sticky-col-2 {
     position: sticky;
     left: 60px;
     z-index: 40;
-    background-color: #7e22ce;
+    background-color: #129a81;
 }
 
 .distillery-header-sticky-col-3 {
     position: sticky;
     left: 360px;
     z-index: 40;
-    background-color: #7e22ce;
+    background-color: #129a81;
 }
 
 .row-bold td {
     font-weight: 700;
-    color: #4c1d95;
-    /* purple-900 */
-    background-color: #f3e8ff !important;
+    color: #0f5f52;
+    background-color: #e6f5ef !important;
 }
 
 .distillery-table tbody tr:hover td {
-    background-color: #faf5ff !important;
+    background-color: #f2fbf7 !important;
 }
