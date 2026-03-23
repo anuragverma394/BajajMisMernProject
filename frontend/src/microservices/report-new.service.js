@@ -60,14 +60,6 @@ export const reportNewService = {
         const response = await apiClient.get('/report-new/sample-of-transporter', { params });
         return response.data;
     },
-    getApiStatusReport: async (params) => {
-        const response = await apiClient.get('/report-new/api-status-report', { params });
-        return response.data;
-    },
-    resendApiStatusReport: async (params) => {
-        const response = await apiClient.get('/report-new/api-status-report-resend', { params });
-        return response.data;
-    },
 
     saveExceptionReport: async (data) => {
         const response = await apiClient.post('/new-report/exception-report-master-2', data);
@@ -82,5 +74,6 @@ export const reportNewService = {
     deleteExceptionReport: async (id) => {
         const response = await apiClient.post('/new-report/exception-report-master-2', { id, Command: 'delete' });
         return response.data;
+        
     }
 };
